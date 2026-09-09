@@ -1,0 +1,42 @@
+AVISOS DE COMPONENTES DE TERCEROS DE PROTECTEDAPP
+Actualizado: 6 de septiembre de 2026
+
+ProtectedApp se distribuye como software libre bajo GPL-3.0-or-later. Determinados componentes incluidos o instalados con el producto pertenecen a terceros y se distribuyen bajo sus propias condiciones. Esas licencias prevalecen respecto de los componentes correspondientes.
+
+1. DOKANY RUNTIME 2.3.1.1000
+
+Proyecto: https://github.com/dokan-dev/dokany
+Código fuente de la versión distribuida: https://github.com/dokan-dev/dokany/tree/v2.3.1.1000
+
+Según la clasificación publicada por Dokany:
+- dokan2.dll, dokan2.sys, dokannp2.dll, dokanfuse2.dll y el instalador Dokany: GNU Lesser General Public License, versión 3 o posterior.
+- dokanctl.exe y determinadas utilidades/muestras: licencia MIT.
+
+ProtectedApp utiliza el runtime instalado como bibliotecas y controlador separados, sin incorporar modificaciones al código de Dokany. La carpeta Legal\Licenses\Dokany contiene copias de LGPL-3.0, GPL-3.0 y la licencia MIT. La LGPL incorpora los términos de GPLv3 y protege expresamente el derecho a sustituir una versión compatible de la biblioteca y a realizar ingeniería inversa para depurar modificaciones de dicha biblioteca.
+
+2. DOKANNET 2.3.0.3
+
+Proyecto: https://github.com/dokan-dev/dokan-dotnet
+Código fuente de la versión utilizada: https://github.com/dokan-dev/dokan-dotnet/tree/e67b7afd6fa3d97ed38c88393d496ab3b1356021
+Licencia: MIT.
+
+DokanNet es el binding .NET y no debe confundirse con el runtime/driver Dokany sujeto a LGPL. El texto MIT se incluye en Legal\Licenses\DokanNet.
+
+3. MICROSOFT .NET, WINDOWS APP SDK Y DEPENDENCIAS NUGET
+
+ProtectedApp se publica de forma autocontenida con componentes de Microsoft .NET y Windows App SDK. Sus condiciones de licencia y avisos de terceros se copian sin modificar desde los paquetes exactos restaurados durante la compilación a Legal\Licenses\NuGet. Esa carpeta también contiene los textos disponibles de otras dependencias NuGet redistribuidas, como WebView2 y las extensiones LTRData utilizadas transitivamente por DokanNet.
+
+Microsoft, Windows y Windows App SDK son marcas de Microsoft Corporation. ProtectedApp no está patrocinado ni respaldado por Microsoft.
+
+4. INNO SETUP
+
+El instalador de ProtectedApp se genera con Inno Setup 7, de Jordan Russell y Martijn Laan.
+Licencia: https://jrsoftware.org/files/is/license.txt
+
+La licencia de Inno Setup permite su uso para distribuir ProtectedApp. Los avisos de copyright permanecen incorporados en el propio instalador.
+
+5. AUSENCIA DE MODIFICACIONES DE DOKANY
+
+La distribución oficial de ProtectedApp descarga el MSI oficial firmado de Dokany, comprueba su firma Authenticode y su hash SHA-256, y lo instala como componente compartido únicamente cuando no existe un runtime compatible. ProtectedApp no modifica el runtime Dokany. Si en el futuro se distribuyera una versión modificada, deberán actualizarse estos avisos y ofrecerse el código fuente correspondiente conforme a LGPL.
+
+Para comunicar una omisión en estos avisos, utilice el canal de soporte publicado con la distribución oficial de ProtectedApp.

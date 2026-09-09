@@ -1,0 +1,14 @@
+AVISO DE LICENCIA DE PROTECTEDAPP
+
+Copyright (C) 2026 The ProtectedApp contributors
+
+ProtectedApp es software libre distribuido bajo la GNU General Public License,
+versión 3 o posterior (GPL-3.0-or-later). Puedes usarlo, estudiarlo,
+modificarlo y redistribuirlo conforme a esa licencia.
+
+La copia íntegra y vinculante de la licencia se encuentra en el archivo LICENSE
+de esta distribución y en https://www.gnu.org/licenses/gpl-3.0.txt.
+
+ProtectedApp se distribuye con la esperanza de que sea útil, pero SIN NINGUNA
+GARANTÍA, ni siquiera la garantía implícita de COMERCIABILIDAD o IDONEIDAD PARA
+UN FIN DETERMINADO. Consulta la GPL para más detalles.

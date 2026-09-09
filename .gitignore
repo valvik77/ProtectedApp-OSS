@@ -1,0 +1,33 @@
+# Resultados de compilación y publicación
+[Bb]in/
+[Oo]bj/
+artifacts/
+
+# Herramientas descargadas por los scripts de compilación
+.tools/
+
+# Pruebas y diagnósticos locales
+tmp/
+TestResults/
+
+# Archivos de usuario de Visual Studio
+.vs/
+*.user
+*.suo
+
+# Material criptográfico privado
+*.pfx
+*.p12
+*.key
+*.pem
+*.snk
+*.cer
+*.crt
+
+# Configuración local y registros que nunca deben llegar a un repositorio público
+.env
+.env.*
+!.env.example
+*.log
+*.secret
+secrets/

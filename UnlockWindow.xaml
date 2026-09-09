@@ -1,0 +1,135 @@
+<Window
+    x:Class="ProtectedApp.UnlockWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Autorización requerida">
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseAlt" />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="Root" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="24" KeyDown="Root_KeyDown">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="14">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions>
+            <Grid x:Name="HeaderDragArea" Grid.ColumnSpan="2" ColumnSpacing="14">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Width="40" Height="40" CornerRadius="10" Background="{ThemeResource ControlSurfaceBrush}">
+                    <FontIcon Glyph="&#xE72E;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="17" />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock x:Name="AppNameText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="SubtitleText" Text="Introduce la contraseña para continuar" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Grid>
+            <Button Grid.Column="2"
+                    Width="26" Height="26"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,2,2,0"
+                    Padding="0"
+                    CornerRadius="13"
+                    Background="{ThemeResource CloseButtonBrush}"
+                    BorderThickness="0"
+                    Foreground="White"
+                    AutomationProperties.Name="Cerrar"
+                    ToolTipService.ToolTip="Cerrar"
+                    Click="CancelButton_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="CloseSurface"
+                                Width="{TemplateBinding Width}"
+                                Height="{TemplateBinding Height}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters><Setter Target="CloseSurface.Background" Value="{ThemeResource DangerBrush}" /></VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters><Setter Target="CloseSurface.Background" Value="{ThemeResource DangerPressedBrush}" /></VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <FontIcon Glyph="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="38" />
+            </Grid.ColumnDefinitions>
+            <PasswordBox x:Name="PasswordInput"
+                         PlaceholderText="Contraseña"
+                         PasswordRevealMode="Hidden"
+                         Foreground="{ThemeResource PrimaryTextBrush}"
+                         KeyDown="PasswordInput_KeyDown"
+                         KeyUp="PasswordInput_KeyUp"
+                         GotFocus="PasswordInput_GotFocus" />
+            <ToggleButton x:Name="RevealPasswordButton"
+                          Grid.Column="1"
+                          Width="38"
+                          Height="32"
+                          Padding="0"
+                          CornerRadius="8"
+                          Background="{ThemeResource ControlSurfaceBrush}"
+                          BorderBrush="{ThemeResource CardStrokeBrush}"
+                          BorderThickness="1"
+                          Foreground="{ThemeResource MutedTextBrush}"
+                          HorizontalContentAlignment="Center"
+                          VerticalContentAlignment="Center"
+                          AutomationProperties.Name="Mostrar contraseña"
+                          ToolTipService.ToolTip="Mostrar contraseña"
+                          Click="RevealPasswordButton_Click">
+                <FontIcon Glyph="&#xF78D;"
+                          FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                          FontSize="14" />
+            </ToggleButton>
+        </Grid>
+        <StackPanel Grid.Row="3" Spacing="3" Margin="2,7,0,0">
+            <TextBlock x:Name="CapsLockHint"
+                       Foreground="{ThemeResource WarningBrush}"
+                       FontSize="11"
+                       Text="Bloq Mayús está activado"
+                       Visibility="Collapsed" />
+            <TextBlock x:Name="ErrorText"
+                       Foreground="{ThemeResource DangerBrush}"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed" />
+        </StackPanel>
+
+        <Button x:Name="WindowsHelloButton"
+                Grid.Row="4"
+                HorizontalAlignment="Stretch"
+                Margin="0,10,0,0"
+                Style="{StaticResource RoundedDialogButtonStyle}"
+                Visibility="Collapsed"
+                Click="WindowsHelloButton_Click">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <FontIcon Glyph="&#xE890;" FontFamily="Segoe Fluent Icons" FontSize="15" Foreground="{ThemeResource AccentIndigoBrush}" />
+                <TextBlock Text="Desbloquear con Windows Hello (PIN / Biometría)" FontSize="12" FontWeight="SemiBold" />
+            </StackPanel>
+        </Button>
+
+        <Grid Grid.Row="6" ColumnSpacing="12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Button x:Name="CancelButton" Content="Cancelar" HorizontalAlignment="Stretch" Style="{StaticResource RoundedDialogButtonStyle}" Click="CancelButton_Click" />
+            <Button x:Name="UnlockButton" Grid.Column="1" Content="Desbloquear" HorizontalAlignment="Stretch" Style="{StaticResource RoundedPrimaryButtonStyle}" Click="UnlockButton_Click" />
+        </Grid>
+    </Grid>
+</Window>

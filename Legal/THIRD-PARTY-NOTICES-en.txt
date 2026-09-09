@@ -1,0 +1,42 @@
+PROTECTEDAPP THIRD-PARTY COMPONENT NOTICES
+Updated: September 6, 2026
+
+ProtectedApp is distributed as free software under GPL-3.0-or-later. Some components included with or installed by the product belong to third parties and are distributed under their own terms. Those licenses prevail for their respective components.
+
+1. DOKANY RUNTIME 2.3.1.1000
+
+Project: https://github.com/dokan-dev/dokany
+Distributed-version source: https://github.com/dokan-dev/dokany/tree/v2.3.1.1000
+
+According to Dokany’s published classification:
+- dokan2.dll, dokan2.sys, dokannp2.dll, dokanfuse2.dll, and the Dokany installer: GNU Lesser General Public License, version 3 or later.
+- dokanctl.exe and certain utilities/samples: MIT License.
+
+ProtectedApp uses the installed runtime as separate libraries and driver and does not incorporate modifications to Dokany code. Legal\Licenses\Dokany contains copies of LGPL-3.0, GPL-3.0, and the MIT license. The LGPL includes GPLv3 terms and expressly protects the right to replace a compatible library version and reverse engineer the library in order to debug modifications.
+
+2. DOKANNET 2.3.0.3
+
+Project: https://github.com/dokan-dev/dokan-dotnet
+Source used: https://github.com/dokan-dev/dokan-dotnet/tree/e67b7afd6fa3d97ed38c88393d496ab3b1356021
+License: MIT.
+
+DokanNet is the .NET binding and must not be confused with the LGPL-licensed Dokany runtime/driver. The MIT text is included in Legal\Licenses\DokanNet.
+
+3. MICROSOFT .NET, WINDOWS APP SDK, AND NUGET DEPENDENCIES
+
+ProtectedApp is published self-contained with Microsoft .NET and Windows App SDK components. Their license terms and third-party notices are copied unchanged from the exact packages restored during build into Legal\Licenses\NuGet. That folder also contains available notices for redistributed NuGet dependencies, such as WebView2 and LTRData extensions used transitively by DokanNet.
+
+Microsoft, Windows, and Windows App SDK are Microsoft Corporation trademarks. ProtectedApp is not sponsored or endorsed by Microsoft.
+
+4. INNO SETUP
+
+The ProtectedApp installer is built with Inno Setup 7 by Jordan Russell and Martijn Laan.
+License: https://jrsoftware.org/files/is/license.txt
+
+The Inno Setup license permits its use to distribute ProtectedApp. Copyright notices remain incorporated in the installer.
+
+5. NO DOKANY MODIFICATIONS
+
+The official ProtectedApp distribution downloads Dokany’s official signed MSI, checks its Authenticode signature and SHA-256 hash, and installs it as a shared component only when no compatible runtime exists. ProtectedApp does not modify the Dokany runtime. If a modified version is ever distributed, these notices must be updated and source code made available as required by the LGPL.
+
+To report an omission in these notices, use the support channel published with the official ProtectedApp distribution.

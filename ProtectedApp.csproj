@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>ProtectedApp</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\ProtectedApp.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <Version>1.4.126</Version>
+    <AssemblyVersion>1.4.126.0</AssemblyVersion>
+    <FileVersion>1.4.126.0</FileVersion>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DefaultItemExcludes>$(DefaultItemExcludes);ProtectedApp.Service\**;ProtectedApp.Gate\**;ProtectedApp.ShellExtension\**;ProtectedApp.Guardian.Tests\**;ProtectedApp.Vault.Tests\**;tmp\**</DefaultItemExcludes>
+    <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
+    <PackageReference Include="System.Management" Version="10.0.12" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.12" />
+    <PackageReference Include="DokanNet" Version="2.3.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="LICENSE" />
+    <Content Include="LICENSE">
+      <Link>Legal\LICENSE</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Assets\BrandShield.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\ProtectedApp.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\VaultFile.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\ProtectedFolderIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\ProtectedFolderUnlockedIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Legal\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Windows App SDK 2.x does not copy loose XAML/PRI artifacts when this
+       unpackaged WinUI project is published from the CLI. Keep them beside
+       the executable; otherwise Microsoft.UI.Xaml fails during startup. -->
+  <Target Name="CopyLooseWinUIResourcesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <LooseWinUIResource Include="$(TargetDir)*.xbf" />
+      <LooseWinUIResource Include="$(TargetDir)$(AssemblyName).pri" />
+      <LooseWinUIResource Include="$(IntermediateOutputPath)embed\*.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(LooseWinUIResource)"
+          DestinationFolder="$(PublishDir)"
+          OverwriteReadOnlyFiles="true"
+          SkipUnchangedFiles="false"
+          Condition="Exists('%(FullPath)')" />
+  </Target>
+
+  <Target Name="PublishGuardianService" AfterTargets="Publish" Condition="'$(PublishGuardianService)' != 'false'">
+    <PropertyGroup>
+      <GuardianServicePublishDir Condition="'$(GuardianServicePublishDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\$(PublishDir)Service\'))</GuardianServicePublishDir>
+    </PropertyGroup>
+    <MSBuild Projects="ProtectedApp.Service\ProtectedApp.Service.csproj"
+             Targets="Restore;Publish"
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;PublishDir=$(GuardianServicePublishDir)" />
+    <MSBuild Projects="ProtectedApp.Gate\ProtectedApp.Gate.csproj"
+             Targets="Restore;Publish"
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;PublishDir=$(GuardianServicePublishDir)" />
+    <ItemGroup>
+      <GuardianServiceScript Include="ProtectedApp.Service\Install-Service.ps1" />
+      <GuardianServiceScript Include="ProtectedApp.Service\Integrity-Transaction.ps1" />
+      <GuardianServiceScript Include="ProtectedApp.Service\Remove-Service.ps1" />
+      <GuardianServiceScript Include="ProtectedApp.Service\Update-Installed-Service.ps1" />
+    </ItemGroup>
+    <Copy SourceFiles="@(GuardianServiceScript)"
+          DestinationFolder="$(GuardianServicePublishDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>
