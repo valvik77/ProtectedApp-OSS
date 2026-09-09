@@ -4,6 +4,9 @@ Aplicación WinUI 3 para proteger aplicaciones de escritorio y bóvedas cifradas
 en Windows. Guardian detecta los procesos configurados, impide su uso hasta
 validar la contraseña y los inicia de nuevo cuando la autorización es correcta.
 
+La política de versiones, aprobaciones y firma pública está en
+[Code signing policy](CODE-SIGNING-POLICY.md).
+
 El inicio automático (`--background`, `--service-managed` o `--recovered`) es siempre silencioso: mantiene oculto el panel y no solicita crear, recuperar ni introducir la contraseña maestra. Esas acciones se reanudan únicamente cuando el usuario abre ProtectedApp de forma interactiva desde su acceso directo o el icono del área de notificación.
 
 La pantalla **Añadir** muestra aplicaciones de escritorio detectadas en el Registro de Windows y permite buscarlas o seleccionar manualmente archivos `.exe`, `.bat` y `.py`. Cuando se intercepta un programa o script, ProtectedApp mantiene oculto el panel de gestión y muestra únicamente una ventana independiente de contraseña.
