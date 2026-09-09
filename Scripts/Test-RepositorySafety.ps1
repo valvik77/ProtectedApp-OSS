@@ -8,7 +8,7 @@ if ($LASTEXITCODE -ne 0) {
     throw 'No se pudo enumerar los archivos controlados por Git para la auditoría.'
 }
 
-$forbiddenPathPattern = '(?i)(^|/)(secrets?/|\.env(?:\.|$)|[^/]+\.(pfx|p12|pem|key|snk|cer|crt)$)'
+$forbiddenPathPattern = '(?i)(^|/)(secrets?/|\.env(?:\.|$)|[^/]+\.(secret|pfx|p12|pem|key|snk|cer|crt)$)'
 $privateKeyPattern = '-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----'
 $tokenPatterns = @(
     'gh[pousr]_[A-Za-z0-9_]{20,}',
@@ -20,7 +20,9 @@ $findings = [Collections.Generic.List[string]]::new()
 
 foreach ($relativePath in $trackedFiles) {
     $normalizedPath = $relativePath.Replace('\', '/')
-    if ($normalizedPath -match $forbiddenPathPattern) {
+    # .env.example is the sole tracked configuration template allowed by .gitignore.
+    $isAllowedExample = $normalizedPath -eq '.env.example'
+    if (-not $isAllowedExample -and $normalizedPath -match $forbiddenPathPattern) {
         $findings.Add("Archivo privado o secreto controlado por Git: $normalizedPath")
         continue
     }
