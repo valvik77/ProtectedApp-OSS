@@ -31,17 +31,23 @@ se firman binarios de terceros con el certificado del proyecto. Las versiones
 publicadas incluyen las notas de versión, hashes SHA-256 y, cuando esté
 disponible, la comprobación Authenticode correspondiente.
 
-Las claves privadas no se guardan en Git, en artefactos de CI ni en equipos de
-desarrollo. La configuración de firma, el cambio de certificado y la validación
+Las claves privadas de firma pública o de lanzamiento no se guardan en Git, en
+artefactos de CI ni en equipos de desarrollo. La firma local de desarrollo usa
+un certificado autofirmado con clave privada en el almacén del usuario solo para
+pruebas; ese certificado se excluye de Git y sus binarios no son versiones
+oficiales. La configuración de firma, el cambio de certificado y la validación
 de actualizaciones están documentados en [SIGNING.md](SIGNING.md).
 
 ## Privacidad y comunicaciones de red
 
-ProtectedApp no transmite información a sistemas en red salvo que la persona
-que lo instala u opera configure expresamente el webhook opcional de alertas de
-manipulación. Ese webhook HTTPS envía únicamente los datos descritos en el
-README. Las actualizaciones se seleccionan manualmente desde un archivo local;
-la aplicación no descarga ni instala actualizaciones automáticamente.
+ProtectedApp no envía telemetría ni información de usuario a sistemas en red.
+La persona que lo instala u opera puede configurar expresamente el webhook
+opcional de alertas de manipulación; ese webhook HTTPS envía únicamente los
+datos descritos en el README. Al validar la firma Authenticode de una
+actualización seleccionada manualmente, Windows puede consultar los servicios
+de revocación del emisor del certificado (OCSP o CRL), según la configuración de
+red y seguridad del sistema. Las actualizaciones se seleccionan desde un
+archivo local; la aplicación no las descarga ni instala automáticamente.
 
 ## Comunicación de problemas
 
