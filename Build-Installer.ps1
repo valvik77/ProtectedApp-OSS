@@ -36,6 +36,43 @@ $dokanyFolder = Join-Path $toolsFolder 'Dokany'
 $dokanyMsi = Join-Path $dokanyFolder "Dokan_x64_$dokanyVersion.msi"
 $dokanyUrl = "https://github.com/dokan-dev/dokany/releases/download/v$dokanyVersion/Dokan_x64.msi"
 
+function Invoke-ResilientWebRequest
+{
+    param(
+        [Parameter(Mandatory)][string]$Uri,
+        [string]$OutFile,
+        [ValidateRange(1, 10)][int]$MaximumAttempts = 4
+    )
+
+    $lastError = $null
+    for ($attempt = 1; $attempt -le $MaximumAttempts; $attempt++) {
+        $temporaryPath = if ($OutFile) { "$OutFile.download.$PID.$attempt" } else { $null }
+        try {
+            if ($OutFile) {
+                Invoke-WebRequest -Uri $Uri -OutFile $temporaryPath -UseBasicParsing -TimeoutSec 90
+                Move-Item -LiteralPath $temporaryPath -Destination $OutFile -Force
+                return
+            }
+
+            return (Invoke-WebRequest -Uri $Uri -UseBasicParsing -TimeoutSec 90).Content
+        }
+        catch {
+            $lastError = $_
+            if ($temporaryPath -and (Test-Path -LiteralPath $temporaryPath)) {
+                Remove-Item -LiteralPath $temporaryPath -Force
+            }
+
+            if ($attempt -lt $MaximumAttempts) {
+                $delaySeconds = [Math]::Min(30, 2 * [Math]::Pow(2, $attempt - 1))
+                Write-Warning "No se pudo descargar $Uri (intento $attempt de $MaximumAttempts). Reintentando en $delaySeconds segundos..."
+                Start-Sleep -Seconds $delaySeconds
+            }
+        }
+    }
+
+    throw "No se pudo descargar $Uri después de $MaximumAttempts intentos. $($lastError.Exception.Message)"
+}
+
 function Save-VerifiedLegalText
 {
     param(
@@ -45,7 +82,7 @@ function Save-VerifiedLegalText
     )
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        $content = (Invoke-WebRequest -Uri $Uri -UseBasicParsing).Content
+        $content = Invoke-ResilientWebRequest -Uri $Uri
         $parent = Split-Path -Parent $Path
         New-Item -ItemType Directory -Path $parent -Force | Out-Null
         [IO.File]::WriteAllText($Path, $content, [Text.UTF8Encoding]::new($false))
@@ -221,7 +258,7 @@ $publishFolder = Join-Path $artifactsFolder $PublishDirectoryName
 New-Item -ItemType Directory -Path $dokanyFolder -Force | Out-Null
 if (-not (Test-Path -LiteralPath $dokanyMsi -PathType Leaf)) {
     Write-Host "Descargando Dokany $dokanyVersion desde la publicación oficial..."
-    Invoke-WebRequest -Uri $dokanyUrl -OutFile $dokanyMsi
+    Invoke-ResilientWebRequest -Uri $dokanyUrl -OutFile $dokanyMsi
 }
 
 $dokanyHash = (Get-FileHash -LiteralPath $dokanyMsi -Algorithm SHA256).Hash
@@ -492,7 +529,7 @@ if (-not (Test-Path -LiteralPath $iscc)) {
     $bootstrapper = Join-Path $toolsFolder 'innosetup-7.1.0-x64.exe'
     if (-not (Test-Path -LiteralPath $bootstrapper)) {
         Write-Host 'Descargando el compilador oficial Inno Setup 7.1.0 x64...'
-        Invoke-WebRequest `
+        Invoke-ResilientWebRequest `
             -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-7_1_0/innosetup-7.1.0-x64.exe' `
             -OutFile $bootstrapper
     }
