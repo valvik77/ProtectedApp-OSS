@@ -13,8 +13,8 @@ jobs:
   verify:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: '10.0.x'
       - name: Restore
@@ -25,5 +25,7 @@ jobs:
         run: dotnet test ProtectedApp.Guardian.Tests/ProtectedApp.Guardian.Tests.csproj -c Release --no-restore --nologo; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; dotnet test ProtectedApp.Vault.Tests/ProtectedApp.Vault.Tests.csproj -c Release --no-restore --nologo
       - name: Dependency audit
         run: ./Scripts/Test-OpenSourceRelease.ps1
+      - name: Repository safety audit
+        run: ./Scripts/Test-RepositorySafety.ps1
       - name: Validate development installer (not for public distribution)
         run: ./Build-Installer.ps1 -AllowUnsignedDevelopmentBuild
