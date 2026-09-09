@@ -1,10 +1,8 @@
 # ProtectedApp
 
-Al cambiar la contraseña de una bóveda PAVLT003 se genera una clave de datos
-nueva y se vuelven a cifrar sus bloques. Las copias anteriores conservan su
-contraseña original y deben revisarse si esa contraseña se ha filtrado.
-
-Aplicación WinUI 3 para proteger el arranque de programas de escritorio mediante contraseña. Detecta procesos configurados, los cierra, solicita autorización y los vuelve a ejecutar cuando la clave es correcta.
+Aplicación WinUI 3 para proteger aplicaciones de escritorio y bóvedas cifradas
+en Windows. Guardian detecta los procesos configurados, impide su uso hasta
+validar la contraseña y los inicia de nuevo cuando la autorización es correcta.
 
 El inicio automático (`--background`, `--service-managed` o `--recovered`) es siempre silencioso: mantiene oculto el panel y no solicita crear, recuperar ni introducir la contraseña maestra. Esas acciones se reanudan únicamente cuando el usuario abre ProtectedApp de forma interactiva desde su acceso directo o el icono del área de notificación.
 
