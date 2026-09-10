@@ -93,7 +93,7 @@ binary release is available until its signing process has been configured and
 approved. Unsigned workflow artifacts are internal review candidates and must
 not be downloaded or distributed as releases.
 
-The project's [Code signing policy](CODE-SIGNING-POLICY.md) describes signing
+The project's [Code signing policy](CODE-SIGNING-POLICY.en.md) describes signing
 roles, privacy, release approval, and the intended SignPath integration.
 
 ## Privacy
