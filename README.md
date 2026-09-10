@@ -8,6 +8,8 @@ La política de versiones, aprobaciones y firma pública está en
 [Code signing policy](CODE-SIGNING-POLICY.md).
 El alcance, límites y cambios realizados en Windows están documentados en el
 [modelo de seguridad](SECURITY-MODEL.md).
+El proceso para producir, verificar y publicar versiones está en
+[RELEASING.md](RELEASING.md).
 
 El inicio automático (`--background`, `--service-managed` o `--recovered`) es siempre silencioso: mantiene oculto el panel y no solicita crear, recuperar ni introducir la contraseña maestra. Esas acciones se reanudan únicamente cuando el usuario abre ProtectedApp de forma interactiva desde su acceso directo o el icono del área de notificación.
 

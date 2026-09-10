@@ -10,6 +10,19 @@ $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.
 if ($digest -ne '3743F7A4AB5132F7DBEB88E68097657AB8374E74B46B6402EFBE80CCFB1B6488') {
     throw 'LICENSE differs from the verified GPL reference.'
 }
+
+$sbomPath = Join-Path ([IO.Path]::GetTempPath()) "ProtectedApp-sbom-$PID.spdx.json"
+try {
+    & .\Scripts\New-ReleaseSbom.ps1 -Version '1.0.0' -OutputPath $sbomPath
+    $sbom = Get-Content -LiteralPath $sbomPath -Raw | ConvertFrom-Json
+    if ($sbom.spdxVersion -ne 'SPDX-2.3' -or $sbom.packages.Count -lt 2 -or $sbom.packages[0].name -ne 'ProtectedApp') {
+        throw 'Generated SBOM has an unexpected structure.'
+    }
+}
+finally {
+    Remove-Item -LiteralPath $sbomPath -Force -ErrorAction SilentlyContinue
+}
+
 $output = & dotnet list ProtectedApp.sln package --vulnerable --include-transitive --format json
 if ($LASTEXITCODE -ne 0) { throw 'Dependency audit failed.' }
 $report = ($output -join "`n") | ConvertFrom-Json
