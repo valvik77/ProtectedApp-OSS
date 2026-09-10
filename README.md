@@ -30,7 +30,7 @@ unlocked device. Use it alongside BitLocker, Secure Boot, Windows accounts,
 backups, and—where appropriate—tested App Control for Business/WDAC policies.
 
 The complete scope, system changes, network behavior, and limitations are in
-the [security model](SECURITY-MODEL.md).
+the [security model](SECURITY-MODEL.en.md).
 
 ## Getting started
 
@@ -85,7 +85,7 @@ is not an official public release and Windows security policies may block it.
 ## Releases, signatures, and verification
 
 The release process, checksums, SBOM, provenance, and publication instructions
-are documented in [RELEASING.md](RELEASING.md). Current releases can be found
+are documented in [RELEASING.en.md](RELEASING.en.md). Current releases can be found
 on the [GitHub Releases page](https://github.com/valvik77/ProtectedApp-OSS/releases).
 
 Before SignPath approval, releases are visibly marked as unsigned pre-SignPath
@@ -104,11 +104,11 @@ selects a local update, Windows may contact certificate-revocation services
 
 ## Security reports and contributions
 
-Please read [SECURITY.md](SECURITY.md) before reporting a vulnerability. Use
+Please read [SECURITY.en.md](SECURITY.en.md) before reporting a vulnerability. Use
 GitHub's private vulnerability reporting rather than a public issue for security
-reports. Contribution guidance is available in [CONTRIBUTING.md](CONTRIBUTING.md).
+reports. Contribution guidance is available in [CONTRIBUTING.en.md](CONTRIBUTING.en.md).
 
 ## License
 
 ProtectedApp is free software under [GPL-3.0-or-later](LICENSE). Third-party
-notices are available in [Legal/THIRD-PARTY-NOTICES.txt](Legal/THIRD-PARTY-NOTICES.txt).
+notices are available in [Legal/THIRD-PARTY-NOTICES.en.txt](Legal/THIRD-PARTY-NOTICES.en.txt).
