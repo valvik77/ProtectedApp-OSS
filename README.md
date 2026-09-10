@@ -76,11 +76,14 @@ dotnet test ProtectedApp.Vault.Tests\ProtectedApp.Vault.Tests.csproj -c Release 
 To create a local development installer:
 
 ```powershell
-.\Build-Installer.ps1 -InstallerVersion 1.4.185 -AllowUnsignedDevelopmentBuild
+.\Build-Installer.ps1 -AllowUnsignedDevelopmentBuild
 ```
 
-That switch is intentionally explicit. An unsigned or development-signed build
-is not an official public release and Windows security policies may block it.
+The script assigns a new installer version automatically for each local build.
+Do not reuse an installer version: Explorer can retain a versioned shell-
+extension DLL and reject an otherwise valid replacement. The unsigned-build
+switch is intentionally explicit. An unsigned or development-signed build is
+not an official public release and Windows security policies may block it.
 
 ## Releases, signatures, and verification
 
