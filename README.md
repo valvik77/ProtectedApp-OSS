@@ -112,4 +112,4 @@ reports. Contribution guidance is available in [CONTRIBUTING.en.md](CONTRIBUTING
 ## License
 
 ProtectedApp is free software under [GPL-3.0-or-later](LICENSE). Third-party
-notices are available in [Legal/THIRD-PARTY-NOTICES.en.txt](Legal/THIRD-PARTY-NOTICES.en.txt).
+notices are available in [Legal/THIRD-PARTY-NOTICES-en.txt](Legal/THIRD-PARTY-NOTICES-en.txt).

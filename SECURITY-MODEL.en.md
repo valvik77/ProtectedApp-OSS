@@ -47,7 +47,7 @@ install updates automatically.
 Official releases are built by GitHub Actions, pass builds, tests, dependency and
 repository audits, and are published with hashes. Public signing keys are never
 stored in the repository or development computers. See the [Code signing
-policy](CODE-SIGNING-POLICY.md) and [SIGNING.en.md](SIGNING.en.md) for signing and
+policy](CODE-SIGNING-POLICY.en.md) and [SIGNING.en.md](SIGNING.en.md) for signing and
 approval details.
 
 ## Reporting issues
