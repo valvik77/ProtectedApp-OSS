@@ -93,7 +93,7 @@ binary release is available until its signing process has been configured and
 approved. Unsigned workflow artifacts are internal review candidates and must
 not be downloaded or distributed as releases.
 
-The project's [Code signing policy](CODE-SIGNING-POLICY.md) describes signing
+The project's [Code signing policy](CODE-SIGNING-POLICY.en.md) describes signing
 roles, privacy, release approval, and the intended SignPath integration.
 
 ## Privacy
@@ -112,4 +112,4 @@ reports. Contribution guidance is available in [CONTRIBUTING.en.md](CONTRIBUTING
 ## License
 
 ProtectedApp is free software under [GPL-3.0-or-later](LICENSE). Third-party
-notices are available in [Legal/THIRD-PARTY-NOTICES.en.txt](Legal/THIRD-PARTY-NOTICES.en.txt).
+notices are available in [Legal/THIRD-PARTY-NOTICES-en.txt](Legal/THIRD-PARTY-NOTICES-en.txt).
