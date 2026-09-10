@@ -21,6 +21,6 @@ See the installation and uninstall sections in [README.md](../README.md).
 
 ## Code signing policy
 
-[Code signing policy](../CODE-SIGNING-POLICY.md). Free code signing provided
+[Code signing policy](../CODE-SIGNING-POLICY.en.md). Free code signing provided
 by SignPath.io, certificate by SignPath Foundation, applies only once the
 Foundation approves the project and the release has completed its signing flow.
