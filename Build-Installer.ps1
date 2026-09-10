@@ -104,6 +104,11 @@ function Copy-DistributionLegalFiles
         throw 'Faltan la licencia GPL o los avisos de terceros requeridos para distribuir ProtectedApp.'
     }
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+    $normalizedProjectLicense = ([IO.File]::ReadAllText($projectLicense)).Replace("`r`n", "`n").Trim()
+    $projectLicenseDigest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($normalizedProjectLicense)))
+    if ($projectLicenseDigest -ne '3743F7A4AB5132F7DBEB88E68097657AB8374E74B46B6402EFBE80CCFB1B6488') {
+        throw 'La licencia GPL incluida no coincide con el texto verificado.'
+    }
     Copy-Item -LiteralPath $projectLicense -Destination (Join-Path $Destination 'LICENSE') -Force
     Copy-Item -LiteralPath (Join-Path $sourceLegal 'THIRD-PARTY-NOTICES.txt') -Destination $Destination -Force
 
@@ -111,9 +116,10 @@ function Copy-DistributionLegalFiles
     Save-VerifiedLegalText -Uri 'https://raw.githubusercontent.com/dokan-dev/dokany/v2.3.1.1000/license.lgpl.txt' `
         -Path (Join-Path $dokanyLicenses 'LGPL-3.0.txt') `
         -ExpectedSha256 'A853C2FFEC17057872340EEE242AE4D96CBF2B520AE27D903E1B2FEF1A5F9D1C'
-    Save-VerifiedLegalText -Uri 'https://www.gnu.org/licenses/gpl-3.0.txt' `
-        -Path (Join-Path $dokanyLicenses 'GPL-3.0.txt') `
-        -ExpectedSha256 '3972DC9744F6499F0F9B2DBF76696F2AE7AD8AF9B23DDE66D6AF86C9DFB36986'
+    # Dokany is GPL-3.0-or-later. Reuse the GPL-3.0 text already reviewed and
+    # shipped at the project root so an installer build never depends on GNU's
+    # website being reachable.
+    Copy-Item -LiteralPath $projectLicense -Destination (Join-Path $dokanyLicenses 'GPL-3.0.txt') -Force
     Save-VerifiedLegalText -Uri 'https://raw.githubusercontent.com/dokan-dev/dokany/v2.3.1.1000/license.mit.txt' `
         -Path (Join-Path $dokanyLicenses 'MIT.txt') `
         -ExpectedSha256 '7C7007FC460A096242DF72182DA1158536E62B170DEA738D338BB6EBB394B27C'

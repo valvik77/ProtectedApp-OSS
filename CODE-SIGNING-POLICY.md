@@ -19,10 +19,10 @@ desarrollo local es una versión oficial ni debe distribuirse como tal.
 - Las contribuciones de personas sin permiso de escritura se realizan mediante
   pull request y se revisan antes de integrarse en `main`.
 
-La rama `main` exige pull request y CI; las versiones solo se generan desde una
-revisión etiquetada y revisada. Los artefactos deben proceder de GitHub-hosted
-Actions, superar compilación, pruebas y auditoría de dependencias, y conservar
-su procedencia verificable.
+Los cambios se revisan mediante pull request siempre que sea posible. Las
+versiones solo se generan desde una revisión etiquetada y revisada. Los
+artefactos deben proceder de GitHub-hosted Actions, superar compilación,
+pruebas y auditoría de dependencias, y conservar su procedencia verificable.
 
 ## Alcance de la firma
 

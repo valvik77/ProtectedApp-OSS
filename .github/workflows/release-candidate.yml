@@ -1,0 +1,71 @@
+name: Release candidate
+
+on:
+  push:
+    tags: ['v*']
+
+# This workflow produces a reviewable, unsigned candidate only. It must not
+# publish a GitHub Release. Public releases are created only after SignPath
+# origin verification and manual signing approval are configured.
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+jobs:
+  build-candidate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') { throw "Versión no válida: $version" }
+          "value=$version" >> $env:GITHUB_OUTPUT
+      - name: Restore
+        run: dotnet restore ProtectedApp.sln
+      - name: Build
+        run: dotnet build ProtectedApp.sln -c Release --no-restore -warnaserror
+      - name: Test
+        shell: pwsh
+        run: dotnet test ProtectedApp.Guardian.Tests/ProtectedApp.Guardian.Tests.csproj -c Release --no-restore --nologo; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; dotnet test ProtectedApp.Vault.Tests/ProtectedApp.Vault.Tests.csproj -c Release --no-restore --nologo
+      - name: Audit source and dependencies
+        shell: pwsh
+        run: ./Scripts/Test-OpenSourceRelease.ps1; ./Scripts/Test-RepositorySafety.ps1
+      - name: Build unsigned review candidate
+        shell: pwsh
+        run: ./Build-Installer.ps1 -InstallerVersion '${{ steps.version.outputs.value }}' -AllowUnsignedDevelopmentBuild
+      - name: Generate SBOM and checksums
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          $setup = "artifacts/installer/ProtectedApp-Setup-x64-$version.exe"
+          ./Scripts/New-ReleaseSbom.ps1 -Version $version -OutputPath "artifacts/release/ProtectedApp-$version.spdx.json"
+          Get-FileHash -Algorithm SHA256 -Path @($setup, "artifacts/release/ProtectedApp-$version.spdx.json") |
+            ForEach-Object { "{0} *{1}" -f $_.Hash, (Split-Path -Leaf $_.Path) } |
+            Set-Content -LiteralPath "artifacts/release/ProtectedApp-$version.sha256" -Encoding utf8NoBOM
+      - name: Attest installer provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: artifacts/installer/ProtectedApp-Setup-x64-${{ steps.version.outputs.value }}.exe
+      - name: Attest SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: artifacts/installer/ProtectedApp-Setup-x64-${{ steps.version.outputs.value }}.exe
+          sbom-path: artifacts/release/ProtectedApp-${{ steps.version.outputs.value }}.spdx.json
+      - name: Upload review artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ProtectedApp-${{ steps.version.outputs.value }}-unsigned-review-candidate
+          path: |
+            artifacts/installer/ProtectedApp-Setup-x64-${{ steps.version.outputs.value }}.exe
+            artifacts/release/ProtectedApp-${{ steps.version.outputs.value }}.spdx.json
+            artifacts/release/ProtectedApp-${{ steps.version.outputs.value }}.sha256
+          if-no-files-found: error
+          retention-days: 14
