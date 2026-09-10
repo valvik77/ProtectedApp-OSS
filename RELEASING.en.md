@@ -43,7 +43,7 @@ attached to the release:
 $installer = '.\ProtectedApp-Setup-x64-M.m.r.exe'
 $hash = Get-FileHash -LiteralPath $installer -Algorithm SHA256
 "{0} *{1}" -f $hash.Hash, (Split-Path -Leaf $installer) |
-  Set-Content -LiteralPath '.\ProtectedApp-Setup-x64-M.m.r.sha256' -Encoding utf8NoBOM
+  Set-Content -LiteralPath '.\ProtectedApp-M.m.r.sha256' -Encoding utf8NoBOM
 ```
 
 ## Verifying a download
@@ -60,7 +60,7 @@ installer. When reviewing that internal candidate with GitHub CLI, restrict the
 identity to this repository:
 
 ```powershell
-gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --owner valvik77 --repo valvik77/ProtectedApp-OSS
+gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --repo valvik77/ProtectedApp-OSS
 ```
 
 ## Maintainer accounts

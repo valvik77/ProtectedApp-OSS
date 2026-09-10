@@ -41,7 +41,7 @@ adjuntará a la release:
 $installer = '.\ProtectedApp-Setup-x64-M.m.r.exe'
 $hash = Get-FileHash -LiteralPath $installer -Algorithm SHA256
 "{0} *{1}" -f $hash.Hash, (Split-Path -Leaf $installer) |
-  Set-Content -LiteralPath '.\ProtectedApp-Setup-x64-M.m.r.sha256' -Encoding utf8NoBOM
+  Set-Content -LiteralPath '.\ProtectedApp-M.m.r.sha256' -Encoding utf8NoBOM
 ```
 
 ## Verificar una descarga
@@ -57,7 +57,7 @@ al candidato interno sin firma, no al instalador firmado posterior. Para revisar
 ese candidato interno con GitHub CLI, limita la identidad a este repositorio:
 
 ```powershell
-gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --owner valvik77 --repo valvik77/ProtectedApp-OSS
+gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --repo valvik77/ProtectedApp-OSS
 ```
 
 ## Cuentas de mantenimiento
