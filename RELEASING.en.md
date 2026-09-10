@@ -60,7 +60,7 @@ installer. When reviewing that internal candidate with GitHub CLI, restrict the
 identity to this repository:
 
 ```powershell
-gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --owner valvik77 --repo valvik77/ProtectedApp-OSS
+gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --repo valvik77/ProtectedApp-OSS
 ```
 
 ## Maintainer accounts

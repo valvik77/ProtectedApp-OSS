@@ -57,7 +57,7 @@ al candidato interno sin firma, no al instalador firmado posterior. Para revisar
 ese candidato interno con GitHub CLI, limita la identidad a este repositorio:
 
 ```powershell
-gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --owner valvik77 --repo valvik77/ProtectedApp-OSS
+gh attestation verify .\ProtectedApp-Setup-x64-M.m.r.exe --repo valvik77/ProtectedApp-OSS
 ```
 
 ## Cuentas de mantenimiento
