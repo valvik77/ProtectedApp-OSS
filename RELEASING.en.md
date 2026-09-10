@@ -9,12 +9,11 @@ review. It also generates an SPDX SBOM, a SHA-256 checksum file, and GitHub
 provenance attestations.
 
 The workflow does not publish a GitHub Release automatically. Until SignPath is
-configured, there is no signed public release of ProtectedApp. A clearly marked
-**unsigned pre-SignPath prerelease** may be published for review and project
-verification, but it must not be presented as a signed or trusted release.
-After SignPath Foundation approves the project, signing must be limited to
-`main` and version tags, use origin verification, and require the manual
-approval described in the [Code signing policy](CODE-SIGNING-POLICY.md).
+configured, there is no public binary release of ProtectedApp. Its unsigned
+artifacts are internal review candidates only and must not be published or
+distributed. After SignPath Foundation approves the project, signing must be
+limited to `main` and version tags, use origin verification, and require the
+manual approval described in the [Code signing policy](CODE-SIGNING-POLICY.md).
 
 ## Signed release sequence
 

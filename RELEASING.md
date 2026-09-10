@@ -7,10 +7,9 @@ firma para su revisión interna. También genera un SBOM SPDX, un archivo de
 hashes SHA-256 y atestaciones de procedencia de GitHub.
 
 El flujo no publica automáticamente una GitHub Release. Hasta que SignPath esté
-configurado, no existe una versión pública firmada de ProtectedApp. Puede
-publicarse una **pre-release pre-SignPath sin firma** claramente identificada
-para revisión y verificación del proyecto, pero nunca debe presentarse como una
-versión firmada o de confianza. Cuando SignPath Foundation haya aprobado el
+configurado, no existe una versión binaria pública de ProtectedApp. Sus
+artefactos sin firma son únicamente candidatos internos de revisión y no deben
+publicarse ni distribuirse. Cuando SignPath Foundation haya aprobado el
 proyecto, el flujo de firma debe estar limitado a `main` y a etiquetas de
 versión, usar su verificación de origen y requerir la aprobación manual indicada
 en la [Code signing policy](CODE-SIGNING-POLICY.md).

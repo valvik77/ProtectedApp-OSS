@@ -88,12 +88,10 @@ not an official public release and Windows security policies may block it.
 ## Releases, signatures, and verification
 
 The release process, checksums, SBOM, provenance, and publication instructions
-are documented in [RELEASING.en.md](RELEASING.en.md). Current releases can be found
-on the [GitHub Releases page](https://github.com/valvik77/ProtectedApp-OSS/releases).
-
-Before SignPath approval, releases are visibly marked as unsigned pre-SignPath
-builds. Verify their SHA-256 checksum before running them. Do not rely on an
-unsigned build for a sensitive environment.
+are documented in [RELEASING.en.md](RELEASING.en.md). No public ProtectedApp
+binary release is available until its signing process has been configured and
+approved. Unsigned workflow artifacts are internal review candidates and must
+not be downloaded or distributed as releases.
 
 The project's [Code signing policy](CODE-SIGNING-POLICY.md) describes signing
 roles, privacy, release approval, and the intended SignPath integration.
