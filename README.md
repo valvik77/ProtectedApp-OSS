@@ -30,7 +30,7 @@ unlocked device. Use it alongside BitLocker, Secure Boot, Windows accounts,
 backups, and—where appropriate—tested App Control for Business/WDAC policies.
 
 The complete scope, system changes, network behavior, and limitations are in
-the [security model](SECURITY-MODEL.md).
+the [security model](SECURITY-MODEL.en.md).
 
 ## Getting started
 
@@ -76,21 +76,22 @@ dotnet test ProtectedApp.Vault.Tests\ProtectedApp.Vault.Tests.csproj -c Release 
 To create a local development installer:
 
 ```powershell
-.\Build-Installer.ps1 -InstallerVersion 1.4.185 -AllowUnsignedDevelopmentBuild
+.\Build-Installer.ps1 -AllowUnsignedDevelopmentBuild
 ```
 
-That switch is intentionally explicit. An unsigned or development-signed build
-is not an official public release and Windows security policies may block it.
+The script assigns a new installer version automatically for each local build.
+Do not reuse an installer version: Explorer can retain a versioned shell-
+extension DLL and reject an otherwise valid replacement. The unsigned-build
+switch is intentionally explicit. An unsigned or development-signed build is
+not an official public release and Windows security policies may block it.
 
 ## Releases, signatures, and verification
 
 The release process, checksums, SBOM, provenance, and publication instructions
-are documented in [RELEASING.md](RELEASING.md). Current releases can be found
-on the [GitHub Releases page](https://github.com/valvik77/ProtectedApp-OSS/releases).
-
-Before SignPath approval, releases are visibly marked as unsigned pre-SignPath
-builds. Verify their SHA-256 checksum before running them. Do not rely on an
-unsigned build for a sensitive environment.
+are documented in [RELEASING.en.md](RELEASING.en.md). No public ProtectedApp
+binary release is available until its signing process has been configured and
+approved. Unsigned workflow artifacts are internal review candidates and must
+not be downloaded or distributed as releases.
 
 The project's [Code signing policy](CODE-SIGNING-POLICY.md) describes signing
 roles, privacy, release approval, and the intended SignPath integration.
@@ -104,11 +105,11 @@ selects a local update, Windows may contact certificate-revocation services
 
 ## Security reports and contributions
 
-Please read [SECURITY.md](SECURITY.md) before reporting a vulnerability. Use
+Please read [SECURITY.en.md](SECURITY.en.md) before reporting a vulnerability. Use
 GitHub's private vulnerability reporting rather than a public issue for security
-reports. Contribution guidance is available in [CONTRIBUTING.md](CONTRIBUTING.md).
+reports. Contribution guidance is available in [CONTRIBUTING.en.md](CONTRIBUTING.en.md).
 
 ## License
 
 ProtectedApp is free software under [GPL-3.0-or-later](LICENSE). Third-party
-notices are available in [Legal/THIRD-PARTY-NOTICES.txt](Legal/THIRD-PARTY-NOTICES.txt).
+notices are available in [Legal/THIRD-PARTY-NOTICES.en.txt](Legal/THIRD-PARTY-NOTICES.en.txt).

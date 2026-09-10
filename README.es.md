@@ -136,9 +136,12 @@ La compilación de `ProtectedApp.csproj` individual ya selecciona `win-x64` por 
 Ejecuta desde PowerShell:
 
 ```powershell
-.\Build-Installer.ps1 -Version 1.4.53 -AllowUnsignedDevelopmentBuild
+.\Build-Installer.ps1 -AllowUnsignedDevelopmentBuild
 ```
 
+El script asigna automáticamente una versión nueva a cada compilación local. No
+reutilices una versión de instalador: el Explorador puede conservar una DLL de
+extensión versionada y rechazar una sustitución que, de otro modo, sería válida.
 El script limpia primero cualquier publicación anterior, publica la aplicación
 y el servicio como x64 autocontenido y genera
 `artifacts\installer\ProtectedApp-Setup-x64.exe`. Antes de crear el Setup valida
@@ -175,7 +178,8 @@ El proceso de publicación puede firmar con SHA-256 y sello de tiempo RFC 3161 l
 Para un certificado de firma instalado en el almacén personal del usuario:
 
 ```powershell
-.\Build-Installer.ps1 -Version 1.4.43 `
+$installerVersion = '1.4.186' # Elige una versión nueva que no se haya publicado
+.\Build-Installer.ps1 -InstallerVersion $installerVersion `
   -SigningCertificateThumbprint HUELLASHA1 `
   -SigningCertificateStoreLocation CurrentUser `
   -RequireSignature
