@@ -41,19 +41,27 @@ public sealed partial class MainWindow
         var wide = editorWidth >= 840;
         panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wide ? 0.9 : 1, GridUnitType.Star) });
         panel.ColumnDefinitions.Add(new ColumnDefinition { Width = wide ? new GridLength(1.1, GridUnitType.Star) : new GridLength(0) });
-        for (var i = 0; i < 3; i++) panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var identity = new StackPanel { Spacing = 12 };
-        identity.Children.Add(CreateEditorSection("Aplicación", "\uE71D", name, category));
-        identity.Children.Add(CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation));
-        var timing = new StackPanel { Spacing = 12 };
-        timing.Children.Add(CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel));
-        timing.Children.Add(CreateEditorSection("Horario", "\uE787", schedule.Panel));
-        Grid.SetColumn(timing, wide ? 1 : 0);
-        Grid.SetRow(timing, wide ? 0 : 1);
-        Grid.SetRow(error, 2);
+        var rowCount = wide ? 3 : 5;
+        for (var i = 0; i < rowCount; i++) panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        // Use shared grid rows so the lower pair always begins at the same
+        // height, instead of each column laying out its cards independently.
+        var applicationSection = CreateEditorSection("Aplicación", "\uE71D", name, category);
+        var passwordSection = CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation);
+        var closeSection = CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel);
+        var scheduleSection = CreateEditorSection("Horario", "\uE787", schedule.Panel);
+
+        Grid.SetColumn(closeSection, wide ? 1 : 0);
+        Grid.SetColumn(scheduleSection, wide ? 1 : 0);
+        Grid.SetRow(passwordSection, 1);
+        Grid.SetRow(closeSection, wide ? 0 : 2);
+        Grid.SetRow(scheduleSection, wide ? 1 : 3);
+        Grid.SetRow(error, wide ? 2 : 4);
         Grid.SetColumnSpan(error, 2);
-        panel.Children.Add(identity);
-        panel.Children.Add(timing);
+        panel.Children.Add(applicationSection);
+        panel.Children.Add(passwordSection);
+        panel.Children.Add(closeSection);
+        panel.Children.Add(scheduleSection);
         panel.Children.Add(error);
         var dialog = CreateDialog("Editar protección", CreateDialogScroller(panel), "Guardar", "Cancelar");
         // ContentDialog ignores MaxWidth for its outer popup on some WinUI 3
