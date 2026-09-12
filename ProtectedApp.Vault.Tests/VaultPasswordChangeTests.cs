@@ -200,6 +200,43 @@ public sealed class VaultPasswordChangeTests
         }
     }
 
+    [Fact]
+    public async Task TpmBoundVault_RequiresTheLocalTpmAndPreservesPortableRecoveryCopy()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.TpmVault.Tests", Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(root, "private.pavault");
+        const string password = "TPM vault test password 123";
+        Directory.CreateDirectory(root);
+        var vault = new VaultContainer { Name = "TPM test vault", VaultFilePath = path };
+        try
+        {
+            using var service = new VaultService();
+            Assert.True(await service.SaveVaultAsync(vault, path, password), service.LastError);
+            if (!await service.SetVaultTpmProtectionAsync(vault, password, enabled: true))
+            {
+                // CI and virtual development machines need not expose a TPM.
+                // A real crypto or format failure must still fail the test.
+                Assert.Contains("TPM", service.LastError ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                return;
+            }
+
+            Assert.True(vault.IsTpmBound);
+            Assert.True(File.Exists(VaultService.GetTpmRecoveryPath(path)));
+            Assert.True(await service.VerifyVaultPasswordAsync(path, password), service.LastError);
+            Assert.True(await new VaultService().VerifyVaultPasswordAsync(VaultService.GetTpmRecoveryPath(path), password));
+            Assert.True(await service.SetVaultTpmProtectionAsync(vault, password, enabled: false), service.LastError);
+            Assert.False(vault.IsTpmBound);
+            Assert.True(await service.VerifyVaultPasswordAsync(path, password), service.LastError);
+        }
+        finally
+        {
+            try { if (File.Exists(path)) File.Delete(path); } catch { }
+            try { if (File.Exists(path + ".bak")) File.Delete(path + ".bak"); } catch { }
+            try { if (File.Exists(VaultService.GetTpmRecoveryPath(path))) File.Delete(VaultService.GetTpmRecoveryPath(path)); } catch { }
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); } catch { }
+        }
+    }
+
     private static void AssertPrivateDirectory(string path, IReadOnlyCollection<string> expectedSids)
     {
         var security = FileSystemAclExtensions.GetAccessControl(new DirectoryInfo(path), AccessControlSections.Access);

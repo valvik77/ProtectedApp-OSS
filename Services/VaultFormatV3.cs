@@ -7,13 +7,19 @@ using ProtectedApp.Models;
 namespace ProtectedApp.Services;
 
 /// <summary>
-/// PAVLT003: índice cifrado y autenticado, clave de datos envuelta por la
-/// contraseña y contenido dividido en bloques AEAD de acceso aleatorio.
+/// PAVLT003/PAVLT004: índice cifrado y autenticado y contenido dividido en
+/// bloques AEAD de acceso aleatorio. PAVLT004 puede exigir además el TPM local.
 /// </summary>
 internal static class VaultFormatV3
 {
-    private static readonly byte[] Magic = Encoding.ASCII.GetBytes("PAVLT003");
-    private const byte Version = 3;
+    private static readonly byte[] MagicV3 = Encoding.ASCII.GetBytes("PAVLT003");
+    private static readonly byte[] MagicV4 = Encoding.ASCII.GetBytes("PAVLT004");
+    private const byte VersionV3 = 3;
+    private const byte VersionV4 = 4;
+    // Inner AEAD records intentionally retain the PAVLT003 domain separator;
+    // PAVLT004 only changes how the random data key is unlocked.
+    private static readonly byte[] Magic = MagicV3;
+    private const byte Version = VersionV3;
     private const int Iterations = 600_000;
     private const int SaltSize = 16;
     private const int NonceSize = 12;
@@ -25,8 +31,12 @@ internal static class VaultFormatV3
     private const int MaximumIndexBytes = 16 * 1024 * 1024;
     private const long MaximumExpandedBytes = 1024L * 1024 * 1024;
     private const long MaximumDataBytes = MaximumExpandedBytes + 64L * 1024 * 1024;
-    private const int HeaderSize = 8 + 1 + sizeof(int) + SaltSize + NonceSize + TagSize + KeySize
+    private const int HeaderSizeV3 = 8 + 1 + sizeof(int) + SaltSize + NonceSize + TagSize + KeySize
         + sizeof(long) + sizeof(long);
+    private const int TpmKeyNameCapacity = 128;
+    private const int TpmWrappedSecretCapacity = 512;
+    private const int HeaderSizeV4 = HeaderSizeV3 + sizeof(byte) + sizeof(byte) + TpmKeyNameCapacity
+        + sizeof(ushort) + TpmWrappedSecretCapacity;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = false,
@@ -39,11 +49,11 @@ internal static class VaultFormatV3
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-                FileShare.Read | FileShare.Delete, Magic.Length + 1, FileOptions.SequentialScan);
-            Span<byte> prefix = stackalloc byte[Magic.Length + 1];
+                FileShare.Read | FileShare.Delete, MagicV3.Length + 1, FileOptions.SequentialScan);
+            Span<byte> prefix = stackalloc byte[MagicV3.Length + 1];
             return stream.Read(prefix) == prefix.Length
-                && prefix[..Magic.Length].SequenceEqual(Magic)
-                && prefix[^1] == Version;
+                && ((prefix[..MagicV3.Length].SequenceEqual(MagicV3) && prefix[^1] == VersionV3)
+                    || (prefix[..MagicV4.Length].SequenceEqual(MagicV4) && prefix[^1] == VersionV4));
         }
         catch { return false; }
     }
@@ -52,21 +62,9 @@ internal static class VaultFormatV3
     {
         try
         {
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-                FileShare.Read | FileShare.Delete, HeaderSize, FileOptions.SequentialScan);
-            if (stream.Length < HeaderSize + NonceSize + TagSize + 1) return false;
-            using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
-            if (!reader.ReadBytes(Magic.Length).SequenceEqual(Magic) || reader.ReadByte() != Version
-                || reader.ReadInt32() != Iterations) return false;
-            if (reader.ReadBytes(SaltSize).Length != SaltSize
-                || reader.ReadBytes(NonceSize).Length != NonceSize
-                || reader.ReadBytes(TagSize).Length != TagSize
-                || reader.ReadBytes(KeySize).Length != KeySize) return false;
-            var dataLength = reader.ReadInt64();
-            var indexLength = reader.ReadInt64();
-            return dataLength >= 0 && dataLength <= MaximumDataBytes
-                && indexLength > 0 && indexLength <= MaximumIndexBytes
-                && stream.Length == HeaderSize + dataLength + NonceSize + TagSize + indexLength;
+            var header = ReadHeaderAsync(path).GetAwaiter().GetResult();
+            return header.DataLength >= 0 && header.DataLength <= MaximumDataBytes
+                && header.IndexLength > 0 && header.IndexLength <= MaximumIndexBytes;
         }
         catch { return false; }
     }
@@ -99,7 +97,7 @@ internal static class VaultFormatV3
         try
         {
             await WriteFromDirectoryAsync(vault, sourceDirectory, path, passwordKey, salt, dataKey,
-                createRecoveryBackup);
+                createRecoveryBackup: createRecoveryBackup);
         }
         finally
         {
@@ -110,10 +108,14 @@ internal static class VaultFormatV3
     }
 
     public static async Task WriteFromDirectoryAsync(VaultContainer vault, string? sourceDirectory, string path,
-        byte[] passwordKey, byte[] salt, byte[]? existingDataKey, bool createRecoveryBackup = true)
+        byte[] passwordKey, byte[] salt, byte[]? existingDataKey, VaultTpmBinding? tpmBinding = null,
+        bool createRecoveryBackup = true)
     {
         ValidateKeyMaterial(passwordKey, salt);
+        ValidateTpmBinding(tpmBinding);
         var dataKey = existingDataKey?.ToArray() ?? RandomNumberGenerator.GetBytes(KeySize);
+        var wrapKey = GetWrapKey(passwordKey, tpmBinding);
+        var headerSize = GetHeaderSize(tpmBinding);
         var directory = Path.GetDirectoryName(Path.GetFullPath(path))
             ?? throw new InvalidDataException("La ruta de la bóveda no es válida.");
         Directory.CreateDirectory(directory);
@@ -131,7 +133,7 @@ internal static class VaultFormatV3
             await using (var output = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite,
                              FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                output.Position = HeaderSize;
+                output.Position = headerSize;
                 if (!string.IsNullOrWhiteSpace(sourceDirectory))
                 {
                     var root = Path.GetFullPath(sourceDirectory);
@@ -160,12 +162,12 @@ internal static class VaultFormatV3
                         expandedBytes = checked(expandedBytes + entry.Length);
                         if (expandedBytes > MaximumExpandedBytes)
                             throw new InvalidDataException("El contenido de la bóveda supera 1 GB.");
-                        await EncryptFileAsync(vault.Id, entryIndex, sourcePath, entry, output, dataKey,
+                        await EncryptFileAsync(vault.Id, entryIndex, sourcePath, entry, output, dataKey, headerSize,
                             () => ++chunkCount > MaximumChunks);
                     }
                 }
 
-                var dataLength = output.Position - HeaderSize;
+                var dataLength = output.Position - headerSize;
                 if (dataLength < 0 || dataLength > MaximumDataBytes)
                     throw new InvalidDataException("Los bloques cifrados superan el límite admitido.");
                 indexPlaintext = JsonSerializer.SerializeToUtf8Bytes(index, JsonOptions);
@@ -176,9 +178,9 @@ internal static class VaultFormatV3
                 var keyNonce = RandomNumberGenerator.GetBytes(NonceSize);
                 var keyTag = new byte[TagSize];
                 var wrappedDataKey = new byte[KeySize];
-                using (var aes = new AesGcm(passwordKey, TagSize))
+                using (var aes = new AesGcm(wrapKey, TagSize))
                     aes.Encrypt(keyNonce, dataKey, wrappedDataKey, keyTag, BuildWrapAad(salt));
-                var header = BuildHeader(salt, keyNonce, keyTag, wrappedDataKey, dataLength, indexLength);
+                var header = BuildHeader(salt, keyNonce, keyTag, wrappedDataKey, dataLength, indexLength, tpmBinding);
 
                 var indexNonce = RandomNumberGenerator.GetBytes(NonceSize);
                 var indexTag = new byte[TagSize];
@@ -186,7 +188,7 @@ internal static class VaultFormatV3
                 using (var aes = new AesGcm(dataKey, TagSize))
                     aes.Encrypt(indexNonce, indexPlaintext, indexCiphertext, indexTag,
                         BuildIndexAad(dataLength, indexLength));
-                output.Position = HeaderSize + dataLength;
+                output.Position = headerSize + dataLength;
                 await output.WriteAsync(indexNonce);
                 await output.WriteAsync(indexTag);
                 await output.WriteAsync(indexCiphertext);
@@ -202,12 +204,13 @@ internal static class VaultFormatV3
                 if (verification.Vault.Id != vault.Id)
                     throw new InvalidDataException("La verificación del contenedor nuevo devolvió otra bóveda.");
             }
-            ReplaceAtomically(temporaryPath, path, createRecoveryBackup);
+            ReplaceAtomically(temporaryPath, path, createRecoveryBackup, preservePortableTpmCopy: tpmBinding is not null);
             DeleteStaleWriteTemporaries(path);
         }
         finally
         {
             CryptographicOperations.ZeroMemory(dataKey);
+            CryptographicOperations.ZeroMemory(wrapKey);
             if (indexPlaintext is not null) CryptographicOperations.ZeroMemory(indexPlaintext);
             if (indexCiphertext is not null) CryptographicOperations.ZeroMemory(indexCiphertext);
             if (File.Exists(temporaryPath))
@@ -219,14 +222,17 @@ internal static class VaultFormatV3
 
     public static async Task WriteFromVirtualEntriesAsync(VaultContainer vault,
         IReadOnlyList<VirtualEntrySource> sources, string path, byte[] passwordKey, byte[] salt,
-        byte[] existingDataKey, bool createRecoveryBackup = true)
+        byte[] existingDataKey, VaultTpmBinding? tpmBinding = null, bool createRecoveryBackup = true)
     {
         ValidateKeyMaterial(passwordKey, salt);
+        ValidateTpmBinding(tpmBinding);
         ArgumentNullException.ThrowIfNull(existingDataKey);
         if (existingDataKey.Length != KeySize) throw new InvalidDataException("La clave de datos no es válida.");
         if (sources.Count > MaximumEntries) throw new InvalidDataException("La bóveda contiene demasiados elementos.");
 
         var dataKey = existingDataKey.ToArray();
+        var wrapKey = GetWrapKey(passwordKey, tpmBinding);
+        var headerSize = GetHeaderSize(tpmBinding);
         var directory = Path.GetDirectoryName(Path.GetFullPath(path))
             ?? throw new InvalidDataException("La ruta de la bóveda no es válida.");
         Directory.CreateDirectory(directory);
@@ -241,7 +247,7 @@ internal static class VaultFormatV3
             await using (var output = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite,
                              FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                output.Position = HeaderSize;
+                output.Position = headerSize;
                 foreach (var source in sources.OrderBy(item => item.Path, StringComparer.OrdinalIgnoreCase))
                 {
                     var relative = NormalizeRelativePath(source.Path);
@@ -262,11 +268,11 @@ internal static class VaultFormatV3
                         throw new InvalidDataException("El contenido de la bóveda supera 1 GB.");
                     await using var input = await source.OpenReadAsync();
                     if (!input.CanRead) throw new InvalidDataException("No se puede leer un archivo virtual.");
-                    await EncryptStreamAsync(vault.Id, entryIndex, input, entry, output, dataKey,
+                    await EncryptStreamAsync(vault.Id, entryIndex, input, entry, output, dataKey, headerSize,
                         () => ++chunkCount > MaximumChunks);
                 }
 
-                var dataLength = output.Position - HeaderSize;
+                var dataLength = output.Position - headerSize;
                 if (dataLength < 0 || dataLength > MaximumDataBytes)
                     throw new InvalidDataException("Los bloques cifrados superan el límite admitido.");
                 indexPlaintext = JsonSerializer.SerializeToUtf8Bytes(index, JsonOptions);
@@ -277,9 +283,9 @@ internal static class VaultFormatV3
                 var keyNonce = RandomNumberGenerator.GetBytes(NonceSize);
                 var keyTag = new byte[TagSize];
                 var wrappedDataKey = new byte[KeySize];
-                using (var aes = new AesGcm(passwordKey, TagSize))
+                using (var aes = new AesGcm(wrapKey, TagSize))
                     aes.Encrypt(keyNonce, dataKey, wrappedDataKey, keyTag, BuildWrapAad(salt));
-                var header = BuildHeader(salt, keyNonce, keyTag, wrappedDataKey, dataLength, indexLength);
+                var header = BuildHeader(salt, keyNonce, keyTag, wrappedDataKey, dataLength, indexLength, tpmBinding);
 
                 var indexNonce = RandomNumberGenerator.GetBytes(NonceSize);
                 var indexTag = new byte[TagSize];
@@ -302,12 +308,13 @@ internal static class VaultFormatV3
                 if (verification.Vault.Id != vault.Id)
                     throw new InvalidDataException("La verificación del contenedor nuevo devolvió otra bóveda.");
             }
-            ReplaceAtomically(temporaryPath, path, createRecoveryBackup);
+            ReplaceAtomically(temporaryPath, path, createRecoveryBackup, preservePortableTpmCopy: tpmBinding is not null);
             DeleteStaleWriteTemporaries(path);
         }
         finally
         {
             CryptographicOperations.ZeroMemory(dataKey);
+            CryptographicOperations.ZeroMemory(wrapKey);
             if (indexPlaintext is not null) CryptographicOperations.ZeroMemory(indexPlaintext);
             if (indexCiphertext is not null) CryptographicOperations.ZeroMemory(indexCiphertext);
             if (File.Exists(temporaryPath))
@@ -424,7 +431,7 @@ internal static class VaultFormatV3
                         () => Task.FromResult<Stream>(new MemoryStream(expected, writable: false)))
                 };
                 await WriteFromVirtualEntriesAsync(vault, sources, path, opened.PasswordKey,
-                    opened.Salt, opened.DataKey, createRecoveryBackup: false);
+                    opened.Salt, opened.DataKey, opened.TpmBinding, createRecoveryBackup: false);
             }
             using var verification = await OpenAsync(path, password);
             var actual = await ReadFileRangeAsync(verification, "Documentos/prueba.txt", 0, 128);
@@ -466,7 +473,7 @@ internal static class VaultFormatV3
         {
             using var view = new VaultReadWriteFileSystem(opened);
             await WriteFromVirtualEntriesAsync(opened.Vault, view.CreateSnapshot(), path,
-                newPasswordKey, newSalt, newDataKey, createRecoveryBackup: true);
+                newPasswordKey, newSalt, newDataKey, opened.TpmBinding, createRecoveryBackup: true);
         }
         finally
         {
@@ -479,17 +486,28 @@ internal static class VaultFormatV3
     private static async Task<OpenedVault> OpenWithPasswordKeyAsync(string path, Header header, byte[] passwordKey)
     {
         byte[]? dataKey = null;
+        byte[]? wrapKey = null;
+        VaultTpmBinding? tpmBinding = null;
         byte[]? indexCiphertext = null;
         byte[]? indexPlaintext = null;
         try
         {
+            tpmBinding = header.TpmBinding?.Clone();
+            if (tpmBinding is not null)
+            {
+                var secret = TpmVaultProtector.UnwrapSecret(tpmBinding.KeyName, tpmBinding.WrappedSecret);
+                if (secret.Length != KeySize) throw new InvalidDataException("La clave TPM de la bóveda no es válida.");
+                tpmBinding.Dispose();
+                tpmBinding = new VaultTpmBinding(header.TpmBinding!.KeyName, header.TpmBinding.WrappedSecret.ToArray(), secret);
+            }
+            wrapKey = GetWrapKey(passwordKey, tpmBinding);
             dataKey = new byte[KeySize];
-            using (var aes = new AesGcm(passwordKey, TagSize))
+            using (var aes = new AesGcm(wrapKey, TagSize))
                 aes.Decrypt(header.KeyNonce, header.WrappedDataKey, header.KeyTag, dataKey,
                     BuildWrapAad(header.Salt));
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.Read | FileShare.Delete, 128 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
-            stream.Position = HeaderSize + header.DataLength;
+            stream.Position = header.HeaderSize + header.DataLength;
             var indexNonce = await ReadExactAsync(stream, NonceSize);
             var indexTag = await ReadExactAsync(stream, TagSize);
             indexCiphertext = await ReadExactAsync(stream, checked((int)header.IndexLength));
@@ -500,8 +518,9 @@ internal static class VaultFormatV3
             var index = JsonSerializer.Deserialize<IndexDocument>(indexPlaintext, JsonOptions)
                 ?? throw new InvalidDataException("No se pudo leer el índice PAVLT003.");
             ValidateIndex(index, header.DataLength);
-            var result = new OpenedVault(path, header, index, passwordKey.ToArray(), dataKey);
+            var result = new OpenedVault(path, header, index, passwordKey.ToArray(), dataKey, tpmBinding);
             dataKey = null;
+            tpmBinding = null;
             return result;
         }
         catch (AuthenticationTagMismatchException)
@@ -511,21 +530,23 @@ internal static class VaultFormatV3
         finally
         {
             if (dataKey is not null) CryptographicOperations.ZeroMemory(dataKey);
+            if (wrapKey is not null) CryptographicOperations.ZeroMemory(wrapKey);
+            tpmBinding?.Dispose();
             if (indexCiphertext is not null) CryptographicOperations.ZeroMemory(indexCiphertext);
             if (indexPlaintext is not null) CryptographicOperations.ZeroMemory(indexPlaintext);
         }
     }
 
     private static async Task EncryptFileAsync(Guid vaultId, int entryIndex, string sourcePath, IndexEntry entry,
-        FileStream output, byte[] dataKey, Func<bool> chunkLimitExceeded)
+        FileStream output, byte[] dataKey, int headerSize, Func<bool> chunkLimitExceeded)
     {
         await using var input = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read,
             128 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        await EncryptStreamAsync(vaultId, entryIndex, input, entry, output, dataKey, chunkLimitExceeded);
+        await EncryptStreamAsync(vaultId, entryIndex, input, entry, output, dataKey, headerSize, chunkLimitExceeded);
     }
 
     private static async Task EncryptStreamAsync(Guid vaultId, int entryIndex, Stream input, IndexEntry entry,
-        FileStream output, byte[] dataKey, Func<bool> chunkLimitExceeded)
+        FileStream output, byte[] dataKey, int headerSize, Func<bool> chunkLimitExceeded)
     {
         var buffer = new byte[ChunkSize];
         try
@@ -546,7 +567,7 @@ internal static class VaultFormatV3
                     using (var aes = new AesGcm(dataKey, TagSize))
                         aes.Encrypt(nonce, prepared, ciphertext, tag,
                             BuildChunkAad(vaultId, entryIndex, chunkIndex, plainOffset, read, compressed));
-                    var offset = output.Position - HeaderSize;
+                    var offset = output.Position - headerSize;
                     await output.WriteAsync(ciphertext);
                     entry.Chunks.Add(new IndexChunk
                     {
@@ -583,7 +604,7 @@ internal static class VaultFormatV3
         {
             await using var stream = new FileStream(opened.Path, FileMode.Open, FileAccess.Read,
                 FileShare.Read | FileShare.Delete, 128 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
-            stream.Position = HeaderSize + chunk.Offset;
+            stream.Position = opened.Header.HeaderSize + chunk.Offset;
             await ReadExactIntoAsync(stream, ciphertext);
             using (var aes = new AesGcm(opened.DataKey, TagSize))
                 aes.Decrypt(chunk.Nonce, ciphertext, chunk.Tag, prepared,
@@ -618,11 +639,12 @@ internal static class VaultFormatV3
         var indexLength = (long)indexPlaintext.Length;
         var keyNonce = RandomNumberGenerator.GetBytes(NonceSize);
         var keyTag = new byte[TagSize];
+        var wrapKey = GetWrapKey(opened.PasswordKey, opened.TpmBinding);
         var wrappedKey = new byte[KeySize];
-        using (var aes = new AesGcm(opened.PasswordKey, TagSize))
+        using (var aes = new AesGcm(wrapKey, TagSize))
             aes.Encrypt(keyNonce, opened.DataKey, wrappedKey, keyTag, BuildWrapAad(opened.Header.Salt));
         var headerBytes = BuildHeader(opened.Header.Salt, keyNonce, keyTag, wrappedKey,
-            opened.Header.DataLength, indexLength);
+            opened.Header.DataLength, indexLength, opened.TpmBinding);
         var indexNonce = RandomNumberGenerator.GetBytes(NonceSize);
         var indexTag = new byte[TagSize];
         var indexCiphertext = new byte[indexPlaintext.Length];
@@ -639,7 +661,7 @@ internal static class VaultFormatV3
                              FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
                 await destination.WriteAsync(headerBytes);
-                source.Position = HeaderSize;
+                source.Position = opened.Header.HeaderSize;
                 await CopyExactlyAsync(source, destination, opened.Header.DataLength);
                 await destination.WriteAsync(indexNonce);
                 await destination.WriteAsync(indexTag);
@@ -653,11 +675,12 @@ internal static class VaultFormatV3
                 if (verification.Vault.Id != opened.Vault.Id)
                     throw new InvalidDataException("La actualización del índice no superó la verificación.");
             }
-            ReplaceAtomically(temporaryPath, path, createRecoveryBackup);
+            ReplaceAtomically(temporaryPath, path, createRecoveryBackup, preservePortableTpmCopy: opened.TpmBinding is not null);
             DeleteStaleWriteTemporaries(path);
         }
         finally
         {
+            CryptographicOperations.ZeroMemory(wrapKey);
             CryptographicOperations.ZeroMemory(indexPlaintext);
             CryptographicOperations.ZeroMemory(indexCiphertext);
             if (File.Exists(temporaryPath))
@@ -670,11 +693,19 @@ internal static class VaultFormatV3
     private static async Task<Header> ReadHeaderAsync(string path)
     {
         await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-            FileShare.Read | FileShare.Delete, HeaderSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        var bytes = await ReadExactAsync(stream, HeaderSize);
+            FileShare.Read | FileShare.Delete, HeaderSizeV4, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var prefix = await ReadExactAsync(stream, MagicV3.Length + 1);
+        var isV3 = prefix.AsSpan(0, MagicV3.Length).SequenceEqual(MagicV3) && prefix[^1] == VersionV3;
+        var isV4 = prefix.AsSpan(0, MagicV4.Length).SequenceEqual(MagicV4) && prefix[^1] == VersionV4;
+        if (!isV3 && !isV4) throw new InvalidDataException("El contenedor no usa un formato PAVLT compatible.");
+        var headerSize = isV4 ? HeaderSizeV4 : HeaderSizeV3;
+        var bytes = new byte[headerSize];
+        prefix.CopyTo(bytes, 0);
+        var remaining = await ReadExactAsync(stream, headerSize - prefix.Length);
+        remaining.CopyTo(bytes, prefix.Length);
         using var reader = new BinaryReader(new MemoryStream(bytes, writable: false), Encoding.UTF8);
-        if (!reader.ReadBytes(Magic.Length).SequenceEqual(Magic) || reader.ReadByte() != Version)
-            throw new InvalidDataException("El contenedor no usa el formato PAVLT003.");
+        _ = reader.ReadBytes(MagicV3.Length);
+        _ = reader.ReadByte();
         if (reader.ReadInt32() != Iterations)
             throw new InvalidDataException("La derivación de clave PAVLT003 no es compatible.");
         var salt = reader.ReadBytes(SaltSize);
@@ -683,21 +714,41 @@ internal static class VaultFormatV3
         var wrappedKey = reader.ReadBytes(KeySize);
         var dataLength = reader.ReadInt64();
         var indexLength = reader.ReadInt64();
+        VaultTpmBinding? tpmBinding = null;
+        if (isV4)
+        {
+            var tpmEnabled = reader.ReadByte();
+            var keyNameLength = reader.ReadByte();
+            var keyNameBytes = reader.ReadBytes(TpmKeyNameCapacity);
+            var wrappedSecretLength = reader.ReadUInt16();
+            var wrappedSecretBytes = reader.ReadBytes(TpmWrappedSecretCapacity);
+            if (tpmEnabled != 1 || keyNameLength == 0 || keyNameLength > TpmKeyNameCapacity
+                || wrappedSecretLength == 0 || wrappedSecretLength > TpmWrappedSecretCapacity)
+                throw new InvalidDataException("La cabecera TPM de la bóveda no es válida.");
+            var keyName = Encoding.UTF8.GetString(keyNameBytes, 0, keyNameLength);
+            tpmBinding = new VaultTpmBinding(keyName, wrappedSecretBytes[..wrappedSecretLength], null);
+        }
         if (salt.Length != SaltSize || keyNonce.Length != NonceSize || keyTag.Length != TagSize
             || wrappedKey.Length != KeySize || dataLength < 0 || dataLength > MaximumDataBytes
             || indexLength <= 0 || indexLength > MaximumIndexBytes
-            || stream.Length != HeaderSize + dataLength + NonceSize + TagSize + indexLength)
-            throw new InvalidDataException("La cabecera PAVLT003 no es válida.");
-        return new Header(salt, keyNonce, keyTag, wrappedKey, dataLength, indexLength);
+            || stream.Length != headerSize + dataLength + NonceSize + TagSize + indexLength)
+        {
+            tpmBinding?.Dispose();
+            throw new InvalidDataException("La cabecera de la bóveda no es válida.");
+        }
+        return new Header(salt, keyNonce, keyTag, wrappedKey, dataLength, indexLength, headerSize, tpmBinding);
     }
 
     private static byte[] BuildHeader(byte[] salt, byte[] keyNonce, byte[] keyTag, byte[] wrappedKey,
-        long dataLength, long indexLength)
+        long dataLength, long indexLength, VaultTpmBinding? tpmBinding = null)
     {
-        using var stream = new MemoryStream(HeaderSize);
+        var isTpmBound = tpmBinding is not null;
+        ValidateTpmBinding(tpmBinding);
+        var headerSize = GetHeaderSize(tpmBinding);
+        using var stream = new MemoryStream(headerSize);
         using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
-        writer.Write(Magic);
-        writer.Write(Version);
+        writer.Write(isTpmBound ? MagicV4 : MagicV3);
+        writer.Write(isTpmBound ? VersionV4 : VersionV3);
         writer.Write(Iterations);
         writer.Write(salt);
         writer.Write(keyNonce);
@@ -705,9 +756,37 @@ internal static class VaultFormatV3
         writer.Write(wrappedKey);
         writer.Write(dataLength);
         writer.Write(indexLength);
+        if (isTpmBound)
+        {
+            var keyNameBytes = Encoding.UTF8.GetBytes(tpmBinding!.KeyName);
+            if (keyNameBytes.Length is 0 or > TpmKeyNameCapacity
+                || tpmBinding.WrappedSecret.Length is 0 or > TpmWrappedSecretCapacity)
+                throw new InvalidDataException("La clave TPM de la bóveda no tiene un tamaño válido.");
+            writer.Write((byte)1);
+            writer.Write((byte)keyNameBytes.Length);
+            writer.Write(keyNameBytes);
+            writer.Write(new byte[TpmKeyNameCapacity - keyNameBytes.Length]);
+            writer.Write((ushort)tpmBinding.WrappedSecret.Length);
+            writer.Write(tpmBinding.WrappedSecret);
+            writer.Write(new byte[TpmWrappedSecretCapacity - tpmBinding.WrappedSecret.Length]);
+        }
         var result = stream.ToArray();
-        if (result.Length != HeaderSize) throw new InvalidOperationException("La cabecera PAVLT003 tiene un tamaño inesperado.");
+        if (result.Length != headerSize) throw new InvalidOperationException("La cabecera de la bóveda tiene un tamaño inesperado.");
         return result;
+    }
+
+    private static int GetHeaderSize(VaultTpmBinding? tpmBinding) => tpmBinding is null ? HeaderSizeV3 : HeaderSizeV4;
+
+    private static void ValidateTpmBinding(VaultTpmBinding? binding)
+    {
+        if (binding is not null && (binding.Secret is null || binding.Secret.Length != KeySize))
+            throw new InvalidDataException("La clave TPM de la bóveda no está disponible.");
+    }
+
+    private static byte[] GetWrapKey(byte[] passwordKey, VaultTpmBinding? binding)
+    {
+        ValidateTpmBinding(binding);
+        return binding is null ? passwordKey.ToArray() : HMACSHA256.HashData(passwordKey, binding.Secret!);
     }
 
     private static byte[] BuildWrapAad(byte[] salt)
@@ -873,11 +952,18 @@ internal static class VaultFormatV3
         return result;
     }
 
-    private static void ReplaceAtomically(string temporaryPath, string path, bool createRecoveryBackup)
+    private static void ReplaceAtomically(string temporaryPath, string path, bool createRecoveryBackup,
+        bool preservePortableTpmCopy = false)
     {
         var backupPath = path + ".bak";
+        var portableTpmRecoveryPath = VaultService.GetTpmRecoveryPath(path);
         if (File.Exists(path))
         {
+            // On the first TPM conversion the current container is still
+            // password-only. Preserve it permanently before .bak begins to
+            // track later TPM-bound versions.
+            if (preservePortableTpmCopy && !File.Exists(portableTpmRecoveryPath))
+                File.Copy(path, portableTpmRecoveryPath, overwrite: false);
             if (createRecoveryBackup)
             {
                 try { File.Replace(temporaryPath, path, backupPath, ignoreMetadataErrors: true); }
@@ -972,20 +1058,24 @@ internal static class VaultFormatV3
 
     internal sealed class OpenedVault : IDisposable
     {
-        internal OpenedVault(string path, Header header, IndexDocument index, byte[] passwordKey, byte[] dataKey)
+        internal OpenedVault(string path, Header header, IndexDocument index, byte[] passwordKey, byte[] dataKey,
+            VaultTpmBinding? tpmBinding)
         {
             Path = System.IO.Path.GetFullPath(path);
             Header = header;
             Index = index;
             PasswordKey = passwordKey;
             DataKey = dataKey;
+            TpmBinding = tpmBinding;
             Vault = index.Vault.ToVault();
+            Vault.IsTpmBound = tpmBinding is not null;
         }
 
         public string Path { get; }
         public VaultContainer Vault { get; }
         public byte[] PasswordKey { get; }
         public byte[] DataKey { get; }
+        internal VaultTpmBinding? TpmBinding { get; }
         public byte[] Salt => Header.Salt;
         internal Header Header { get; }
         internal IndexDocument Index { get; }
@@ -994,6 +1084,7 @@ internal static class VaultFormatV3
         {
             CryptographicOperations.ZeroMemory(PasswordKey);
             CryptographicOperations.ZeroMemory(DataKey);
+            TpmBinding?.Dispose();
         }
     }
 
@@ -1001,7 +1092,7 @@ internal static class VaultFormatV3
         DateTime CreationUtc, DateTime LastWriteUtc, Func<Task<Stream>> OpenReadAsync);
 
     internal sealed record Header(byte[] Salt, byte[] KeyNonce, byte[] KeyTag, byte[] WrappedDataKey,
-        long DataLength, long IndexLength);
+        long DataLength, long IndexLength, int HeaderSize, VaultTpmBinding? TpmBinding);
 
     internal sealed class IndexDocument
     {
@@ -1016,6 +1107,7 @@ internal static class VaultFormatV3
         public string Description { get; set; } = string.Empty;
         public int AutoLockMinutes { get; set; }
         public int InactivityAutoLockMinutes { get; set; }
+        public bool IsTpmBound { get; set; }
         public DateTime CreatedUtc { get; set; }
         public DateTime ModifiedUtc { get; set; }
 
@@ -1026,6 +1118,7 @@ internal static class VaultFormatV3
             Description = vault.Description,
             AutoLockMinutes = Math.Clamp(vault.AutoLockMinutes, 1, 10_080),
             InactivityAutoLockMinutes = Math.Clamp(vault.InactivityAutoLockMinutes, 0, 10_080),
+            IsTpmBound = vault.IsTpmBound,
             CreatedUtc = vault.CreatedUtc,
             ModifiedUtc = DateTime.UtcNow
         };
@@ -1037,6 +1130,7 @@ internal static class VaultFormatV3
             Description = Description,
             AutoLockMinutes = Math.Clamp(AutoLockMinutes, 1, 10_080),
             InactivityAutoLockMinutes = Math.Clamp(InactivityAutoLockMinutes, 0, 10_080),
+            IsTpmBound = IsTpmBound,
             CreatedUtc = CreatedUtc,
             ModifiedUtc = ModifiedUtc
         };

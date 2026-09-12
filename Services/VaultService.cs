@@ -152,7 +152,7 @@ public sealed class VaultService : IDisposable
             if (vault.IsMounted && _sessions.TryGetValue(vault.Id, out var session))
             {
                 await VaultFormatV3.WriteFromDirectoryAsync(vault, session.WorkingDirectory, vaultFilePath,
-                    session.Key, session.Salt, session.DataKey, createRecoveryBackup: true);
+                    session.Key, session.Salt, session.DataKey, session.TpmBinding, createRecoveryBackup: true);
             }
             else if (VaultFormatV3.IsFormat(vaultFilePath))
             {
@@ -196,6 +196,7 @@ public sealed class VaultService : IDisposable
 
     public async Task<VaultContainer?> LoadVaultAsync(string vaultFilePath, string password)
     {
+        LastError = null;
         if (VaultFormatV3.IsFormat(vaultFilePath))
         {
             try
@@ -208,6 +209,7 @@ public sealed class VaultService : IDisposable
                                        InvalidDataException or CryptographicException or JsonException or ArgumentException)
             {
                 System.Diagnostics.Debug.WriteLine($"Error cargando bóveda PAVLT003: {ex.Message}");
+                LastError = ex.Message;
                 return null;
             }
         }
@@ -223,6 +225,7 @@ public sealed class VaultService : IDisposable
                                    InvalidDataException or CryptographicException or JsonException or ArgumentException)
         {
             System.Diagnostics.Debug.WriteLine($"Error cargando bóveda: {ex.Message}");
+            LastError = ex.Message;
             return null;
         }
         finally
@@ -233,6 +236,77 @@ public sealed class VaultService : IDisposable
 
     public async Task<bool> VerifyVaultPasswordAsync(string vaultFilePath, string password) =>
         await LoadVaultAsync(vaultFilePath, password) is not null;
+
+    /// <summary>
+    /// Adds or removes the TPM second factor without changing a vault password.
+    /// Enabling first keeps a portable pre-TPM copy beside the container.
+    /// </summary>
+    public async Task<bool> SetVaultTpmProtectionAsync(VaultContainer vault, string password, bool enabled)
+    {
+        LastError = null;
+        if (vault is null || string.IsNullOrWhiteSpace(vault.VaultFilePath) || !File.Exists(vault.VaultFilePath))
+        {
+            LastError = "No se encuentra el contenedor cifrado.";
+            return false;
+        }
+        if (!VaultFormatV3.IsFormat(vault.VaultFilePath))
+        {
+            LastError = "La protección TPM requiere una bóveda PAVLT003 actual. Abre y bloquea esta bóveda para migrarla antes de continuar.";
+            return false;
+        }
+        if (vault.IsMounted || _sessions.ContainsKey(vault.Id) || _virtualSessions.ContainsKey(vault.Id))
+        {
+            LastError = "Guarda y bloquea la bóveda antes de cambiar su protección TPM.";
+            return false;
+        }
+
+        VaultFormatV3.OpenedVault? opened = null;
+        VaultTpmBinding? newBinding = null;
+        var conversionCommitted = false;
+        try
+        {
+            opened = await VaultFormatV3.OpenAsync(vault.VaultFilePath, password);
+            if (opened.Vault.Id != vault.Id) throw new InvalidDataException("El contenedor pertenece a otra bóveda.");
+            if ((opened.TpmBinding is not null) == enabled)
+            {
+                vault.IsTpmBound = enabled;
+                return true;
+            }
+
+            var previousBound = vault.IsTpmBound;
+            var previousKeyName = opened.TpmBinding?.KeyName;
+            if (enabled) newBinding = TpmVaultProtector.CreateBinding(vault.Id);
+            vault.IsTpmBound = enabled;
+            using var view = new VaultReadWriteFileSystem(opened);
+            await VaultFormatV3.WriteFromVirtualEntriesAsync(vault, view.CreateSnapshot(), vault.VaultFilePath,
+                opened.PasswordKey, opened.Salt, opened.DataKey, newBinding, createRecoveryBackup: true);
+            conversionCommitted = true;
+
+            if (!enabled && !string.IsNullOrWhiteSpace(previousKeyName))
+            {
+                TpmVaultProtector.DeleteKey(previousKeyName);
+            }
+
+            UpdateRuntimeMetadata(vault, vault.VaultFilePath);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                   or CryptographicException or JsonException or ArgumentException)
+        {
+            if (!conversionCommitted && newBinding is not null)
+                TpmVaultProtector.DeleteKey(newBinding.KeyName);
+            vault.IsTpmBound = opened?.TpmBinding is not null;
+            LastError = ex.Message;
+            return false;
+        }
+        finally
+        {
+            newBinding?.Dispose();
+            opened?.Dispose();
+        }
+    }
+
+    public static string GetTpmRecoveryPath(string vaultFilePath) => vaultFilePath + ".tpm-recovery.pavault";
 
     public async Task<VaultIntegrityValidation> VerifyVaultIntegrityAsync(VaultContainer vault, string password)
     {
@@ -766,7 +840,7 @@ public sealed class VaultService : IDisposable
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(journalWritePath)!);
                 await Task.Run(() => VaultFormatV3.WriteFromVirtualEntriesAsync(vault, sources, journalWritePath,
-                    openedVault.PasswordKey, openedVault.Salt, openedVault.DataKey, createRecoveryBackup: false));
+                    openedVault.PasswordKey, openedVault.Salt, openedVault.DataKey, openedVault.TpmBinding, createRecoveryBackup: false));
             };
             (dokan, instance) = await Task.Run(() =>
             {
@@ -870,9 +944,10 @@ public sealed class VaultService : IDisposable
             var sessionKey = openedV3?.PasswordKey.ToArray() ?? read!.Key.ToArray();
             var sessionSalt = openedV3?.Header.Salt.ToArray() ?? read!.Salt.ToArray();
             var sessionDataKey = openedV3?.DataKey.ToArray();
+            var sessionTpmBinding = openedV3?.TpmBinding?.Clone();
 
             var session = new VaultSession(vault.VaultFilePath, workingDirectory,
-                sessionKey, sessionSalt, sessionDataKey);
+                sessionKey, sessionSalt, sessionDataKey, sessionTpmBinding);
             if (!_sessions.TryAdd(vault.Id, session))
             {
                 session.Dispose();
@@ -950,7 +1025,7 @@ public sealed class VaultService : IDisposable
                 return false;
             }
             await VaultFormatV3.WriteFromDirectoryAsync(vault, session.WorkingDirectory,
-                session.VaultFilePath, session.Key, session.Salt, session.DataKey, createRecoveryBackup: true);
+                session.VaultFilePath, session.Key, session.Salt, session.DataKey, session.TpmBinding, createRecoveryBackup: true);
 
             Directory.Delete(session.WorkingDirectory, true);
             _sessions.TryRemove(vault.Id, out _);
@@ -1207,6 +1282,8 @@ public sealed class VaultService : IDisposable
             {
                 var backup = InspectVaultBackup(vault);
                 if (backup.BackupExists) copies.Add(backup.BackupPath);
+                var tpmRecovery = GetTpmRecoveryPath(primaryPath);
+                if (File.Exists(tpmRecovery)) copies.Add(tpmRecovery);
                 copies.AddRange(ListScheduledBackups(vault, scheduledBackupRoot).Select(item => item.Path));
             }
             foreach (var copy in copies.Distinct(StringComparer.OrdinalIgnoreCase))
@@ -1918,18 +1995,20 @@ public sealed class VaultService : IDisposable
     }
 
     private sealed class VaultSession(string vaultFilePath, string workingDirectory, byte[] key, byte[] salt,
-        byte[]? dataKey) : IDisposable
+        byte[]? dataKey, VaultTpmBinding? tpmBinding) : IDisposable
     {
         public string VaultFilePath { get; } = vaultFilePath;
         public string WorkingDirectory { get; } = workingDirectory;
         public byte[] Key { get; } = key;
         public byte[] Salt { get; } = salt;
         public byte[]? DataKey { get; } = dataKey;
+        public VaultTpmBinding? TpmBinding { get; } = tpmBinding;
         public void Dispose()
         {
             CryptographicOperations.ZeroMemory(Key);
             CryptographicOperations.ZeroMemory(Salt);
             if (DataKey is not null) CryptographicOperations.ZeroMemory(DataKey);
+            TpmBinding?.Dispose();
         }
     }
 
@@ -1990,7 +2069,7 @@ public sealed class VaultService : IDisposable
                 var sources = writableOperations.CreateSnapshot();
                 await Task.Run(() => VaultFormatV3.WriteFromVirtualEntriesAsync(vault, sources,
                     destinationPath ?? opened.Path, opened.PasswordKey, opened.Salt, opened.DataKey,
-                    createRecoveryBackup: true));
+                    opened.TpmBinding, createRecoveryBackup: true));
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(journalPath) && File.Exists(journalPath)) File.Delete(journalPath);

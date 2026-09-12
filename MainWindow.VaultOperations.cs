@@ -641,7 +641,7 @@ public sealed partial class MainWindow
         var confirmation = new TextBox { Header = "Escribe ELIMINAR para confirmar", MaxLength = 8 };
         var keepCopies = new CheckBox
         {
-            Content = "Conservar las copias cifradas existentes (.bak y programadas)",
+            Content = "Conservar las copias cifradas existentes (.bak, TPM y programadas)",
             IsChecked = true
         };
         var content = new StackPanel { Spacing = 10 };
@@ -783,6 +783,20 @@ public sealed partial class MainWindow
         };
         var newPassword = new PasswordBox { Header = "Nueva contraseña (opcional)", PlaceholderText = "Déjalo vacío para conservarla", PasswordRevealMode = PasswordRevealMode.Peek };
         var confirmation = new PasswordBox { Header = "Confirmar nueva contraseña", PasswordRevealMode = PasswordRevealMode.Peek };
+        var tpmProtection = new ToggleSwitch
+        {
+            Header = "Vincular esta bóveda al TPM de este equipo",
+            IsOn = vault.IsTpmBound
+        };
+        var tpmDetails = new TextBlock
+        {
+            Text = vault.IsTpmBound
+                ? "Activa: para abrirla se requiere su contraseña y el TPM de este equipo."
+                : "Opcional: exige contraseña y TPM. Al activarla se conserva una copia portátil previa.",
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 156, 166, 184), Windows.UI.Color.FromArgb(255, 85, 85, 85))
+        };
         var error = new TextBlock
         {
             Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)),
@@ -801,6 +815,7 @@ public sealed partial class MainWindow
         leftColumn.Children.Add(CreateEditorSection("Contraseña", "\uE72E", newPassword, confirmation));
         var rightColumn = new StackPanel { Spacing = 14 };
         rightColumn.Children.Add(CreateEditorSection("Cierre automático", "\uE823", minutes, inactivityMinutes));
+        rightColumn.Children.Add(CreateEditorSection("Protección del dispositivo", "\uE72E", tpmProtection, tpmDetails));
         Grid.SetColumn(rightColumn, 1);
         sections.Children.Add(leftColumn);
         sections.Children.Add(rightColumn);
@@ -836,6 +851,7 @@ public sealed partial class MainWindow
         var originalDescription = vault.Description;
         var originalMinutes = vault.AutoLockMinutes;
         var originalInactivityMinutes = vault.InactivityAutoLockMinutes;
+        var originalTpmProtection = vault.IsTpmBound;
         vault.Name = name.Text.Trim();
         vault.Description = description.Text.Trim();
         vault.AutoLockMinutes = (int)minutes.Value;
@@ -857,10 +873,44 @@ public sealed partial class MainWindow
             await ShowMessageAsync("No se pudo cambiar la contraseña", "Los demás cambios se guardaron, pero la contraseña anterior sigue siendo válida.");
             return;
         }
+        var effectivePassword = string.IsNullOrEmpty(newPassword.Password) ? currentPassword : newPassword.Password;
+        if (tpmProtection.IsOn != originalTpmProtection)
+        {
+            if (!await VerifyMasterAsync(tpmProtection.IsOn
+                    ? "Autorizar protección TPM de bóveda"
+                    : "Autorizar retirada de protección TPM de bóveda"))
+            {
+                await ShowMessageAsync("Configuración guardada", "Los cambios generales se guardaron, pero la protección TPM de la bóveda no se modificó.");
+                await SaveAsync();
+                return;
+            }
+            if (tpmProtection.IsOn)
+            {
+                var confirmationDialog = CreateDialog("Vincular bóveda al TPM",
+                    "Para abrir esta bóveda será necesaria su contraseña y el TPM de este equipo. Se creará una copia portátil sin TPM antes de activarla. Si se restablece el TPM, se reinstala Windows o se cambia la placa base, usa esa copia para recuperar el acceso.",
+                    "Activar", "Cancelar");
+                if (await confirmationDialog.ShowAsync() != ContentDialogResult.Primary)
+                {
+                    await SaveAsync();
+                    return;
+                }
+            }
+            if (!await _vaultService.SetVaultTpmProtectionAsync(vault, effectivePassword, tpmProtection.IsOn))
+            {
+                vault.IsTpmBound = originalTpmProtection;
+                await ShowMessageAsync("No se pudo cambiar la protección TPM", _vaultService.LastError ?? "La bóveda conserva su protección anterior.");
+                await SaveAsync();
+                return;
+            }
+        }
         RefreshVaults();
         AddActivity(vault.Name, string.IsNullOrEmpty(newPassword.Password)
             ? "Configuración de la bóveda actualizada"
             : "Configuración y contraseña de la bóveda actualizadas");
+        if (tpmProtection.IsOn != originalTpmProtection)
+            AddActivity(vault.Name, tpmProtection.IsOn
+                ? "Protección TPM de bóveda activada; se conservó una copia portátil previa"
+                : "Protección TPM de bóveda desactivada");
         await SaveAsync();
     }
 

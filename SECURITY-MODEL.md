@@ -45,6 +45,14 @@ reinstalar Windows o cambiar la placa base, exporta una copia de configuración.
 Tras cualquiera de esas operaciones puede ser necesario restaurar la copia o
 configurar ProtectedApp de nuevo.
 
+Una bóveda puede vincularse opcionalmente al TPM de este equipo. Su clave de
+datos solo se desbloquea al combinar la contraseña de la bóveda con un secreto
+recuperado mediante una clave TPM RSA no exportable. Al habilitarlo se conserva
+la versión portable previa en `nombre.pavault.tpm-recovery.pavault`; esa copia
+debe guardarse fuera del equipo antes de cualquier mantenimiento de TPM, Windows
+o hardware. La protección TPM no es una frontera frente a un administrador local
+ni reemplaza las copias de seguridad.
+
 ProtectedApp no incorpora telemetría. Las comunicaciones de red posibles son el
 webhook HTTPS de alertas de manipulación configurado expresamente por la persona
 operadora y las consultas OCSP/CRL que Windows puede realizar al comprobar la

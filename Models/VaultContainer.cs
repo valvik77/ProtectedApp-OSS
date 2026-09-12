@@ -14,6 +14,7 @@ public sealed class VaultContainer : INotifyPropertyChanged
     private string _name = string.Empty;
     private string _description = string.Empty;
     private bool _isEnabled = true;
+    private bool _isTpmBound;
     private string? _passwordHash;
     private string? _passwordSalt;
     private int _autoLockMinutes = 30;
@@ -82,6 +83,13 @@ public sealed class VaultContainer : INotifyPropertyChanged
     {
         get => _autoLockMinutes;
         set => SetField(ref _autoLockMinutes, value);
+    }
+
+    /// <summary>Exige la clave TPM local además de la contraseña para abrir esta bóveda.</summary>
+    public bool IsTpmBound
+    {
+        get => _isTpmBound;
+        set => SetField(ref _isTpmBound, value);
     }
 
     /// <summary>
@@ -255,6 +263,9 @@ public sealed class VaultContainer : INotifyPropertyChanged
             : "Cerrada");
 
     [JsonIgnore]
+    public string DeviceProtectionLabel => LocalizationService.T(IsTpmBound ? "TPM + contraseña" : "Contraseña");
+
+    [JsonIgnore]
     public bool CanOpen => !IsClosing;
 
     [JsonIgnore]
@@ -325,9 +336,11 @@ public sealed class VaultContainer : INotifyPropertyChanged
             OnPropertyChanged(nameof(CanRemove));
         }
         if (propertyName == nameof(IsReadOnlyMounted)) OnPropertyChanged(nameof(StatusLabel));
+        if (propertyName == nameof(IsTpmBound)) OnPropertyChanged(nameof(DeviceProtectionLabel));
         if (propertyName == nameof(IsClosing))
         {
-            OnPropertyChanged(nameof(StatusLabel));
+        OnPropertyChanged(nameof(StatusLabel));
+        OnPropertyChanged(nameof(DeviceProtectionLabel));
             OnPropertyChanged(nameof(CanOpen));
             OnPropertyChanged(nameof(CanLock));
             OnPropertyChanged(nameof(CanManageBackup));

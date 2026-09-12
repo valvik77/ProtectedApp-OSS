@@ -61,6 +61,13 @@ write. Interrupted editable sessions can offer recovery of the valid encrypted
 journal at the next unlock. Do not synchronize an open vault work directory;
 synchronize the closed `.pavault` file instead.
 
+An optional per-vault TPM mode requires both the vault password and a
+non-exportable key in the current computer's TPM. It is deliberately off by
+default. Before enabling it, ProtectedApp retains a password-only recovery copy
+next to the vault as `name.pavault.tpm-recovery.pavault`. Keep that file safely:
+resetting the TPM, reinstalling Windows, or replacing the motherboard makes the
+TPM-bound primary vault unavailable.
+
 ## Build from source
 
 Build on Windows with the required .NET SDK, Windows App SDK, and Dokany support

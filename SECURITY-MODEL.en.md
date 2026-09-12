@@ -42,6 +42,13 @@ export a configuration backup before resetting the TPM, reinstalling Windows,
 or changing the motherboard. After any of those operations, restoring the
 backup or setting up ProtectedApp again may be required.
 
+A vault can optionally be bound to this computer's TPM. Its data key can only
+be unlocked by combining the vault password with a secret recovered through a
+non-exportable TPM RSA key. Enabling it retains the earlier portable version as
+`name.pavault.tpm-recovery.pavault`; keep that copy outside the computer before
+TPM, Windows, or hardware maintenance. TPM protection is not a boundary against
+a local administrator and does not replace backups.
+
 ProtectedApp includes no telemetry. Possible network traffic is limited to the
 HTTPS tamper-alert webhook explicitly configured by the operator and the OCSP/
 CRL queries Windows may make while checking revocation for the Authenticode

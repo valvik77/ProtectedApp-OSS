@@ -51,6 +51,14 @@ La conversión cifra los datos en un contenedor; no aplica bloqueos NTFS a la ca
 
 Si el equipo se apaga, bloquea la sesión o se interrumpe el proceso con una bóveda editable abierta, ProtectedApp conserva un diario cifrado. La próxima apertura ofrece recuperar el trabajo válido; no deja una carpeta de archivos descifrados en el disco.
 
+Cada bóveda puede vincularse opcionalmente al TPM de este equipo. En ese modo
+exige tanto su contraseña como una clave TPM no exportable, y permanece
+desactivado de forma predeterminada. Antes de activarlo, ProtectedApp conserva
+una copia portátil solo con contraseña junto a la bóveda, con el nombre
+`nombre.pavault.tpm-recovery.pavault`. Guárdala de forma segura: restablecer el
+TPM, reinstalar Windows o cambiar la placa base deja inaccesible la bóveda
+principal vinculada al TPM.
+
 En **Configuración → General** se puede elegir una letra preferida para las unidades virtuales. Si ya está ocupada, ProtectedApp conserva los dispositivos existentes y monta la bóveda con otra letra disponible. El menú del icono de bandeja muestra las bóvedas montadas para desmontarlas y hasta cinco bóvedas usadas recientemente para abrirlas sin navegar por el panel. Cada fila de bóveda incluye además un acceso a su historial propio.
 
 ### Copias y recuperación
