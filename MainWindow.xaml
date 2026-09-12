@@ -81,7 +81,7 @@
                     </Button>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Spacing="10">
-                    <Button Style="{StaticResource RoundedDialogButtonStyle}" Background="{ThemeResource DangerBrush}" BorderBrush="{ThemeResource DangerBrush}" Foreground="White" Click="LockButton_Click"
+                    <Button Style="{StaticResource RoundedDialogButtonStyle}" Background="#B42318" BorderBrush="#B42318" Foreground="White" Click="LockButton_Click"
                             AutomationProperties.Name="Bloqueo inmediato" ToolTipService.ToolTip="Revocar accesos y bloquear ahora">
                         <StackPanel Orientation="Horizontal" Spacing="9"><FontIcon Glyph="&#xE72E;" FontSize="14"/><TextBlock Text="Bloqueo inmediato" FontWeight="SemiBold" FontSize="12"/></StackPanel>
                     </Button>
