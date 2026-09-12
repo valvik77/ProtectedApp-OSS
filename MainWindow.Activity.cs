@@ -35,6 +35,7 @@ public sealed partial class MainWindow
             ? $"{mountedVaults:N0} open vault{(mountedVaults == 1 ? string.Empty : "s")}"
             : $"{mountedVaults:N0} bóvedas abiertas";
         DashboardActivityCountText.Text = recentEvents.ToString("N0");
+        DashboardActivitySummaryText.Text = DashboardActivityCountText.Text;
         DashboardGuardianText.Text = LocalizationService.T(guardianAvailable ? "Guardian conectado" : "Guardian requiere atención");
         SidebarStatusText.Text = DashboardGuardianText.Text;
         DashboardDiagnosticsText.Text = LocalizationService.T(Diagnostics.Count == 0 ? "Pendiente" : "Disponible");
