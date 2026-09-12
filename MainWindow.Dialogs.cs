@@ -8,8 +8,30 @@ namespace ProtectedApp;
 
 public sealed partial class MainWindow
 {
+    private Border CreateEditorSection(string title, string glyph, params UIElement[] fields)
+    {
+        var content = new StackPanel { Spacing = 12 };
+        var heading = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+        heading.Children.Add(new FontIcon
+        {
+            Glyph = glyph, FontSize = 16,
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 143, 205, 255), Windows.UI.Color.FromArgb(255, 0, 95, 184))
+        });
+        heading.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        content.Children.Add(heading);
+        foreach (var field in fields) content.Children.Add(field);
+        return new Border
+        {
+            CornerRadius = new CornerRadius(12), Padding = new Thickness(16),
+            Background = ThemeBrush(Windows.UI.Color.FromArgb(255, 23, 28, 36), Windows.UI.Color.FromArgb(255, 255, 255, 255)),
+            BorderBrush = ThemeBrush(Windows.UI.Color.FromArgb(255, 62, 72, 81), Windows.UI.Color.FromArgb(255, 229, 229, 229)),
+            BorderThickness = new Thickness(1), Child = content
+        };
+    }
+
     private ContentDialog CreateDialog(string title, object content, string primary, string? close)
     {
+        if (content is Panel panel) content = CreateDialogScroller(panel);
         var dialog = new ContentDialog
         {
             XamlRoot = Root.XamlRoot,
@@ -59,18 +81,19 @@ public sealed partial class MainWindow
     private void ApplyDialogPalette(ContentDialog dialog)
     {
         var light = Root.ActualTheme == ElementTheme.Light;
-        var background = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 248, 248, 248) : Windows.UI.Color.FromArgb(255, 33, 34, 44));
-        var foreground = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 59, 59, 59) : Windows.UI.Color.FromArgb(255, 248, 248, 242));
-        var border = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 229, 229, 229) : Windows.UI.Color.FromArgb(255, 25, 26, 33));
-        var inputBorder = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 206, 206, 206) : Windows.UI.Color.FromArgb(255, 25, 26, 33));
-        var surface = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 255, 255, 255) : Windows.UI.Color.FromArgb(255, 40, 42, 54));
-        var hover = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 242, 242, 242) : Windows.UI.Color.FromArgb(255, 52, 55, 70));
-        var selected = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 232, 232, 232) : Windows.UI.Color.FromArgb(255, 68, 71, 90));
-        var selectedHover = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 220, 220, 220) : Windows.UI.Color.FromArgb(255, 98, 114, 164));
-        var focus = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(255, 98, 114, 164));
-        var indicator = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(255, 255, 121, 198));
-        var placeholder = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 118, 118, 118) : Windows.UI.Color.FromArgb(255, 98, 114, 164));
+        var background = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 248, 248, 248) : Windows.UI.Color.FromArgb(255, 27, 32, 40));
+        var foreground = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 59, 59, 59) : Windows.UI.Color.FromArgb(255, 222, 226, 238));
+        var border = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 229, 229, 229) : Windows.UI.Color.FromArgb(255, 62, 72, 81));
+        var inputBorder = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 206, 206, 206) : Windows.UI.Color.FromArgb(255, 62, 72, 81));
+        var surface = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 255, 255, 255) : Windows.UI.Color.FromArgb(255, 15, 20, 28));
+        var hover = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 242, 242, 242) : Windows.UI.Color.FromArgb(255, 37, 42, 51));
+        var selected = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 232, 232, 232) : Windows.UI.Color.FromArgb(255, 48, 53, 62));
+        var selectedHover = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 220, 220, 220) : Windows.UI.Color.FromArgb(255, 143, 205, 255));
+        var focus = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(255, 143, 205, 255));
+        var indicator = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(255, 143, 205, 255));
+        var placeholder = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 118, 118, 118) : Windows.UI.Color.FromArgb(255, 143, 205, 255));
 
+        dialog.RequestedTheme = Root.ActualTheme;
         dialog.Background = background;
         dialog.Foreground = foreground;
         dialog.BorderBrush = border;

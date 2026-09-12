@@ -30,6 +30,7 @@ public static class LocalizationService
     private static readonly IReadOnlyDictionary<string, string> English = new TranslationDictionary(StringComparer.Ordinal)
     {
         ["Inicio"] = "Home",
+        ["Aplicación"] = "Application",
         ["Resumen de la protección de este equipo"] = "A summary of protection on this computer",
         ["Protección local"] = "Local protection",
         ["ESPACIO DE TRABAJO"] = "WORKSPACE",

@@ -48,15 +48,12 @@ public sealed partial class MainWindow
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap
         };
-        var panel = new StackPanel { Spacing = 9, Width = 440 };
-        panel.Children.Add(name);
-        panel.Children.Add(description);
-        panel.Children.Add(password);
-        panel.Children.Add(confirmation);
-        panel.Children.Add(minutes);
-        panel.Children.Add(inactivityMinutes);
+        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
+        panel.Children.Add(CreateEditorSection("Bóvedas", "\uEDA2", name, description));
+        panel.Children.Add(CreateEditorSection("Contraseña", "\uE72E", password, confirmation));
+        panel.Children.Add(CreateEditorSection("Cierre automático", "\uE823", minutes, inactivityMinutes));
         panel.Children.Add(error);
-        var dialog = CreateDialog("Nueva bóveda cifrada", panel, "Continuar", "Cancelar");
+        var dialog = CreateDialog("Nueva bóveda cifrada", CreateDialogScroller(panel), "Continuar", "Cancelar");
         dialog.PrimaryButtonClick += (_, args) =>
         {
             if (string.IsNullOrWhiteSpace(name.Text)) { error.Text = LocalizationService.T("Introduce un nombre."); args.Cancel = true; return; }
@@ -792,15 +789,12 @@ public sealed partial class MainWindow
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap
         };
-        var panel = new StackPanel { Spacing = 9, Width = 440 };
-        panel.Children.Add(name);
-        panel.Children.Add(description);
-        panel.Children.Add(minutes);
-        panel.Children.Add(inactivityMinutes);
-        panel.Children.Add(newPassword);
-        panel.Children.Add(confirmation);
+        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
+        panel.Children.Add(CreateEditorSection("Bóvedas", "\uEDA2", name, description));
+        panel.Children.Add(CreateEditorSection("Cierre automático", "\uE823", minutes, inactivityMinutes));
+        panel.Children.Add(CreateEditorSection("Contraseña", "\uE72E", newPassword, confirmation));
         panel.Children.Add(error);
-        var dialog = CreateDialog("Editar bóveda", panel, "Guardar", "Cancelar");
+        var dialog = CreateDialog("Editar bóveda", CreateDialogScroller(panel), "Guardar", "Cancelar");
         panel.Children.Add(new TextBlock
         {
             Text = LocalizationService.IsEnglish

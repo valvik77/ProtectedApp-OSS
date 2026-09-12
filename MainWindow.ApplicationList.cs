@@ -36,8 +36,12 @@ public sealed partial class MainWindow
         var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes);
         var schedule = CreateScheduleEditor(app.ScheduleEnabled, app.ScheduleDays, app.ScheduleStartMinutes, app.ScheduleEndMinutes, app.BlockOutsideSchedule);
         var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12 };
-        var panel = new StackPanel { Spacing = 10, Width = 420 };
-        panel.Children.Add(name); panel.Children.Add(category); panel.Children.Add(passwordMode); panel.Children.Add(password); panel.Children.Add(confirmation); panel.Children.Add(timePolicy.Panel); panel.Children.Add(schedule.Panel); panel.Children.Add(error);
+        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
+        panel.Children.Add(CreateEditorSection("Aplicación", "\uE71D", name, category));
+        panel.Children.Add(CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation));
+        panel.Children.Add(CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel));
+        panel.Children.Add(CreateEditorSection("Horario", "\uE787", schedule.Panel));
+        panel.Children.Add(error);
         var dialog = CreateDialog("Editar protección", CreateDialogScroller(panel), "Guardar", "Cancelar");
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>

@@ -56,7 +56,7 @@
                         <TextBlock Text="Protección local" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10"/>
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="1">
+                <StackPanel Grid.Row="1" VerticalAlignment="Top" Spacing="3" Margin="0,36,0,20">
                     <TextBlock Text="ESPACIO DE TRABAJO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="80" Margin="10,0,0,8"/>
                     <Button x:Name="DashboardNavButton" AutomationProperties.Name="Inicio" Style="{StaticResource NavStyle}" Tag="dashboard" Click="NavButton_Click" ToolTipService.ToolTip="Resumen de protección">
                         <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon Glyph="&#xE80F;" FontFamily="Segoe Fluent Icons" FontSize="15"/><TextBlock Text="Inicio" FontSize="12" FontWeight="SemiBold"/></StackPanel>
@@ -98,8 +98,8 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="14"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Grid x:Name="TitleDragRegion" Background="Transparent">
                 <StackPanel VerticalAlignment="Center" Spacing="1">
-                <TextBlock x:Name="PageTitle" Text="Aplicaciones" FontSize="19" FontWeight="SemiBold"/>
-                <TextBlock x:Name="PageSubtitle" Text="Elige qué programas requieren autorización" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                <TextBlock x:Name="PageTitle" Text="Aplicaciones" FontSize="22" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="PageSubtitle" Text="Elige qué programas requieren autorización" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Grid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
@@ -611,6 +611,11 @@
             <!-- No fixed minimum here: after the sidebar was widened, 960 px caused this
                  view to overflow smaller windows even though its controls can reflow. -->
             <Grid x:Name="SettingsView" Visibility="Collapsed" MaxWidth="1140" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                <Grid.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="TextWrapping" Value="Wrap"/>
+                    </Style>
+                </Grid.Resources>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Border Padding="20,16" CornerRadius="14" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                     <StackPanel Spacing="5">
@@ -637,7 +642,7 @@
                 <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
                     <StackPanel Spacing="10">
                         <TextBlock Text="GENERAL" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
-                        <Grid ColumnSpacing="14">
+                        <Grid ColumnSpacing="14" RowSpacing="14" SizeChanged="SettingsColumns_SizeChanged">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8" Padding="14,8">
                                 <StackPanel>
@@ -737,7 +742,7 @@
                         <Grid RowSpacing="5">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <TextBlock Text="DATOS Y MANTENIMIENTO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
-                            <Grid Grid.Row="1" ColumnSpacing="28" RowSpacing="14">
+                            <Grid Grid.Row="1" ColumnSpacing="28" RowSpacing="14" SizeChanged="SettingsColumns_SizeChanged">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel Spacing="0">

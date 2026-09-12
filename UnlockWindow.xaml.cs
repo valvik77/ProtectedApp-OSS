@@ -363,20 +363,20 @@ public sealed partial class UnlockWindow : Window
         var light = Root.ActualTheme == ElementTheme.Light;
         var color = light
             ? Windows.UI.Color.FromArgb(255, 248, 248, 248)
-            : Windows.UI.Color.FromArgb(255, 33, 34, 44);
+            : Windows.UI.Color.FromArgb(255, 15, 20, 28);
         var foreground = light
             ? Windows.UI.Color.FromArgb(255, 31, 31, 31)
-            : Windows.UI.Color.FromArgb(255, 248, 248, 242);
+            : Windows.UI.Color.FromArgb(255, 222, 226, 238);
         _appWindow.TitleBar.BackgroundColor = color;
         _appWindow.TitleBar.ForegroundColor = foreground;
         _appWindow.TitleBar.ButtonBackgroundColor = color;
         _appWindow.TitleBar.ButtonForegroundColor = foreground;
         _appWindow.TitleBar.ButtonHoverBackgroundColor = light
             ? Windows.UI.Color.FromArgb(255, 229, 229, 229)
-            : Windows.UI.Color.FromArgb(255, 52, 55, 70);
+            : Windows.UI.Color.FromArgb(255, 48, 53, 62);
         _appWindow.TitleBar.ButtonPressedBackgroundColor = light
             ? Windows.UI.Color.FromArgb(255, 204, 204, 204)
-            : Windows.UI.Color.FromArgb(255, 68, 71, 90);
+            : Windows.UI.Color.FromArgb(255, 62, 72, 81);
     }
 
     private void CenterWindow(int height = WindowHeight)

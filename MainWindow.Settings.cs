@@ -10,6 +10,23 @@ namespace ProtectedApp;
 
 public sealed partial class MainWindow
 {
+    private void SettingsColumns_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (sender is not Grid grid || grid.Children.Count < 2) return;
+        var compact = e.NewSize.Width < 1000;
+        if (grid.RowDefinitions.Count < 3)
+        {
+            grid.RowDefinitions.Clear();
+            for (var i = 0; i < 3; i++)
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
+        grid.ColumnDefinitions[1].Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        Grid.SetColumn((FrameworkElement)grid.Children[1], compact ? 0 : 1);
+        Grid.SetRow((FrameworkElement)grid.Children[1], compact ? 1 : 0);
+        if (grid.Children.Count > 2)
+            Grid.SetRow((FrameworkElement)grid.Children[2], compact ? 2 : 1);
+    }
+
     private async void StartupToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (!_initialized || _updatingControls) return;
