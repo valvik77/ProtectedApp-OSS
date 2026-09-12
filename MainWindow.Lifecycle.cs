@@ -76,13 +76,13 @@ public sealed partial class MainWindow
         var light = Root.ActualTheme == ElementTheme.Light;
         var background = light
             ? Windows.UI.Color.FromArgb(255, 248, 248, 248)
-            : Windows.UI.Color.FromArgb(255, 33, 34, 44);
+            : Windows.UI.Color.FromArgb(255, 16, 22, 30);
         var hover = light
             ? Windows.UI.Color.FromArgb(255, 229, 229, 229)
-            : Windows.UI.Color.FromArgb(255, 52, 55, 70);
+            : Windows.UI.Color.FromArgb(255, 32, 43, 56);
         var foreground = light
             ? Windows.UI.Color.FromArgb(255, 31, 31, 31)
-            : Windows.UI.Color.FromArgb(255, 248, 248, 242);
+            : Windows.UI.Color.FromArgb(255, 242, 247, 251);
         titleBar.BackgroundColor = background;
         titleBar.ForegroundColor = foreground;
         titleBar.ButtonBackgroundColor = background;
@@ -91,7 +91,7 @@ public sealed partial class MainWindow
         titleBar.ButtonHoverForegroundColor = foreground;
         titleBar.ButtonPressedBackgroundColor = light
             ? Windows.UI.Color.FromArgb(255, 204, 204, 204)
-            : Windows.UI.Color.FromArgb(255, 68, 71, 90);
+            : Windows.UI.Color.FromArgb(255, 49, 67, 86);
     }
 
     private void MainCloseButton_Click(object sender, RoutedEventArgs e) => HideToTray(showNotification: true);
