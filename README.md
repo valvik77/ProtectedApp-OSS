@@ -18,6 +18,8 @@ before they can run, and starts them again after the password is accepted.
   journaled and recovered in encrypted form after an interruption.
 - Creates encrypted settings backups and keeps encrypted prior vault copies for
   recovery.
+- Can create scheduled, password-encrypted configuration backups with a chosen
+  folder and retention count.
 - Uses the Guardian Windows service to enforce configured rules even when the
   management window is hidden.
 

@@ -60,6 +60,7 @@ public sealed partial class MainWindow : Window
     private bool _showRequestedWhileBusy;
     private bool _refreshingVaultBackupState;
     private int _vaultBackupRunning;
+    private int _configurationBackupRunning;
     private readonly Dictionary<Guid, string> _vaultBackupFailures = [];
     private readonly Dictionary<Guid, VaultScheduledBackupHealth> _vaultBackupHealthStates = [];
     private readonly Queue<PendingFolderRequest> _pendingFolderRequests = new();

@@ -24,6 +24,11 @@ public sealed class AppState
     public int VaultBackupRetentionCount { get; set; } = 5;
     public DateTime? VaultBackupLastRunUtc { get; set; }
     public bool VaultBackupNotificationsEnabled { get; set; } = true;
+    public string? ConfigurationBackupDirectory { get; set; }
+    public int ConfigurationBackupIntervalHours { get; set; } = 24;
+    public int ConfigurationBackupRetentionCount { get; set; } = 7;
+    public DateTime? ConfigurationBackupLastRunUtc { get; set; }
+    public string? ConfigurationBackupLastError { get; set; }
     public bool CloseWarningNotificationsEnabled { get; set; } = true;
     public bool SecurityAlertsEnabled { get; set; } = true;
     /// <summary>Atajo global configurable, por ejemplo Ctrl+Alt+L.</summary>

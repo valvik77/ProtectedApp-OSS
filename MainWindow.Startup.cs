@@ -127,6 +127,7 @@ public sealed partial class MainWindow
         SelectManagementAutoLock(_state.ManagementAutoLockMinutes);
         SelectPollInterval(_state.PollIntervalMilliseconds);
         RefreshVaultBackupStatus();
+        RefreshConfigurationBackupStatus();
         _updatingControls = false;
         UpdateStatusText.Text = $"Versión instalada {ManualUpdateService.GetDisplayVersion(ManualUpdateService.GetInstalledVersion())}";
         _ = UpdateWindowsHelloStatusAsync();
@@ -160,6 +161,7 @@ public sealed partial class MainWindow
         _vaultTimer.Start();
         _vaultBackupTimer.Start();
         _ = RunScheduledVaultBackupsAsync(force: false);
+        _ = RunScheduledConfigurationBackupsAsync(force: false);
 
         var startupUiAction = AppLaunchMode.ResolveStartupUiAction(
             silentLaunch: !interactiveLaunch,

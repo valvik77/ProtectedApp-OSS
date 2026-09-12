@@ -66,6 +66,7 @@ En **Configuración → General** se puede elegir una letra preferida para las u
 - El archivo `.pavault.bak` es la copia cifrada anterior del contenedor. Se conserva intencionadamente para recuperarlo desde la fila de la bóveda.
 - Los archivos temporales con extensión `.v3tmp` solo se usan durante una sustitución atómica. Deben desaparecer al completarse la operación; si queda uno tras una interrupción, no lo elimines antes de comprobar la recuperación desde ProtectedApp.
 - **Configuración → Copia cifrada** exporta reglas, preferencias e historial a `.pabackup`. No incluye el contenido de las bóvedas: guarda los archivos `.pavault` por separado.
+- **Configuración → Copia automática de configuración** crea versiones `.pabackup` cifradas en la carpeta elegida. La contraseña de cada archivo la eliges tú; consérvala fuera del equipo para poder restaurar después de un formateo.
 
 ## Limitaciones importantes
 

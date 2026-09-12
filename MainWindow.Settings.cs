@@ -513,7 +513,11 @@ public sealed partial class MainWindow
             await ShowMessageAsync("Sin copias pendientes", "No hay bóvedas cerradas disponibles para copiar ahora.");
     }
 
-    private async void VaultBackupTimer_Tick(object? sender, object e) => await RunScheduledVaultBackupsAsync(force: false);
+    private async void VaultBackupTimer_Tick(object? sender, object e)
+    {
+        await RunScheduledVaultBackupsAsync(force: false);
+        await RunScheduledConfigurationBackupsAsync(force: false);
+    }
 
     private async Task<int> RunScheduledVaultBackupsAsync(bool force)
     {
