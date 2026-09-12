@@ -72,7 +72,7 @@
             <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedDialogButtonStyle}">
                 <Setter Property="Width" Value="34"/><Setter Property="Height" Value="34"/><Setter Property="MinHeight" Value="34"/><Setter Property="Padding" Value="0"/>
                 <Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
+                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="{StaticResource PrototypeIconFont}"/>
             </Style>
         </Grid.Resources>
         <Grid.ColumnDefinitions><ColumnDefinition Width="252"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -365,9 +365,9 @@
                                         </StackPanel>
                                         <ToggleSwitch Grid.Column="3" IsOn="{x:Bind IsEnabled, Mode=OneWay}" Toggled="RuleToggle_Toggled" OnContent="" OffContent="" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
-                                            <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" Click="EditRule_Click" ToolTipService.ToolTip="Editar" AutomationProperties.Name="Editar protección"/>
-                                            <Button Content="&#xE72E;" Style="{StaticResource IconButtonStyle}" Click="LockRule_Click" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}" ToolTipService.ToolTip="Bloquear esta aplicación" AutomationProperties.Name="Bloquear aplicación"/>
-                                            <Button Content="&#xE74D;" Style="{StaticResource IconButtonStyle}" Click="DeleteRule_Click" ToolTipService.ToolTip="Eliminar" AutomationProperties.Name="Eliminar protección"/>
+                                            <Button Content="&#xf097;" Style="{StaticResource IconButtonStyle}" Click="EditRule_Click" ToolTipService.ToolTip="Editar" AutomationProperties.Name="Editar protección"/>
+                                            <Button Content="&#xe899;" Style="{StaticResource IconButtonStyle}" Click="LockRule_Click" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}" ToolTipService.ToolTip="Bloquear esta aplicación" AutomationProperties.Name="Bloquear aplicación"/>
+                                            <Button Content="&#xe92e;" Style="{StaticResource IconButtonStyle}" Click="DeleteRule_Click" ToolTipService.ToolTip="Eliminar" AutomationProperties.Name="Eliminar protección"/>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
@@ -435,9 +435,9 @@
                                         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Button Content="Guardar y bloquear" Click="RecoverVaultWork_Click" IsEnabled="{x:Bind CanRecover}"
                                                     Style="{StaticResource RoundedPrimaryButtonStyle}" CornerRadius="7" Padding="9,5" FontSize="9"/>
-                                            <Button Content="&#xE838;" Click="OpenVaultRecoveryFolder_Click" Style="{StaticResource IconButtonStyle}"
+                                            <Button Content="&#xe2c8;" Click="OpenVaultRecoveryFolder_Click" Style="{StaticResource IconButtonStyle}"
                                                     ToolTipService.ToolTip="Abrir carpeta de trabajo" AutomationProperties.Name="Abrir carpeta de recuperación"/>
-                                            <Button Content="&#xE74D;" Click="DiscardVaultRecovery_Click" Style="{StaticResource IconButtonStyle}"
+                                            <Button Content="&#xe92e;" Click="DiscardVaultRecovery_Click" Style="{StaticResource IconButtonStyle}"
                                                     ToolTipService.ToolTip="Descartar trabajo" AutomationProperties.Name="Descartar carpeta de recuperación"/>
                                         </StackPanel>
                                     </Grid>
@@ -471,9 +471,9 @@
                                         </StackPanel>
                                         <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="{x:Bind StatusLabel, Mode=OneWay}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind StatusLabel, Mode=OneWay}"/>
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
-                                            <Button Content="&#xE838;" Style="{StaticResource IconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
-                                            <Button Content="&#xE72E;" Style="{StaticResource IconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
-                                            <Button Content="&#xE712;" Style="{StaticResource IconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
+                                            <Button Content="&#xe2c8;" Style="{StaticResource IconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
+                                            <Button Content="&#xe899;" Style="{StaticResource IconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
+                                            <Button Content="&#xe5d4;" Style="{StaticResource IconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
                                                 <Button.Flyout>
                                                     <MenuFlyout Opening="VaultActionsFlyout_Opening">
                                                         <MenuFlyoutItem Text="Ver historial" CommandParameter="{Binding}" Click="ShowVaultActivity_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
