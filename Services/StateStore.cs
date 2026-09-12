@@ -35,7 +35,10 @@ public sealed class StateStore
             {
                 var encrypted = await File.ReadAllBytesAsync(_statePath);
                 var json = IsTpmEnvelope(encrypted)
-                    ? UnprotectWithTpm(encrypted)
+                    // TPM/CNG calls can wait on firmware or the provider. Keep
+                    // them off the WinUI dispatcher so loading protected rules
+                    // never makes the panel appear hung.
+                    ? await Task.Run(() => UnprotectWithTpm(encrypted)).ConfigureAwait(false)
                     : ProtectedData.Unprotect(encrypted, Entropy, DataProtectionScope.CurrentUser);
                 return JsonSerializer.Deserialize<AppState>(json, JsonOptions) ?? new AppState();
             }
@@ -69,7 +72,10 @@ public sealed class StateStore
     {
         var json = JsonSerializer.SerializeToUtf8Bytes(state, JsonOptions);
         var encrypted = IsTpmProtectionEnabled
-            ? ProtectWithTpm(json, _tpmKeyName!)
+            // Saving a rule also saves state.dat. Do the non-exportable-key
+            // operation on a worker so application management stays usable
+            // while a TPM provider is slow to answer.
+            ? await Task.Run(() => ProtectWithTpm(json, _tpmKeyName!)).ConfigureAwait(false)
             : ProtectedData.Protect(json, Entropy, DataProtectionScope.CurrentUser);
         var temp = _statePath + ".tmp-" + Environment.ProcessId;
         await File.WriteAllBytesAsync(temp, encrypted);
@@ -83,16 +89,16 @@ public sealed class StateStore
 
         if (enabled)
         {
-            var createdKey = TpmStateProtector.CreateKey();
+            var createdKey = await Task.Run(TpmStateProtector.CreateKey).ConfigureAwait(false);
             _tpmKeyName = createdKey;
             try
             {
-                await SaveAsync(state);
+                await SaveAsync(state).ConfigureAwait(false);
             }
             catch
             {
                 _tpmKeyName = null;
-                TpmStateProtector.DeleteKey(createdKey);
+                await Task.Run(() => TpmStateProtector.DeleteKey(createdKey)).ConfigureAwait(false);
                 throw;
             }
             return;
@@ -102,14 +108,14 @@ public sealed class StateStore
         _tpmKeyName = null;
         try
         {
-            await SaveAsync(state);
+            await SaveAsync(state).ConfigureAwait(false);
         }
         catch
         {
             _tpmKeyName = previousKey;
             throw;
         }
-        TpmStateProtector.DeleteKey(previousKey);
+        await Task.Run(() => TpmStateProtector.DeleteKey(previousKey)).ConfigureAwait(false);
     }
 
     private byte[] ProtectWithTpm(byte[] plainText, string keyName)
