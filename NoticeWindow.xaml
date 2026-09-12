@@ -4,10 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="ProtectedApp">
     <Window.SystemBackdrop>
-        <MicaBackdrop Kind="BaseAlt" />
+        <DesktopAcrylicBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="Root" Background="{ThemeResource WindowBackgroundBrush}" Padding="24" KeyDown="Root_KeyDown">
+    <Grid x:Name="Root" Background="Transparent" Padding="24" KeyDown="Root_KeyDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="16" />

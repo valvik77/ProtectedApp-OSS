@@ -83,12 +83,13 @@ public sealed partial class MainWindow
     {
         var light = Root.ActualTheme == ElementTheme.Light;
         var backgroundColor = light ? Windows.UI.Color.FromArgb(255, 248, 250, 252) : Windows.UI.Color.FromArgb(255, 21, 27, 36);
-        var fallbackColor = light ? Windows.UI.Color.FromArgb(214, 248, 250, 252) : Windows.UI.Color.FromArgb(200, 21, 27, 36);
+        var fallbackColor = light ? Windows.UI.Color.FromArgb(200, 248, 250, 252) : Windows.UI.Color.FromArgb(184, 21, 27, 36);
         var background = new AcrylicBrush
         {
             TintColor = backgroundColor,
-            TintOpacity = light ? 0.60 : 0.58,
-            FallbackColor = fallbackColor
+            TintOpacity = light ? 0.46 : 0.42,
+            FallbackColor = fallbackColor,
+            AlwaysUseFallback = false
         };
         var foreground = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 59, 59, 59) : Windows.UI.Color.FromArgb(255, 222, 226, 238));
         var border = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 229, 229, 229) : Windows.UI.Color.FromArgb(255, 62, 72, 81));
