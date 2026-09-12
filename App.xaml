@@ -18,9 +18,9 @@
                     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E80F141C" />
                     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#E8171C24" />
                     <AcrylicBrush x:Key="SidebarAcrylicBrush"
-                                  TintColor="#101720" TintOpacity="0.78" FallbackColor="#E8171C24" />
+                                  TintColor="#101720" TintOpacity="0.52" FallbackColor="#B0101720" />
                     <AcrylicBrush x:Key="DialogAcrylicBrush"
-                                  TintColor="#151B24" TintOpacity="0.82" FallbackColor="#F21B2028" />
+                                  TintColor="#151B24" TintOpacity="0.58" FallbackColor="#C8151B24" />
                     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#E81B2028" />
                     <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#FF252A33" />
                     <SolidColorBrush x:Key="ControlHoverBrush" Color="#FF30353E" />
@@ -46,11 +46,12 @@
                     <SolidColorBrush x:Key="CloseButtonBrush" Color="#FF252A33" />
                     <!-- Recursos internos consumidos por las plantillas WinUI. -->
                     <SolidColorBrush x:Key="ContentDialogForeground" Color="#F5F5F5" />
-                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FF1B2028" />
+                    <AcrylicBrush x:Key="ContentDialogBackground"
+                                  TintColor="#151B24" TintOpacity="0.58" FallbackColor="#C8151B24" />
                     <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#FF3E4851" />
                     <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#001B2028" />
                     <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#FF3E4851" />
-                    <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#99000000" />
+                    <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#62000000" />
                     <SolidColorBrush x:Key="TextControlBackground" Color="#FF171C24" />
                     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF252A33" />
                     <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF171C24" />
@@ -109,9 +110,9 @@
                     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#EAF3F3F3" />
                     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#D9F3F3F3" />
                     <AcrylicBrush x:Key="SidebarAcrylicBrush"
-                                  TintColor="#F8FAFC" TintOpacity="0.76" FallbackColor="#D9F3F3F3" />
+                                  TintColor="#F8FAFC" TintOpacity="0.52" FallbackColor="#C4F8FAFC" />
                     <AcrylicBrush x:Key="DialogAcrylicBrush"
-                                  TintColor="#F8FAFC" TintOpacity="0.84" FallbackColor="#F2F8F8F8" />
+                                  TintColor="#F8FAFC" TintOpacity="0.60" FallbackColor="#D6F8FAFC" />
                     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#E6FFFFFF" />
                     <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#E5E5E5" />
                     <SolidColorBrush x:Key="ControlHoverBrush" Color="#F2F2F2" />
@@ -136,11 +137,12 @@
                     <SolidColorBrush x:Key="DangerPressedBrush" Color="#C72E0F" />
                     <SolidColorBrush x:Key="CloseButtonBrush" Color="#E5E5E5" />
                     <SolidColorBrush x:Key="ContentDialogForeground" Color="#3B3B3B" />
-                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#F8F8F8" />
+                    <AcrylicBrush x:Key="ContentDialogBackground"
+                                  TintColor="#F8FAFC" TintOpacity="0.60" FallbackColor="#D6F8FAFC" />
                     <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#E5E5E5" />
                     <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#00F8F8F8" />
                     <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#E5E5E5" />
-                    <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#66000000" />
+                    <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#46000000" />
                     <SolidColorBrush x:Key="TextControlBackground" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FFFFFF" />
