@@ -70,9 +70,9 @@
                 <Setter Property="UseSystemFocusVisuals" Value="True"/>
             </Style>
             <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedDialogButtonStyle}">
-                <Setter Property="Width" Value="34"/><Setter Property="Height" Value="34"/><Setter Property="MinHeight" Value="34"/><Setter Property="Padding" Value="0"/>
+                <Setter Property="Width" Value="42"/><Setter Property="Height" Value="42"/><Setter Property="MinHeight" Value="42"/><Setter Property="Padding" Value="0"/>
                 <Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="{StaticResource PrototypeIconFont}"/>
+                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="{StaticResource PrototypeIconFont}"/><Setter Property="FontSize" Value="20"/>
             </Style>
         </Grid.Resources>
         <Grid.ColumnDefinitions><ColumnDefinition Width="252"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

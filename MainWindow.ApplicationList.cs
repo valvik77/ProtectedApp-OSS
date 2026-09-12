@@ -56,7 +56,10 @@ public sealed partial class MainWindow
         panel.Children.Add(timing);
         panel.Children.Add(error);
         var dialog = CreateDialog("Editar protección", CreateDialogScroller(panel), "Guardar", "Cancelar");
-        dialog.Resources["ContentDialogMaxWidth"] = editorWidth + 64;
+        // ContentDialog ignores MaxWidth for its outer popup on some WinUI 3
+        // builds, expanding it to the window width and making it appear left
+        // aligned. An explicit width keeps the editor centered and predictable.
+        dialog.Width = editorWidth + 64;
         dialog.MaxWidth = editorWidth + 64;
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>
