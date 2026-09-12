@@ -371,7 +371,7 @@ internal static class VaultFormatV3
             var chunk = entry.Chunks[chunkIndex];
             var chunkEnd = chunk.PlainOffset + chunk.PlainLength;
             if (chunkEnd <= offset || chunk.PlainOffset >= requestedEnd) continue;
-            var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex);
+            var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex).ConfigureAwait(false);
             try
             {
                 var from = (int)Math.Max(0, offset - chunk.PlainOffset);
@@ -605,7 +605,7 @@ internal static class VaultFormatV3
             await using var stream = new FileStream(opened.Path, FileMode.Open, FileAccess.Read,
                 FileShare.Read | FileShare.Delete, 128 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
             stream.Position = opened.Header.HeaderSize + chunk.Offset;
-            await ReadExactIntoAsync(stream, ciphertext);
+            await ReadExactIntoAsync(stream, ciphertext).ConfigureAwait(false);
             using (var aes = new AesGcm(opened.DataKey, TagSize))
                 aes.Decrypt(chunk.Nonce, ciphertext, chunk.Tag, prepared,
                     BuildChunkAad(opened.Vault.Id, entryIndex, chunkIndex, chunk.PlainOffset,
