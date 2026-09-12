@@ -40,9 +40,7 @@ public sealed partial class MainWindow
             Title = title,
             Content = content,
             PrimaryButtonText = primary,
-            DefaultButton = ContentDialogButton.Primary,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            DefaultButton = ContentDialogButton.Primary
         };
         if (!string.IsNullOrWhiteSpace(close)) dialog.CloseButtonText = close;
         LocalizationService.ApplyTo(dialog);

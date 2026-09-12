@@ -62,9 +62,6 @@ public sealed partial class MainWindow
         var dialogWidth = editorWidth + 64;
         dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
         dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
-        dialog.MinWidth = dialogWidth;
-        dialog.Width = dialogWidth;
-        dialog.MaxWidth = dialogWidth;
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>
         {
