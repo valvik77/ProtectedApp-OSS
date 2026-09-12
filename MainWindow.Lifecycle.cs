@@ -76,13 +76,13 @@ public sealed partial class MainWindow
         var light = Root.ActualTheme == ElementTheme.Light;
         var background = light
             ? Windows.UI.Color.FromArgb(255, 248, 248, 248)
-            : Windows.UI.Color.FromArgb(255, 16, 22, 30);
+            : Windows.UI.Color.FromArgb(255, 15, 20, 28);
         var hover = light
             ? Windows.UI.Color.FromArgb(255, 229, 229, 229)
-            : Windows.UI.Color.FromArgb(255, 32, 43, 56);
+            : Windows.UI.Color.FromArgb(255, 48, 53, 62);
         var foreground = light
             ? Windows.UI.Color.FromArgb(255, 31, 31, 31)
-            : Windows.UI.Color.FromArgb(255, 242, 247, 251);
+            : Windows.UI.Color.FromArgb(255, 222, 226, 238);
         titleBar.BackgroundColor = background;
         titleBar.ForegroundColor = foreground;
         titleBar.ButtonBackgroundColor = background;

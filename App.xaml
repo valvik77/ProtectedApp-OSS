@@ -14,50 +14,50 @@
                          sin sugerir capacidades que la aplicación no pueda comprobar. -->
                     <CornerRadius x:Key="ControlCornerRadius">8,8,8,8</CornerRadius>
                     <CornerRadius x:Key="OverlayCornerRadius">14,14,14,14</CornerRadius>
-                    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#10161E" />
-                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E810161E" />
-                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#E9141C26" />
+                    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#0F141C" />
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E80F141C" />
+                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#E8171C24" />
                     <!-- El desenfoque lo aporta DesktopAcrylicBackdrop de la ventana.
                          Esta capa ligera deja visible ese material sin que AcrylicBrush
                          degrade a su fallback opaco en WinUI 3 no empaquetado. -->
-                    <SolidColorBrush x:Key="SidebarAcrylicBrush" Color="#D9141C26" />
-                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#E617202B" />
-                    <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#FF202B38" />
-                    <SolidColorBrush x:Key="ControlHoverBrush" Color="#FF293747" />
-                    <SolidColorBrush x:Key="ControlPressedBrush" Color="#FF314356" />
-                    <SolidColorBrush x:Key="FilterCardHoverBrush" Color="#FF173D5A" />
-                    <SolidColorBrush x:Key="FilterCardPressedBrush" Color="#FF0D2D46" />
-                    <SolidColorBrush x:Key="CardStrokeBrush" Color="#FF2B3949" />
-                    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#7DCCFF" />
-                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#A8DCFF" />
-                    <SolidColorBrush x:Key="AccentPressedBrush" Color="#3DA8E9" />
-                    <SolidColorBrush x:Key="ActiveIndicatorBrush" Color="#7DCCFF" />
-                    <SolidColorBrush x:Key="PrimaryActionBrush" Color="#1378B8" />
-                    <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#218BCB" />
-                    <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#0B5D93" />
-                    <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#FFFFFF" />
-                    <SolidColorBrush x:Key="MutedTextBrush" Color="#C7D1DC" />
-                    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F2F7FB" />
-                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#8FA1B5" />
-                    <SolidColorBrush x:Key="SuccessBrush" Color="#4FC38A" />
+                    <SolidColorBrush x:Key="SidebarAcrylicBrush" Color="#E8171C24" />
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#E81B2028" />
+                    <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#FF252A33" />
+                    <SolidColorBrush x:Key="ControlHoverBrush" Color="#FF30353E" />
+                    <SolidColorBrush x:Key="ControlPressedBrush" Color="#FF343942" />
+                    <SolidColorBrush x:Key="FilterCardHoverBrush" Color="#FF20384A" />
+                    <SolidColorBrush x:Key="FilterCardPressedBrush" Color="#FF183040" />
+                    <SolidColorBrush x:Key="CardStrokeBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#CBE6FF" />
+                    <SolidColorBrush x:Key="AccentPressedBrush" Color="#00A2ED" />
+                    <SolidColorBrush x:Key="ActiveIndicatorBrush" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="PrimaryActionBrush" Color="#00A2ED" />
+                    <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#3BB8F5" />
+                    <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#006494" />
+                    <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#00344F" />
+                    <SolidColorBrush x:Key="MutedTextBrush" Color="#BEC8D2" />
+                    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#DEE2EE" />
+                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#88929C" />
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#4EDEA3" />
                     <SolidColorBrush x:Key="WarningBrush" Color="#F0B849" />
                     <SolidColorBrush x:Key="DangerBrush" Color="#FF99A4" />
                     <SolidColorBrush x:Key="DangerPressedBrush" Color="#D13438" />
-                    <SolidColorBrush x:Key="CloseButtonBrush" Color="#FF202B38" />
+                    <SolidColorBrush x:Key="CloseButtonBrush" Color="#FF252A33" />
                     <!-- Recursos internos consumidos por las plantillas WinUI. -->
                     <SolidColorBrush x:Key="ContentDialogForeground" Color="#F5F5F5" />
-                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FF17202B" />
-                    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#FF2B3949" />
-                    <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#FF17202B" />
-                    <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#FF2B3949" />
+                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FF1B2028" />
+                    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#FF1B2028" />
+                    <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#FF3E4851" />
                     <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#99000000" />
-                    <SolidColorBrush x:Key="TextControlBackground" Color="#FF1B2632" />
-                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF202E3C" />
-                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF1B2632" />
-                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF17202B" />
-                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FF3A4A5C" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#7DCCFF" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#7DCCFF" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF252A33" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8FCDFF" />
                     <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#FF444447" />
                     <SolidColorBrush x:Key="TextControlForeground" Color="#F5F5F5" />
                     <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#F5F5F5" />
@@ -78,7 +78,7 @@
                     <SolidColorBrush x:Key="TextControlButtonForeground" Color="#C5C5C5" />
                     <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#F5F5F5" />
                     <SolidColorBrush x:Key="TextControlButtonForegroundPressed" Color="#60CDFF" />
-                    <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#7DCCFF" />
+                    <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#8FCDFF" />
                     <SolidColorBrush x:Key="ListViewItemBackground" Color="Transparent" />
                     <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#E6404044" />
                     <SolidColorBrush x:Key="ListViewItemBackgroundPressed" Color="#FF4A4A4F" />
