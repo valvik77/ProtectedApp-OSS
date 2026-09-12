@@ -477,34 +477,32 @@ Write-Host 'Verificando el arranque real de los recursos WinUI...'
 $previousInstanceKey = $env:PROTECTEDAPP_INSTANCE_KEY
 $env:PROTECTEDAPP_INSTANCE_KEY = "InstallerProbe_$PID"
 try {
-    $startupProbe = Start-Process `
-        -FilePath (Join-Path $publishFolder 'ProtectedApp.exe') `
-        -ArgumentList '--startup-probe' `
-        -WorkingDirectory $publishFolder `
-        -Wait `
-        -PassThru
+    function Invoke-InstallerProbe([string] $Argument, [string] $Description) {
+        $probe = Start-Process `
+            -FilePath (Join-Path $publishFolder 'ProtectedApp.exe') `
+            -ArgumentList $Argument `
+            -WorkingDirectory $publishFolder `
+            -PassThru
+        if (-not $probe.WaitForExit(90000)) {
+            try { $probe.Kill($true) } catch { }
+            throw "La comprobación $Description superó el límite de 90 segundos."
+        }
+        return $probe
+    }
+
+    $startupProbe = Invoke-InstallerProbe '--startup-probe' 'de arranque WinUI'
     if ($startupProbe.ExitCode -ne 0) {
         throw "La comprobación de arranque WinUI terminó con el código $($startupProbe.ExitCode)."
     }
 
     Write-Host 'Verificando copias programadas y recuperación de bóvedas...'
-    $vaultBackupProbe = Start-Process `
-        -FilePath (Join-Path $publishFolder 'ProtectedApp.exe') `
-        -ArgumentList '--vault-backup-probe' `
-        -WorkingDirectory $publishFolder `
-        -Wait `
-        -PassThru
+    $vaultBackupProbe = Invoke-InstallerProbe '--vault-backup-probe' 'de copias programadas'
     if ($vaultBackupProbe.ExitCode -ne 0) {
         throw "La comprobación de copias programadas terminó con el código $($vaultBackupProbe.ExitCode)."
     }
 
     Write-Host 'Verificando el arranque silencioso y los eventos de sesión...'
-    $startupRegressionProbe = Start-Process `
-        -FilePath (Join-Path $publishFolder 'ProtectedApp.exe') `
-        -ArgumentList '--startup-regression-probe' `
-        -WorkingDirectory $publishFolder `
-        -Wait `
-        -PassThru
+    $startupRegressionProbe = Invoke-InstallerProbe '--startup-regression-probe' 'de arranque y sesión'
     if ($startupRegressionProbe.ExitCode -ne 0) {
         throw "La comprobación de arranque y sesión terminó con el código $($startupRegressionProbe.ExitCode)."
     }

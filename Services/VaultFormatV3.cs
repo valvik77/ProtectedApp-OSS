@@ -694,14 +694,18 @@ internal static class VaultFormatV3
     {
         await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
             FileShare.Read | FileShare.Delete, HeaderSizeV4, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        var prefix = await ReadExactAsync(stream, MagicV3.Length + 1);
+        // This reader is also used by the synchronous envelope inspection
+        // below. Do not capture a WinUI synchronization context here: doing
+        // so would deadlock that inspection while a UI-thread probe waits for
+        // the file read to complete.
+        var prefix = await ReadExactAsync(stream, MagicV3.Length + 1).ConfigureAwait(false);
         var isV3 = prefix.AsSpan(0, MagicV3.Length).SequenceEqual(MagicV3) && prefix[^1] == VersionV3;
         var isV4 = prefix.AsSpan(0, MagicV4.Length).SequenceEqual(MagicV4) && prefix[^1] == VersionV4;
         if (!isV3 && !isV4) throw new InvalidDataException("El contenedor no usa un formato PAVLT compatible.");
         var headerSize = isV4 ? HeaderSizeV4 : HeaderSizeV3;
         var bytes = new byte[headerSize];
         prefix.CopyTo(bytes, 0);
-        var remaining = await ReadExactAsync(stream, headerSize - prefix.Length);
+        var remaining = await ReadExactAsync(stream, headerSize - prefix.Length).ConfigureAwait(false);
         remaining.CopyTo(bytes, prefix.Length);
         using var reader = new BinaryReader(new MemoryStream(bytes, writable: false), Encoding.UTF8);
         _ = reader.ReadBytes(MagicV3.Length);
@@ -1023,7 +1027,7 @@ internal static class VaultFormatV3
     private static async Task<byte[]> ReadExactAsync(Stream stream, int length)
     {
         var result = new byte[length];
-        await ReadExactIntoAsync(stream, result);
+        await ReadExactIntoAsync(stream, result).ConfigureAwait(false);
         return result;
     }
 
@@ -1032,7 +1036,7 @@ internal static class VaultFormatV3
         var offset = 0;
         while (offset < destination.Length)
         {
-            var read = await stream.ReadAsync(destination.AsMemory(offset));
+            var read = await stream.ReadAsync(destination.AsMemory(offset)).ConfigureAwait(false);
             if (read == 0) throw new EndOfStreamException("El contenedor está truncado.");
             offset += read;
         }
