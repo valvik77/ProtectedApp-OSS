@@ -36,6 +36,13 @@ public sealed partial class MainWindow
         var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes);
         var schedule = CreateScheduleEditor(app.ScheduleEnabled, app.ScheduleDays, app.ScheduleStartMinutes, app.ScheduleEndMinutes, app.BlockOutsideSchedule);
         var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12 };
+        var passwordHint = new TextBlock
+        {
+            Text = "Selecciona la credencial que se solicitará al abrir esta aplicación.",
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 190, 200, 210), Windows.UI.Color.FromArgb(255, 89, 89, 89)),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap
+        };
         var editorWidth = Math.Min(980, Math.Max(320, (Root.XamlRoot?.Size.Width ?? 1100) - 100));
         var panel = new Grid { Width = editorWidth, ColumnSpacing = 16, RowSpacing = 12 };
         var wide = editorWidth >= 840;
@@ -47,7 +54,7 @@ public sealed partial class MainWindow
         // Use shared grid rows so the lower pair always begins at the same
         // height, instead of each column laying out its cards independently.
         var applicationSection = CreateEditorSection("Aplicación", "\uE71D", name, category);
-        var passwordSection = CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation);
+        var passwordSection = CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation, passwordHint);
         var closeSection = CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel);
         var scheduleSection = CreateEditorSection("Horario", "\uE787", schedule.Panel);
 

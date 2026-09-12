@@ -31,6 +31,7 @@ public static class LocalizationService
     {
         ["Inicio"] = "Home",
         ["Aplicación"] = "Application",
+        ["Selecciona la credencial que se solicitará al abrir esta aplicación."] = "Choose the credential requested when opening this application.",
         ["Resumen de la protección de este equipo"] = "A summary of protection on this computer",
         ["Protección local"] = "Local protection",
         ["ESPACIO DE TRABAJO"] = "WORKSPACE",
