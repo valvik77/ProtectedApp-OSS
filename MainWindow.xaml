@@ -74,6 +74,11 @@
                 <Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="{StaticResource PrototypeIconFont}"/><Setter Property="FontSize" Value="20"/>
             </Style>
+            <Style x:Key="RowActionIconButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+                <Setter Property="Width" Value="48"/><Setter Property="Height" Value="48"/><Setter Property="MinHeight" Value="48"/>
+                <Setter Property="CornerRadius" Value="9"/><Setter Property="FontSize" Value="24"/>
+                <Setter Property="Background" Value="{ThemeResource ControlSurfaceBrush}"/><Setter Property="BorderBrush" Value="{ThemeResource CardStrokeBrush}"/><Setter Property="BorderThickness" Value="1"/>
+            </Style>
         </Grid.Resources>
         <Grid.ColumnDefinitions><ColumnDefinition Width="252"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Grid.RowDefinitions><RowDefinition Height="60"/><RowDefinition Height="*"/></Grid.RowDefinitions>
@@ -470,10 +475,10 @@
                                             <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind ScheduledBackupLabel, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ScheduledBackupDetail, Mode=OneWay}"/>
                                         </StackPanel>
                                         <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="{x:Bind StatusLabel, Mode=OneWay}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind StatusLabel, Mode=OneWay}"/>
-                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
-                                            <Button Content="&#xe2c8;" Style="{StaticResource IconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
-                                            <Button Content="&#xe899;" Style="{StaticResource IconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
-                                            <Button Content="&#xe5d4;" Style="{StaticResource IconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
+                                            <Button Content="&#xe2c8;" Style="{StaticResource RowActionIconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
+                                            <Button Content="&#xe899;" Style="{StaticResource RowActionIconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
+                                            <Button Content="&#xe5d4;" Style="{StaticResource RowActionIconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
                                                 <Button.Flyout>
                                                     <MenuFlyout Opening="VaultActionsFlyout_Opening">
                                                         <MenuFlyoutItem Text="Ver historial" CommandParameter="{Binding}" Click="ShowVaultActivity_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
