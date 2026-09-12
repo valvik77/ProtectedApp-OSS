@@ -78,7 +78,7 @@ public sealed partial class MainWindow : Window
     private NoticeWindow? _activeNoticeWindow;
     private string? _guardianToken;
     private string? _recentMasterPassword;
-    private string _selectedNavigation = "apps";
+    private string _selectedNavigation = "dashboard";
     private string _selectedCategory = "all";
     private string _activityFilter = "recent";
     private DateTimeOffset _lastManagementActivityUtc = DateTimeOffset.UtcNow;
@@ -169,7 +169,7 @@ public sealed partial class MainWindow : Window
             Root.PointerMoved += (_, _) => RecordManagementActivity();
             Root.PointerPressed += (_, _) => RecordManagementActivity();
             Root.KeyDown += (_, _) => RecordManagementActivity();
-            SelectNavigation("apps");
+            SelectNavigation("dashboard");
         }
         catch (Exception ex)
         {

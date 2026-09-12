@@ -21,45 +21,115 @@
                         <Image Source="{Binding IconSource}" Stretch="Uniform" Margin="5"/>
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
-                        <TextBlock Text="{Binding Detail}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{Binding Detail}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
                     </StackPanel>
                 </Grid>
             </DataTemplate>
+            <Style x:Key="DashboardCardStyle" TargetType="Button">
+                <Setter Property="UseSystemFocusVisuals" Value="True"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="CardSurface" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="CardSurface.BorderBrush" Value="{ThemeResource AccentIndigoBrush}"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="CardSurface.BorderBrush" Value="{ThemeResource AccentPressedBrush}"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters><Setter Target="CardSurface.Opacity" Value="0.5"/></VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="NavStyle" TargetType="Button">
-                <Setter Property="Width" Value="42"/><Setter Property="Height" Value="42"/>
-                <Setter Property="Margin" Value="0,3"/><Setter Property="Padding" Value="0"/>
-                <Setter Property="CornerRadius" Value="9"/><Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
-                <Setter Property="FontSize" Value="16"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Height" Value="48"/>
+                <Setter Property="Margin" Value="0,2"/><Setter Property="Padding" Value="12,0"/>
+                <Setter Property="CornerRadius" Value="8"/><Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="UseSystemFocusVisuals" Value="True"/>
             </Style>
             <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedDialogButtonStyle}">
-                <Setter Property="Width" Value="34"/><Setter Property="Height" Value="34"/><Setter Property="MinHeight" Value="34"/><Setter Property="Padding" Value="0"/>
+                <Setter Property="Width" Value="42"/><Setter Property="Height" Value="42"/><Setter Property="MinHeight" Value="42"/><Setter Property="Padding" Value="0"/>
                 <Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
+                <Setter Property="Foreground" Value="{ThemeResource MutedTextBrush}"/><Setter Property="FontFamily" Value="{StaticResource PrototypeIconFont}"/><Setter Property="FontSize" Value="20"/>
+            </Style>
+            <Style x:Key="RowActionIconButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+                <Setter Property="Width" Value="48"/><Setter Property="Height" Value="48"/><Setter Property="MinHeight" Value="48"/>
+                <Setter Property="CornerRadius" Value="9"/><Setter Property="FontSize" Value="24"/>
+                <Setter Property="Background" Value="{ThemeResource ControlSurfaceBrush}"/><Setter Property="BorderBrush" Value="{ThemeResource CardStrokeBrush}"/><Setter Property="BorderThickness" Value="1"/>
             </Style>
         </Grid.Resources>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="60"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="252"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Grid.RowDefinitions><RowDefinition Height="60"/><RowDefinition Height="*"/></Grid.RowDefinitions>
 
         <Border Grid.RowSpan="2" Background="{ThemeResource SidebarAcrylicBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,1,0">
-            <Grid Margin="0,12">
+            <Grid Margin="12,14">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <Border Width="38" Height="38" CornerRadius="9" Background="{ThemeResource ControlSurfaceBrush}">
-                    <Image Source="Assets/BrandShield.png" Stretch="Uniform" Margin="3"/>
-                </Border>
-                <StackPanel Grid.Row="1" VerticalAlignment="Center">
-                    <Button x:Name="AppsNavButton" AutomationProperties.Name="Aplicaciones" Content="&#xE71D;" Style="{StaticResource NavStyle}" Tag="apps" Click="NavButton_Click" ToolTipService.ToolTip="Aplicaciones"/>
-                    <Button x:Name="VaultsNavButton" AutomationProperties.Name="Bóvedas" Content="&#xEDA2;" Style="{StaticResource NavStyle}" Tag="vaults" Click="NavButton_Click" ToolTipService.ToolTip="Bóvedas cifradas"/>
-                    <Button x:Name="ActivityNavButton" AutomationProperties.Name="Actividad" Content="&#xE9D9;" Style="{StaticResource NavStyle}" Tag="activity" Click="NavButton_Click" ToolTipService.ToolTip="Actividad"/>
-                    <Button x:Name="DiagnosticsNavButton" AutomationProperties.Name="Diagnóstico" Content="&#xE9D2;" Style="{StaticResource NavStyle}" Tag="diagnostics" Click="NavButton_Click" ToolTipService.ToolTip="Diagnóstico"/>
-                    <Button x:Name="SettingsNavButton" AutomationProperties.Name="Configuración" Content="&#xE713;" Style="{StaticResource NavStyle}" Tag="settings" Click="NavButton_Click" ToolTipService.ToolTip="Configuración"/>
-                    <Button x:Name="AboutNavButton" AutomationProperties.Name="Acerca de" Content="&#xE946;" Style="{StaticResource NavStyle}" Tag="about" Click="NavButton_Click" ToolTipService.ToolTip="Acerca de ProtectedApp"/>
+                <StackPanel Orientation="Horizontal" Spacing="9">
+                    <Border Width="36" Height="36" CornerRadius="9" Background="{ThemeResource ControlSurfaceBrush}">
+                        <Image Source="Assets/BrandShield.png" Stretch="Uniform" Margin="4"/>
+                    </Border>
+                    <StackPanel Spacing="0" VerticalAlignment="Center">
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="ProtectedApp" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección local" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10"/>
+                    </StackPanel>
                 </StackPanel>
-                <Button Grid.Row="2" Content="&#xE72E;" Style="{StaticResource NavStyle}" Click="LockButton_Click"
-                        AutomationProperties.Name="Bloquear ahora" ToolTipService.ToolTip="Revocar accesos y bloquear ahora"/>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,20,0,12">
+                <StackPanel VerticalAlignment="Top" Spacing="3">
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="ESPACIO DE TRABAJO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="80" Margin="10,0,0,8"/>
+                    <Button x:Name="DashboardNavButton" AutomationProperties.Name="Inicio" Style="{StaticResource NavStyle}" Tag="dashboard" Click="NavButton_Click" ToolTipService.ToolTip="Resumen de protección">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe9e0;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Inicio" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="AppsNavButton" AutomationProperties.Name="Aplicaciones" Style="{StaticResource NavStyle}" Tag="apps" Click="NavButton_Click" ToolTipService.ToolTip="Aplicaciones protegidas">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5c3;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Aplicaciones" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="VaultsNavButton" AutomationProperties.Name="Bóvedas" Style="{StaticResource NavStyle}" Tag="vaults" Click="NavButton_Click" ToolTipService.ToolTip="Bóvedas cifradas">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe617;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bóvedas" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="ActivityNavButton" AutomationProperties.Name="Actividad" Style="{StaticResource NavStyle}" Tag="activity" Click="NavButton_Click" ToolTipService.ToolTip="Actividad">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Actividad" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="DiagnosticsNavButton" AutomationProperties.Name="Diagnóstico" Style="{StaticResource NavStyle}" Tag="diagnostics" Click="NavButton_Click" ToolTipService.ToolTip="Diagnóstico">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xef76;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Diagnóstico" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="SettingsNavButton" AutomationProperties.Name="Configuración" Style="{StaticResource NavStyle}" Tag="settings" Click="NavButton_Click" ToolTipService.ToolTip="Configuración">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b8;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Configuración" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button x:Name="AboutNavButton" AutomationProperties.Name="Acerca de" Style="{StaticResource NavStyle}" Tag="about" Click="NavButton_Click" ToolTipService.ToolTip="Acerca de ProtectedApp">
+                        <StackPanel Orientation="Horizontal" Spacing="11"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe88e;" FontSize="22"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Acerca de" FontSize="14" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                </StackPanel>
+                </ScrollViewer>
+                <StackPanel Grid.Row="2" Spacing="10">
+                    <Button Style="{StaticResource RoundedDialogButtonStyle}" Background="#B42318" BorderBrush="#B42318" Foreground="White" Click="LockButton_Click"
+                            AutomationProperties.Name="Bloqueo inmediato" ToolTipService.ToolTip="Revocar accesos y bloquear ahora">
+                        <StackPanel Orientation="Horizontal" Spacing="9"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" FontSize="14"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloqueo inmediato" FontWeight="SemiBold" FontSize="12"/></StackPanel>
+                    </Button>
+                    <Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8"><Ellipse x:Name="SidebarStatusDot" Width="7" Height="7" Fill="{ThemeResource SuccessBrush}" VerticalAlignment="Center"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="SidebarStatusText" Text="Guardian conectado" FontSize="10" Foreground="{ThemeResource MutedTextBrush}"/></StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -69,27 +139,27 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="14"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Grid x:Name="TitleDragRegion" Background="Transparent">
                 <StackPanel VerticalAlignment="Center" Spacing="1">
-                <TextBlock x:Name="PageTitle" Text="Aplicaciones" FontSize="19" FontWeight="SemiBold"/>
-                <TextBlock x:Name="PageSubtitle" Text="Elige qué programas requieren autorización" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="PageTitle" Text="Aplicaciones" FontSize="22" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="PageSubtitle" Text="Elige qué programas requieren autorización" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Grid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="2" Padding="3"
                             Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8"
                             AutomationProperties.Name="Tema de la aplicación">
-                    <Button x:Name="ThemeLightButton" Tag="light" Content="&#xE706;" Style="{StaticResource IconButtonStyle}"
+                    <Button FontFamily="{StaticResource PrototypeIconFont}" x:Name="ThemeLightButton" Tag="light" Content="&#xe518;" Style="{StaticResource IconButtonStyle}"
                             Click="ThemeButton_Click" ToolTipService.ToolTip="Usar modo claro"
                             AutomationProperties.Name="Usar modo claro"/>
-                    <Button x:Name="ThemeSystemButton" Tag="system" Content="&#xE7F4;" Style="{StaticResource IconButtonStyle}"
+                    <Button FontFamily="{StaticResource PrototypeIconFont}" x:Name="ThemeSystemButton" Tag="system" Content="&#xe30c;" Style="{StaticResource IconButtonStyle}"
                             Click="ThemeButton_Click" ToolTipService.ToolTip="Seguir el tema de Windows"
                             AutomationProperties.Name="Seguir el tema de Windows"/>
-                    <Button x:Name="ThemeDarkButton" Tag="dark" Content="&#xE708;" Style="{StaticResource IconButtonStyle}"
+                    <Button FontFamily="{StaticResource PrototypeIconFont}" x:Name="ThemeDarkButton" Tag="dark" Content="&#xe51c;" Style="{StaticResource IconButtonStyle}"
                             Click="ThemeButton_Click" ToolTipService.ToolTip="Usar modo oscuro"
                             AutomationProperties.Name="Usar modo oscuro"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                     <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="{ThemeResource SuccessBrush}"/>
-                    <TextBlock x:Name="StatusText" Text="Activa" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="StatusText" Text="Activa" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
                 </StackPanel>
                 <Button Height="34"
                         Style="{StaticResource RoundedDialogButtonStyle}"
@@ -102,12 +172,12 @@
                         AutomationProperties.Name="Bloquear ahora"
                         ToolTipService.ToolTip="Revocar accesos y cerrar las aplicaciones protegidas">
                     <StackPanel Orientation="Horizontal" Spacing="7">
-                        <FontIcon Glyph="&#xE72E;" FontFamily="Segoe Fluent Icons" FontSize="12"/>
-                        <TextBlock Text="Bloquear" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" FontSize="12"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloquear" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PauseButton" Style="{StaticResource IconButtonStyle}" Click="PauseButton_Click" ToolTipService.ToolTip="Pausar protección" AutomationProperties.Name="Pausar protección" Visibility="Collapsed">
-                    <FontIcon x:Name="PauseIcon" Glyph="&#xE769;" FontSize="13"/>
+                    <FontIcon FontFamily="{StaticResource PrototypeIconFont}" x:Name="PauseIcon" Glyph="&#xe034;" FontSize="13"/>
                 </Button>
             </StackPanel>
             <Button Grid.Column="3"
@@ -140,7 +210,7 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <FontIcon Glyph="&#xE921;" FontFamily="Segoe Fluent Icons" FontSize="10" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe15b;" FontSize="10" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Button.Template>
@@ -175,7 +245,7 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <FontIcon Glyph="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5cd;" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Button.Template>
@@ -185,19 +255,60 @@
         <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollMode="Auto" HorizontalScrollMode="Disabled" ZoomMode="Disabled">
         <Grid Margin="20,6,20,20" MinWidth="760">
+            <Grid x:Name="DashboardView">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="14"/><RowDefinition Height="Auto"/><RowDefinition Height="16"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <!-- The hero uses the prototype's layered-console treatment, populated only
+                     with values ProtectedApp can actually determine. -->
+                <Border Padding="24,20" CornerRadius="14" Background="{ThemeResource ControlSurfaceBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="7"><Border Background="{ThemeResource SuccessBrush}" CornerRadius="4" Padding="7,3"><StackPanel Orientation="Horizontal" Spacing="5"><Ellipse Width="5" Height="5" Fill="White" VerticalAlignment="Center"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="PROTECCIÓN ACTIVA" Foreground="White" FontSize="9" FontWeight="SemiBold" CharacterSpacing="60"/></StackPanel></Border><TextBlock Text="ESTADO LOCAL" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" VerticalAlignment="Center" CharacterSpacing="45"/></StackPanel>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Centro de seguridad" FontSize="25" FontWeight="SemiBold"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Consulta el estado de tus reglas, bóvedas y actividad reciente." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Background="{ThemeResource CardBackgroundBrush}" CornerRadius="10" Padding="13,11" VerticalAlignment="Center" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <StackPanel Spacing="3"><TextBlock Text="GUARDIAN" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" CharacterSpacing="45"/><StackPanel Orientation="Horizontal" Spacing="6"><Ellipse Width="7" Height="7" Fill="{ThemeResource SuccessBrush}" VerticalAlignment="Center"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardGuardianText" Text="Guardian conectado" FontWeight="SemiBold" FontSize="11"/></StackPanel><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección administrada" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9"/></StackPanel>
+                                <Border Width="1" Background="{ThemeResource CardStrokeBrush}"/>
+                                <StackPanel Spacing="3"><TextBlock Text="EVENTOS" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" CharacterSpacing="45"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardActivityCountText" Text="0" FontSize="19" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="últimas 24 h" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9"/></StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+                <Grid Grid.Row="2" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Button Style="{StaticResource DashboardCardStyle}" Tag="apps" Click="NavButton_Click" AutomationProperties.Name="Aplicaciones protegidas" ToolTipService.ToolTip="Aplicaciones protegidas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" UseSystemFocusVisuals="True" Padding="15" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1"><StackPanel Spacing="8"><Grid><TextBlock Text="REGLAS ACTIVAS" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="60"/><Border HorizontalAlignment="Right" Background="#1900A2ED" CornerRadius="7" Width="28" Height="28"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardAppsCountText" Text="0" FontSize="36" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardAppsDetailText" Text="aplicaciones protegidas" Foreground="{ThemeResource MutedTextBrush}" FontSize="10"/><Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="6" Padding="7,4"><TextBlock Text="AUTORIZACIÓN REQUERIDA" Foreground="{ThemeResource AccentIndigoBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="8" CharacterSpacing="35"/></Border></StackPanel></Button>
+                    <Button Style="{StaticResource DashboardCardStyle}" Tag="vaults" Click="NavButton_Click" AutomationProperties.Name="Bóvedas cifradas" ToolTipService.ToolTip="Bóvedas cifradas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" UseSystemFocusVisuals="True" Grid.Column="1" Padding="15" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1"><StackPanel Spacing="8"><Grid><TextBlock Text="BÓVEDAS" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="60"/><Border HorizontalAlignment="Right" Background="#194EDEA3" CornerRadius="7" Width="28" Height="28"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe617;" Foreground="{ThemeResource SuccessBrush}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardVaultCountText" Text="0" FontSize="36" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardVaultDetailText" Text="contenedores cifrados" Foreground="{ThemeResource MutedTextBrush}" FontSize="10"/><Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="6" Padding="7,4"><TextBlock Text="CIFRADO LOCAL" Foreground="{ThemeResource SuccessBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="8" CharacterSpacing="35"/></Border></StackPanel></Button>
+                    <Button Style="{StaticResource DashboardCardStyle}" Tag="activity" Click="NavButton_Click" AutomationProperties.Name="Actividad" ToolTipService.ToolTip="Actividad" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" UseSystemFocusVisuals="True" Grid.Column="2" Padding="15" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1"><StackPanel Spacing="8"><Grid><TextBlock Text="ACTIVIDAD · 24 H" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="60"/><Border HorizontalAlignment="Right" Background="#19F0B849" CornerRadius="7" Width="28" Height="28"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;" Foreground="{ThemeResource WarningBrush}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardActivitySummaryText" Text="0" FontSize="36" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="eventos registrados" Foreground="{ThemeResource MutedTextBrush}" FontSize="10"/><Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="6" Padding="7,4"><TextBlock Text="AUDITORÍA LOCAL" Foreground="{ThemeResource WarningBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="8" CharacterSpacing="35"/></Border></StackPanel></Button>
+                    <Button Style="{StaticResource DashboardCardStyle}" Tag="diagnostics" Click="NavButton_Click" AutomationProperties.Name="Diagnóstico" ToolTipService.ToolTip="Diagnóstico" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" UseSystemFocusVisuals="True" Grid.Column="3" Padding="15" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1"><StackPanel Spacing="8"><Grid><TextBlock Text="INTEGRIDAD" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="60"/><Border HorizontalAlignment="Right" Background="#1900A2ED" CornerRadius="7" Width="28" Height="28"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xef76;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardDiagnosticsText" Text="Pendiente" FontSize="20" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="comprobación del sistema" Foreground="{ThemeResource MutedTextBrush}" FontSize="10"/><Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="6" Padding="7,4"><TextBlock Text="REVISIÓN DISPONIBLE" Foreground="{ThemeResource AccentIndigoBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="8" CharacterSpacing="35"/></Border></StackPanel></Button>
+                </Grid>
+                <Grid Grid.Row="4" ColumnSpacing="14">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.55*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                        <StackPanel Spacing="13"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xea0b;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="16"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Acciones rápidas" FontWeight="SemiBold" FontSize="14"/></StackPanel><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Gestiona la protección sin abandonar el panel principal." Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Button Tag="apps" Click="NavButton_Click" Style="{StaticResource RoundedDialogButtonStyle}"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe145;" FontSize="12"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Gestionar aplicaciones" FontSize="11"/></StackPanel></Button><Button Grid.Column="1" Click="AddVaultButton_Click" Style="{StaticResource RoundedPrimaryButtonStyle}"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe145;" FontSize="12"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Nueva bóveda" FontSize="11"/></StackPanel></Button></Grid></StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                        <StackPanel Spacing="10"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xef76;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="16"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Estado del sistema" FontWeight="SemiBold" FontSize="14"/></StackPanel><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DashboardSystemDetailText" Text="La comprobación detallada está disponible en Diagnóstico." Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextWrapping="Wrap"/><Button Tag="diagnostics" Click="NavButton_Click" Style="{StaticResource RoundedDialogButtonStyle}" HorizontalAlignment="Left" Padding="11,6"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Abrir diagnóstico" FontSize="11"/></Button></StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
             <Grid x:Name="AppsView">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Padding="14,12" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                 <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <Grid MaxWidth="440" HorizontalAlignment="Left">
                         <TextBox x:Name="SearchBox" PlaceholderText="Buscar aplicaciones" TextChanged="SearchBox_TextChanged" Padding="36,8,10,8" CornerRadius="8"/>
-                        <FontIcon Glyph="&#xE721;" Foreground="{ThemeResource MutedTextBrush}" FontSize="13" HorizontalAlignment="Left" Margin="12,0,0,0" IsHitTestVisible="False"/>
+                        <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xef7a;" Foreground="{ThemeResource MutedTextBrush}" FontSize="13" HorizontalAlignment="Left" Margin="12,0,0,0" IsHitTestVisible="False"/>
                     </Grid>
                     <ToggleButton x:Name="EnabledOnlyButton" Grid.Column="1" Content="Activas" Click="FilterButton_Click" Style="{StaticResource RoundedFilterToggleButtonStyle}"/>
                     <Button Grid.Column="2" AutomationProperties.Name="Añadir" Click="AddApplicationButton_Click" Style="{StaticResource RoundedPrimaryButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="7"><FontIcon Glyph="&#xE710;" FontSize="12"/><TextBlock Text="Añadir" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe145;" FontSize="12"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Añadir" FontWeight="SemiBold"/></StackPanel>
                     </Button>
                 </Grid>
+                </Border>
 
                 <Grid Grid.Row="1" Margin="0,10,0,0">
                     <Grid.ColumnDefinitions>
@@ -209,68 +320,68 @@
                     </ScrollViewer>
                     <Button Grid.Column="1" x:Name="GroupActionsButton" CornerRadius="8" Padding="10,6" Background="{ThemeResource ControlSurfaceBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" Foreground="{ThemeResource PrimaryTextBrush}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="Acciones de grupo" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                            <FontIcon Glyph="&#xE70D;" FontFamily="Segoe Fluent Icons" FontSize="9" VerticalAlignment="Center" Foreground="{ThemeResource MutedTextBrush}"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Acciones de grupo" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5cf;" FontSize="9" VerticalAlignment="Center" Foreground="{ThemeResource MutedTextBrush}"/>
                         </StackPanel>
                         <Button.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem x:Name="LockGroupMenuItem" Text="Bloquear grupo seleccionado" Click="LockGroup_Click">
-                                    <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE72E;"/></MenuFlyoutItem.Icon>
+                                    <MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;"/></MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem x:Name="EnableGroupMenuItem" Text="Activar protección del grupo" Click="EnableGroup_Click">
-                                    <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE73E;"/></MenuFlyoutItem.Icon>
+                                    <MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe668;"/></MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem x:Name="DisableGroupMenuItem" Text="Desactivar protección del grupo" Click="DisableGroup_Click">
-                                    <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE711;"/></MenuFlyoutItem.Icon>
+                                    <MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5cd;"/></MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
                 </Grid>
 
-                <Border Grid.Row="3" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Background="{ThemeResource CardBackgroundBrush}">
+                <Border Grid.Row="3" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}">
                     <Grid>
                         <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                        <Grid Padding="16,0" ColumnSpacing="12" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="2.5*"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="112"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Text="APLICACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
-                            <TextBlock Grid.Column="2" Text="ACCESO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
-                            <TextBlock Grid.Column="3" Text="ACTIVA" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                        <Grid Padding="16,0" ColumnSpacing="12" Background="{ThemeResource ControlSurfaceBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="2.5*"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="154"/></Grid.ColumnDefinitions>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="1" Text="APLICACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="2" Text="ACCESO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="ACTIVA" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
                         </Grid>
                         <ListView x:Name="ApplicationsList" Grid.Row="1" ItemsSource="{x:Bind VisibleApps, Mode=OneWay}" SelectionMode="None">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="4,1"/><Setter Property="CornerRadius" Value="7"/></Style></ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:ProtectedApplication">
                                     <Grid Padding="12,8" ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="2.5*"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="112"/></Grid.ColumnDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="2.5*"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="154"/></Grid.ColumnDefinitions>
                                         <Border Width="34" Height="34" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}"><Image Source="{x:Bind IconSource, Mode=OneWay}" Stretch="Uniform" Margin="5"/></Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
                                                 <Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{x:Bind CategoryLabel, Mode=OneWay}" FontSize="9" FontWeight="SemiBold" Foreground="{ThemeResource AccentIndigoBrush}"/>
+                                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind CategoryLabel, Mode=OneWay}" FontSize="9" FontWeight="SemiBold" Foreground="{ThemeResource AccentIndigoBrush}"/>
                                                 </Border>
                                             </StackPanel>
-                                            <TextBlock Text="{x:Bind Path}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind Path}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
-                                            <TextBlock Text="{x:Bind AccessLabel, Mode=OneWay}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
-                                            <TextBlock Text="{x:Bind ScheduleSummary, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind AccessLabel, Mode=OneWay}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind ScheduleSummary, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
                                         </StackPanel>
                                         <ToggleSwitch Grid.Column="3" IsOn="{x:Bind IsEnabled, Mode=OneWay}" Toggled="RuleToggle_Toggled" OnContent="" OffContent="" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
-                                            <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" Click="EditRule_Click" ToolTipService.ToolTip="Editar" AutomationProperties.Name="Editar protección"/>
-                                            <Button Content="&#xE72E;" Style="{StaticResource IconButtonStyle}" Click="LockRule_Click" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}" ToolTipService.ToolTip="Bloquear esta aplicación" AutomationProperties.Name="Bloquear aplicación"/>
-                                            <Button Content="&#xE74D;" Style="{StaticResource IconButtonStyle}" Click="DeleteRule_Click" ToolTipService.ToolTip="Eliminar" AutomationProperties.Name="Eliminar protección"/>
+                                            <Button Content="&#xf097;" Style="{StaticResource IconButtonStyle}" Click="EditRule_Click" ToolTipService.ToolTip="Editar" AutomationProperties.Name="Editar protección"/>
+                                            <Button Content="&#xe899;" Style="{StaticResource IconButtonStyle}" Click="LockRule_Click" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}" ToolTipService.ToolTip="Bloquear esta aplicación" AutomationProperties.Name="Bloquear aplicación"/>
+                                            <Button Content="&#xe92e;" Style="{StaticResource IconButtonStyle}" Click="DeleteRule_Click" ToolTipService.ToolTip="Eliminar" AutomationProperties.Name="Eliminar protección"/>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
                         <StackPanel x:Name="EmptyState" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="7">
-                            <FontIcon Glyph="&#xE72E;" FontSize="25" Foreground="{ThemeResource SubtleTextBrush}"/>
-                            <TextBlock Text="No hay aplicaciones protegidas" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Pulsa Añadir para seleccionar una aplicación, un ejecutable o un script." Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" FontSize="25" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="No hay aplicaciones protegidas" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Pulsa Añadir para seleccionar una aplicación, un ejecutable o un script." Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -278,30 +389,32 @@
 
             <Grid x:Name="VaultsView" Visibility="Collapsed">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Padding="14,12" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                 <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Contenedores cifrados con contraseña propia" FontWeight="SemiBold" FontSize="12"/>
-                        <TextBlock Text="Consulta archivos sin crear una copia completa en el disco o abre la bóveda para editar y guardar cambios." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Contenedores cifrados con contraseña propia" FontWeight="SemiBold" FontSize="12"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Consulta archivos sin crear una copia completa en el disco o abre la bóveda para editar y guardar cambios." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
                     </StackPanel>
                     <Button Grid.Column="1" Content="Convertir carpeta" Click="AddFolderButton_Click" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" ToolTipService.ToolTip="Convertir una carpeta en una bóveda cifrada"/>
                     <Button Grid.Column="2" Content="Limpiar ausentes" Click="CleanupMissingVaultReferences_Click" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" ToolTipService.ToolTip="Quitar de la lista las bóvedas cuyo archivo y copia de recuperación ya no existen"/>
                     <Button Grid.Column="3" Content="Importar" Click="ImportVaultButton_Click" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8"/>
                     <Button Grid.Column="4" AutomationProperties.Name="Nueva bóveda" Click="AddVaultButton_Click" Style="{StaticResource RoundedPrimaryButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="7"><FontIcon Glyph="&#xE710;" FontSize="12"/><TextBlock x:Name="NewVaultLabel" Text="Nueva bóveda" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe145;" FontSize="12"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="NewVaultLabel" Text="Nueva bóveda" FontWeight="SemiBold"/></StackPanel>
                     </Button>
                 </Grid>
+                </Border>
                 <Border x:Name="VaultRecoveryPanel" Grid.Row="1" Margin="0,10,0,0" Visibility="Collapsed"
-                        BorderBrush="{ThemeResource AccentIndigoBrush}" BorderThickness="1" CornerRadius="10"
+                        BorderBrush="{ThemeResource AccentIndigoBrush}" BorderThickness="1" CornerRadius="12"
                         Background="{ThemeResource CardBackgroundBrush}">
                     <Grid>
                         <Grid.RowDefinitions><RowDefinition Height="40"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <Grid Padding="14,0" ColumnSpacing="8" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE7BA;" FontSize="14" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xf083;" FontSize="14" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                                <TextBlock Text="Recuperación pendiente" FontWeight="SemiBold" FontSize="12"/>
-                                <TextBlock x:Name="VaultRecoveryCountText" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Recuperación pendiente" FontWeight="SemiBold" FontSize="12"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="VaultRecoveryCountText" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button Grid.Column="2" Content="Actualizar" Click="RefreshVaultRecoveryButton_Click"
                                     Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="7" Padding="10,4" FontSize="10"/>
@@ -314,22 +427,22 @@
                                     <Grid Padding="10,7" ColumnSpacing="10">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="120"/><ColumnDefinition Width="176"/></Grid.ColumnDefinitions>
                                         <Border Width="30" Height="30" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}">
-                                            <FontIcon Glyph="&#xE777;" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}"/>
+                                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                            <TextBlock Text="{x:Bind DisplayName}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
-                                            <TextBlock Text="{x:Bind DetailLabel}" Foreground="{ThemeResource MutedTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
-                                            <TextBlock Text="{x:Bind WorkingDirectory}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind DisplayName}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind DetailLabel}" Foreground="{ThemeResource MutedTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind WorkingDirectory}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"
                                                        ToolTipService.ToolTip="{x:Bind WorkingDirectory}"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{x:Bind StatusLabel}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="9"
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="2" Text="{x:Bind StatusLabel}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="9"
                                                    TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Button Content="Guardar y bloquear" Click="RecoverVaultWork_Click" IsEnabled="{x:Bind CanRecover}"
                                                     Style="{StaticResource RoundedPrimaryButtonStyle}" CornerRadius="7" Padding="9,5" FontSize="9"/>
-                                            <Button Content="&#xE838;" Click="OpenVaultRecoveryFolder_Click" Style="{StaticResource IconButtonStyle}"
+                                            <Button Content="&#xe2c8;" Click="OpenVaultRecoveryFolder_Click" Style="{StaticResource IconButtonStyle}"
                                                     ToolTipService.ToolTip="Abrir carpeta de trabajo" AutomationProperties.Name="Abrir carpeta de recuperación"/>
-                                            <Button Content="&#xE74D;" Click="DiscardVaultRecovery_Click" Style="{StaticResource IconButtonStyle}"
+                                            <Button Content="&#xe92e;" Click="DiscardVaultRecovery_Click" Style="{StaticResource IconButtonStyle}"
                                                     ToolTipService.ToolTip="Descartar trabajo" AutomationProperties.Name="Descartar carpeta de recuperación"/>
                                         </StackPanel>
                                     </Grid>
@@ -338,14 +451,14 @@
                         </ListView>
                     </Grid>
                 </Border>
-                <Border Grid.Row="2" Margin="0,10,0,0" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Background="{ThemeResource CardBackgroundBrush}">
+                <Border Grid.Row="2" Margin="0,10,0,0" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}">
                     <Grid>
                         <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                        <Grid Padding="16,0" ColumnSpacing="12" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
+                        <Grid Padding="16,0" ColumnSpacing="12" Background="{ThemeResource ControlSurfaceBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="124"/><ColumnDefinition Width="250"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Text="BÓVEDA" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
-                            <TextBlock Grid.Column="2" Text="UBICACIÓN DEL ARCHIVO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
-                            <TextBlock Grid.Column="3" Text="ESTADO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="1" Text="BÓVEDA" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="2" Text="UBICACIÓN DEL ARCHIVO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="ESTADO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="70"/>
                         </Grid>
                         <ListView Grid.Row="1" ItemsSource="{x:Bind Vaults, Mode=OneWay}" SelectionMode="None">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="4,1"/><Setter Property="CornerRadius" Value="7"/></Style></ListView.ItemContainerStyle>
@@ -353,28 +466,28 @@
                                 <DataTemplate x:DataType="models:VaultContainer">
                                     <Grid Padding="12,8" ColumnSpacing="12">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="1.5*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="124"/><ColumnDefinition Width="250"/></Grid.ColumnDefinitions>
-                                        <Border Width="34" Height="34" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}"><FontIcon Glyph="&#xE72E;" FontFamily="Segoe Fluent Icons" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="15"/></Border>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2"><TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/><TextBlock Text="{x:Bind Description}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel>
+                                        <Border Width="34" Height="34" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}"><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="15"/></Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind Description}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel>
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="3">
-                                            <TextBlock Text="{x:Bind VaultFilePath, Mode=OneWay}" Foreground="{ThemeResource MutedTextBrush}" FontSize="12"
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind VaultFilePath, Mode=OneWay}" Foreground="{ThemeResource MutedTextBrush}" FontSize="12"
                                                        TextWrapping="Wrap" IsTextSelectionEnabled="True" ToolTipService.ToolTip="{x:Bind VaultFilePath, Mode=OneWay}"/>
-                                            <TextBlock Text="{x:Bind SizeLabel, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12"/>
-                                            <TextBlock Text="{x:Bind ScheduledBackupLabel, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ScheduledBackupDetail, Mode=OneWay}"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind SizeLabel, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="12"/>
+                                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="{x:Bind ScheduledBackupLabel, Mode=OneWay}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="9" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ScheduledBackupDetail, Mode=OneWay}"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="3" Text="{x:Bind StatusLabel, Mode=OneWay}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind StatusLabel, Mode=OneWay}"/>
-                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
-                                            <Button Content="&#xE838;" Style="{StaticResource IconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
-                                            <Button Content="&#xE72E;" Style="{StaticResource IconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
-                                            <Button Content="&#xE712;" Style="{StaticResource IconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="{x:Bind StatusLabel, Mode=OneWay}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind StatusLabel, Mode=OneWay}"/>
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
+                                            <Button Content="&#xe2c8;" Style="{StaticResource RowActionIconButtonStyle}" Click="OpenVault_Click" IsEnabled="{x:Bind CanOpen, Mode=OneWay}" ToolTipService.ToolTip="Abrir bóveda" AutomationProperties.Name="Abrir bóveda"/>
+                                            <Button Content="&#xe899;" Style="{StaticResource RowActionIconButtonStyle}" Click="LockVault_Click" IsEnabled="{x:Bind CanLock, Mode=OneWay}" ToolTipService.ToolTip="Guardar cambios y bloquear" AutomationProperties.Name="Guardar y bloquear bóveda"/>
+                                            <Button Content="&#xe5d4;" Style="{StaticResource RowActionIconButtonStyle}" ToolTipService.ToolTip="Más acciones de bóveda" AutomationProperties.Name="Más acciones de bóveda">
                                                 <Button.Flyout>
                                                     <MenuFlyout Opening="VaultActionsFlyout_Opening">
-                                                        <MenuFlyoutItem Text="Ver historial" CommandParameter="{Binding}" Click="ShowVaultActivity_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE81C;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
-                                                        <MenuFlyoutItem Text="Comprobar integridad" CommandParameter="{Binding}" Click="VerifyVaultIntegrity_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE9D2;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
-                                                        <MenuFlyoutItem Text="Copias programadas" CommandParameter="{Binding}" Click="ManageScheduledVaultBackups_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE81C;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
-                                                        <MenuFlyoutItem Text="Copia de recuperación" CommandParameter="{Binding}" Click="ManageVaultBackup_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE777;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Ver historial" CommandParameter="{Binding}" Click="ShowVaultActivity_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Comprobar integridad" CommandParameter="{Binding}" Click="VerifyVaultIntegrity_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xef76;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copias programadas" CommandParameter="{Binding}" Click="ManageScheduledVaultBackups_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copia de recuperación" CommandParameter="{Binding}" Click="ManageVaultBackup_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8b3;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
                                                         <MenuFlyoutSeparator/>
-                                                        <MenuFlyoutItem Text="Editar bóveda" CommandParameter="{Binding}" Click="EditVault_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE70F;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
-                                                        <MenuFlyoutItem Text="Quitar de la lista" CommandParameter="{Binding}" Click="RemoveVault_Click"><MenuFlyoutItem.Icon><FontIcon Glyph="&#xE74D;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Editar bóveda" CommandParameter="{Binding}" Click="EditVault_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xf097;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Quitar de la lista" CommandParameter="{Binding}" Click="RemoveVault_Click"><MenuFlyoutItem.Icon><FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe92e;"/></MenuFlyoutItem.Icon></MenuFlyoutItem>
                                                     </MenuFlyout>
                                                 </Button.Flyout>
                                             </Button>
@@ -384,9 +497,9 @@
                             </ListView.ItemTemplate>
                         </ListView>
                         <StackPanel x:Name="EmptyVaultsState" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="7">
-                            <FontIcon Glyph="&#xE72E;" FontSize="25" Foreground="{ThemeResource SubtleTextBrush}"/>
-                            <TextBlock Text="No hay bóvedas cifradas" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Crea un contenedor nuevo o importa uno existente." Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" FontSize="25" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="No hay bóvedas cifradas" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Crea un contenedor nuevo o importa uno existente." Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -437,73 +550,75 @@
                     </Style>
                 </Grid.Resources>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="Auto"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Padding="12" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBox x:Name="ActivitySearchBox"
                              PlaceholderText="Buscar en el historial"
                              CornerRadius="8"
                              TextChanged="ActivitySearchBox_TextChanged"/>
-                    <TextBlock x:Name="ActivityCountText" Grid.Column="1" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0"/>
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityCountText" Grid.Column="1" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0"/>
                     <Button x:Name="ExportActivityButton" Grid.Column="2" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" AutomationProperties.Name="Exportar actividad" Click="ExportActivityButton_Click" ToolTipService.ToolTip="Exportar los eventos visibles">
                         <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon Glyph="&#xEDE1;" FontSize="12"/>
-                            <TextBlock x:Name="ExportActivityLabel" Text="Exportar…"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xf09b;" FontSize="12"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ExportActivityLabel" Text="Exportar…"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="ClearActivityButton" Grid.Column="3" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" AutomationProperties.Name="Limpiar historial" Click="ClearActivityButton_Click" ToolTipService.ToolTip="Limpiar historial">
                         <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon Glyph="&#xE74D;" FontSize="12"/>
-                            <TextBlock x:Name="ClearActivityLabel" Text="Limpiar"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe92e;" FontSize="12"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ClearActivityLabel" Text="Limpiar"/>
                         </StackPanel>
                     </Button>
                 </Grid>
+                </Border>
                 <Grid Grid.Row="2" ColumnSpacing="8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <ToggleButton x:Name="ActivityEvents24hFilterButton" Tag="recent" Style="{StaticResource ActivityFilterCardStyle}" Click="ActivityFilterCard_Click" IsChecked="True" ToolTipService.ToolTip="Mostrar eventos de las últimas 24 horas" AutomationProperties.Name="Filtrar eventos de las últimas 24 horas">
-                        <StackPanel Spacing="1"><TextBlock x:Name="ActivityEvents24hLabel" Text="EVENTOS · 24 H" FontSize="9" FontWeight="SemiBold"/><TextBlock x:Name="ActivityEvents24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Spacing="1"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityEvents24hLabel" Text="EVENTOS · 24 H" FontSize="9" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityEvents24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
                     </ToggleButton>
                     <ToggleButton x:Name="ActivityBlockedFilterButton" Grid.Column="1" Tag="blocked" Style="{StaticResource ActivityFilterCardStyle}" Click="ActivityFilterCard_Click" ToolTipService.ToolTip="Mostrar bloqueos" AutomationProperties.Name="Filtrar bloqueos">
-                        <StackPanel Spacing="1"><TextBlock x:Name="ActivityBlockedLabel" Text="BLOQUEOS" FontSize="9" FontWeight="SemiBold"/><TextBlock x:Name="ActivityBlocked24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Spacing="1"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityBlockedLabel" Text="BLOQUEOS" FontSize="9" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityBlocked24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
                     </ToggleButton>
                     <ToggleButton x:Name="ActivityFailedPasswordsFilterButton" Grid.Column="2" Tag="failed" Style="{StaticResource ActivityFilterCardStyle}" Click="ActivityFilterCard_Click" ToolTipService.ToolTip="Mostrar contraseñas fallidas" AutomationProperties.Name="Filtrar contraseñas fallidas">
-                        <StackPanel Spacing="1"><TextBlock x:Name="ActivityFailedPasswordsLabel" Text="CONTRASEÑAS FALLIDAS" FontSize="9" FontWeight="SemiBold"/><TextBlock x:Name="ActivityFailedPasswords24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Spacing="1"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityFailedPasswordsLabel" Text="CONTRASEÑAS FALLIDAS" FontSize="9" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityFailedPasswords24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
                     </ToggleButton>
                     <ToggleButton x:Name="ActivityAlertsFilterButton" Grid.Column="3" Tag="error" Style="{StaticResource ActivityFilterCardStyle}" Click="ActivityFilterCard_Click" ToolTipService.ToolTip="Mostrar avisos y errores" AutomationProperties.Name="Filtrar avisos y errores">
-                        <StackPanel Spacing="1"><TextBlock x:Name="ActivityAlertsLabel" Text="AVISOS Y ERRORES" FontSize="9" FontWeight="SemiBold"/><TextBlock x:Name="ActivityAlerts24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Spacing="1"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityAlertsLabel" Text="AVISOS Y ERRORES" FontSize="9" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ActivityAlerts24hText" Text="0" FontSize="17" FontWeight="SemiBold"/></StackPanel>
                     </ToggleButton>
                 </Grid>
-                <Border Grid.Row="4" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Background="{ThemeResource CardBackgroundBrush}" Padding="5">
+                <Border Grid.Row="4" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" Padding="5">
                     <Grid>
                         <ListView ItemsSource="{x:Bind Activity, Mode=OneWay}" SelectionMode="None">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="3,1"/><Setter Property="CornerRadius" Value="7"/></Style></ListView.ItemContainerStyle>
                             <ListView.ItemTemplate><DataTemplate x:DataType="models:ActivityEntry">
                                 <Grid Padding="10,8" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="92"/><ColumnDefinition Width="150"/><ColumnDefinition Width="*"/><ColumnDefinition Width="68"/></Grid.ColumnDefinitions>
                                     <Border Width="28" Height="28" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}">
-                                        <FontIcon Glyph="{x:Bind Glyph}" Foreground="{Binding Kind, Converter={StaticResource ActivityKindBrushConverter}}" FontSize="12"/>
+                                        <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="{x:Bind Glyph}" Foreground="{Binding Kind, Converter={StaticResource ActivityKindBrushConverter}}" FontSize="12"/>
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="{x:Bind TimeLabel}" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="Cascadia Mono" FontSize="10" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{x:Bind AppName}" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource TruncatedTextStyle}"/>
-                                    <TextBlock Grid.Column="3" Text="{x:Bind Message}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource TruncatedTextStyle}"/>
-                                    <TextBlock Grid.Column="4" Text="{x:Bind KindLabel}" Foreground="{Binding Kind, Converter={StaticResource ActivityKindBrushConverter}}" FontSize="9" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind TimeLabel}" Foreground="{ThemeResource SubtleTextBrush}" FontFamily="{StaticResource PrototypeMonoFont}" FontSize="10" VerticalAlignment="Center"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="2" Text="{x:Bind AppName}" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource TruncatedTextStyle}"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="{x:Bind Message}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource TruncatedTextStyle}"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="4" Text="{x:Bind KindLabel}" Foreground="{Binding Kind, Converter={StaticResource ActivityKindBrushConverter}}" FontSize="9" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate></ListView.ItemTemplate>
                         </ListView>
-                        <TextBlock x:Name="EmptyActivityText" Text="Aún no hay actividad" Foreground="{ThemeResource MutedTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="EmptyActivityText" Text="Aún no hay actividad" Foreground="{ThemeResource MutedTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
 
             <Grid x:Name="DiagnosticsView" Visibility="Collapsed">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                <Border Padding="16,13" CornerRadius="10" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                <Border Padding="18,16" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Border Width="38" Height="38" CornerRadius="9" Background="{ThemeResource ControlSurfaceBrush}">
-                            <FontIcon x:Name="DiagnosticsSummaryIcon" Glyph="&#xE946;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="16"/>
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" x:Name="DiagnosticsSummaryIcon" Glyph="&#xe88e;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="16"/>
                         </Border>
                         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock x:Name="DiagnosticsSummaryText" Text="Diagnóstico todavía no ejecutado" FontWeight="SemiBold" FontSize="13"/>
-                            <TextBlock x:Name="DiagnosticsSummaryDetail" Text="Comprueba los componentes de protección sin modificar el sistema." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DiagnosticsSummaryText" Text="Diagnóstico todavía no ejecutado" FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="DiagnosticsSummaryDetail" Text="Comprueba los componentes de protección sin modificar el sistema." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                             <Button x:Name="RepairDiagnosticsButton" Content="Reparar protección" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Visibility="Collapsed" Click="RepairDiagnosticsButton_Click"/>
@@ -511,7 +626,7 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <Border Grid.Row="2" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Background="{ThemeResource CardBackgroundBrush}" Padding="5">
+                <Border Grid.Row="2" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" Padding="5">
                     <Grid>
                         <ListView ItemsSource="{x:Bind Diagnostics, Mode=OneWay}" SelectionMode="None">
                             <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="3,1"/><Setter Property="CornerRadius" Value="7"/></Style></ListView.ItemContainerStyle>
@@ -520,63 +635,84 @@
                                     <Grid Padding="12,9" ColumnSpacing="12">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="180"/><ColumnDefinition Width="*"/><ColumnDefinition Width="70"/></Grid.ColumnDefinitions>
                                         <Border Width="30" Height="30" CornerRadius="7" Background="{ThemeResource ControlSurfaceBrush}">
-                                            <FontIcon Glyph="{x:Bind Glyph}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="13"/>
+                                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="{x:Bind Glyph}" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="13"/>
                                         </Border>
-                                        <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="2" Text="{x:Bind Detail}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="3" Text="{x:Bind StatusLabel}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="2" Text="{x:Bind Detail}" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="3" Text="{x:Bind StatusLabel}" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                        <TextBlock x:Name="EmptyDiagnosticsText" Text="Pulsa Comprobar ahora para analizar ProtectedApp" Foreground="{ThemeResource MutedTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="EmptyDiagnosticsText" Text="Pulsa Comprobar ahora para analizar ProtectedApp" Foreground="{ThemeResource MutedTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
 
-            <Grid x:Name="SettingsView" Visibility="Collapsed" MinWidth="960" MaxWidth="1140" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <!-- No fixed minimum here: after the sidebar was widened, 960 px caused this
+                 view to overflow smaller windows even though its controls can reflow. -->
+            <Grid x:Name="SettingsView" Visibility="Collapsed" MaxWidth="1140" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                <Grid.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="TextWrapping" Value="Wrap"/>
+                    </Style>
+                </Grid.Resources>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Padding="20,16" CornerRadius="14" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <Border Background="{ThemeResource ControlSurfaceBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="5" Padding="7,3">
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="PREFERENCIAS PROTEGIDAS" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="9" FontWeight="SemiBold" CharacterSpacing="65"/>
+                            </Border>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="PROTECTEDAPP" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" CharacterSpacing="55"/>
+                        </StackPanel>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Configuración de ProtectedApp" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Ajusta la protección, las credenciales y el comportamiento de la aplicación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="2" Padding="8" CornerRadius="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="7" Margin="2,0,8,2">
                     <Button x:Name="SettingsGeneralButton" Tag="general" Content="General" Style="{StaticResource RoundedDialogButtonStyle}" Click="SettingsSectionButton_Click"/>
                     <Button x:Name="SettingsSecurityButton" Tag="security" Content="Seguridad" Style="{StaticResource RoundedDialogButtonStyle}" Click="SettingsSectionButton_Click"/>
                     <Button x:Name="SettingsMaintenanceButton" Tag="maintenance" Content="Mantenimiento" Style="{StaticResource RoundedDialogButtonStyle}" Click="SettingsSectionButton_Click"/>
                     <Button x:Name="SettingsInformationButton" Tag="information" Content="Información" Style="{StaticResource RoundedDialogButtonStyle}" Click="SettingsSectionButton_Click"/>
                 </StackPanel>
-                <Grid Grid.Row="1" Margin="0,0,0,0">
+                </Border>
+                <Grid Grid.Row="3" Margin="0,0,0,0">
                     <Grid x:Name="SettingsGeneralSection" Padding="2,10,8,8">
                 <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="GENERAL" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
-                        <Grid ColumnSpacing="14">
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="GENERAL" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
+                        <Grid ColumnSpacing="14" RowSpacing="14" SizeChanged="SettingsColumns_SizeChanged">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8" Padding="14,8">
                                 <StackPanel>
-                                    <TextBlock Text="SESIÓN Y PANEL" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="SESIÓN Y PANEL" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
                                     <Grid Padding="0,8" ColumnSpacing="14" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Iniciar con Windows" FontWeight="SemiBold"/><TextBlock Text="Activa la protección al iniciar sesión." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Iniciar con Windows" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Activa la protección al iniciar sesión." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ToggleSwitch x:Name="StartupToggle" Grid.Column="1" Toggled="StartupToggle_Toggled"/>
                         </Grid>
                         <Grid Padding="0,8" ColumnSpacing="14" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Icono en la bandeja" FontWeight="SemiBold"/><TextBlock Text="La interfaz seguirá accesible desde Inicio." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Icono en la bandeja" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="La interfaz seguirá accesible desde Inicio." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ToggleSwitch x:Name="TrayIconToggle" Grid.Column="1" Toggled="TrayIconToggle_Toggled"/>
                         </Grid>
                         <Grid Padding="0,8" ColumnSpacing="14" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Bloqueo automático" FontWeight="SemiBold"/><TextBlock Text="Bloquea el panel tras inactividad." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloqueo automático" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloquea el panel tras inactividad." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ComboBox x:Name="ManagementAutoLockBox" Grid.Column="1" HorizontalAlignment="Stretch" SelectionChanged="ManagementAutoLockBox_SelectionChanged">
                                 <ComboBoxItem Content="Nunca" Tag="0"/><ComboBoxItem Content="1 minuto" Tag="1"/><ComboBoxItem Content="5 minutos" Tag="5"/><ComboBoxItem Content="15 minutos" Tag="15"/><ComboBoxItem Content="30 minutos" Tag="30"/>
                             </ComboBox>
                         </Grid>
                         <Grid Padding="0,8,0,0" ColumnSpacing="14">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Bloquear al cerrar" FontWeight="SemiBold"/><TextBlock Text="Exige de nuevo la contraseña maestra." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloquear al cerrar" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Exige de nuevo la contraseña maestra." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ToggleSwitch x:Name="LockPanelWhenHiddenToggle" Grid.Column="1" Toggled="LockPanelWhenHiddenToggle_Toggled"/>
                         </Grid>
                         <Grid Padding="0,8,0,0" ColumnSpacing="14">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Idioma de la aplicación" FontWeight="SemiBold"/><TextBlock Text="Elige el idioma de la interfaz y los avisos." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Idioma de la aplicación" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Elige el idioma de la interfaz y los avisos." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ComboBox x:Name="LanguageBox" Grid.Column="1" SelectionChanged="LanguageBox_SelectionChanged">
                                 <ComboBoxItem Content="Sistema" Tag="system"/>
                                 <ComboBoxItem Content="Español" Tag="es"/>
@@ -587,15 +723,15 @@
                             </Border>
                             <Border Grid.Column="1" Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8" Padding="14,8">
                                 <StackPanel>
-                                    <TextBlock Text="BÓVEDAS" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="BÓVEDAS" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
                         <Grid Padding="0,8,0,0" ColumnSpacing="14">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Abrir bóvedas en consulta" FontWeight="SemiBold"/><TextBlock Text="El doble clic abre en solo lectura; puedes editar desde el panel." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Abrir bóvedas en consulta" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="El doble clic abre en solo lectura; puedes editar desde el panel." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                             <ToggleSwitch x:Name="VaultReadOnlyByDefaultToggle" Grid.Column="1" Toggled="VaultReadOnlyByDefaultToggle_Toggled"/>
                         </Grid>
                         <Grid Padding="0,8,0,0" ColumnSpacing="14">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/></Grid.ColumnDefinitions>
-                            <StackPanel Spacing="2"><TextBlock Text="Letra de unidad de bóveda" FontWeight="SemiBold"/><TextBlock Text="Se usará si está libre; si no, ProtectedApp elegirá otra automáticamente." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel>
+                            <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Letra de unidad de bóveda" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Se usará si está libre; si no, ProtectedApp elegirá otra automáticamente." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel>
                             <ComboBox x:Name="VaultDriveLetterBox" Grid.Column="1" SelectionChanged="VaultDriveLetterBox_SelectionChanged">
                                 <ComboBoxItem Content="Automática" Tag=""/>
                                 <ComboBoxItem Content="D:" Tag="D"/><ComboBoxItem Content="E:" Tag="E"/><ComboBoxItem Content="F:" Tag="F"/><ComboBoxItem Content="G:" Tag="G"/><ComboBoxItem Content="H:" Tag="H"/><ComboBoxItem Content="I:" Tag="I"/><ComboBoxItem Content="J:" Tag="J"/><ComboBoxItem Content="K:" Tag="K"/><ComboBoxItem Content="L:" Tag="L"/><ComboBoxItem Content="M:" Tag="M"/><ComboBoxItem Content="N:" Tag="N"/><ComboBoxItem Content="O:" Tag="O"/><ComboBoxItem Content="P:" Tag="P"/><ComboBoxItem Content="Q:" Tag="Q"/><ComboBoxItem Content="R:" Tag="R"/><ComboBoxItem Content="S:" Tag="S"/><ComboBoxItem Content="T:" Tag="T"/><ComboBoxItem Content="U:" Tag="U"/><ComboBoxItem Content="V:" Tag="V"/><ComboBoxItem Content="W:" Tag="W"/><ComboBoxItem Content="X:" Tag="X"/><ComboBoxItem Content="Y:" Tag="Y"/><ComboBoxItem Content="Z:" Tag="Z"/>
@@ -612,10 +748,10 @@
                 <StackPanel Spacing="10">
                     <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                         <StackPanel>
-                            <TextBlock Text="SEGURIDAD" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="SEGURIDAD" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
                             <Grid Padding="0,8" ColumnSpacing="14" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="165"/></Grid.ColumnDefinitions>
-                                <StackPanel Spacing="2"><TextBlock Text="Velocidad de detección" FontWeight="SemiBold"/><TextBlock Text="Intervalo del barrido de respaldo." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                                <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Velocidad de detección" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Intervalo del barrido de respaldo." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                                 <ComboBox x:Name="PollIntervalBox" Grid.Column="1" SelectionChanged="PollIntervalBox_SelectionChanged" HorizontalAlignment="Stretch">
                                     <ComboBoxItem Content="Inmediata · 200 ms" Tag="200"/><ComboBoxItem Content="Equilibrada · 500 ms" Tag="500"/><ComboBoxItem Content="Ligera · 1000 ms" Tag="1000"/>
                                 </ComboBox>
@@ -624,16 +760,16 @@
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="Windows Hello (PIN / Biometría)" FontWeight="SemiBold"/>
-                                        <FontIcon Glyph="&#xE890;" FontFamily="Segoe Fluent Icons" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Windows Hello (PIN / Biometría)" FontWeight="SemiBold"/>
+                                        <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe90d;" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
                                     </StackPanel>
-                                    <TextBlock x:Name="WindowsHelloStatusText" Text="Desbloqueo rápido mediante PIN o huella." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="WindowsHelloStatusText" Text="Desbloqueo rápido mediante PIN o huella." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/>
                                 </StackPanel>
                                 <ToggleSwitch x:Name="WindowsHelloToggle" Grid.Column="1" Toggled="WindowsHelloToggle_Toggled"/>
                             </Grid>
                             <Grid Padding="0,8" ColumnSpacing="14">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <StackPanel Spacing="2"><TextBlock Text="Contraseña maestra" FontWeight="SemiBold"/><TextBlock Text="Panel y desinstalación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
+                                <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Contraseña maestra" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Panel y desinstalación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>
                                 <Button Grid.Column="1" Content="Cambiar" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ChangeMasterPassword_Click"/>
                             </Grid>
                         </StackPanel>
@@ -646,35 +782,35 @@
                 <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
                         <Grid RowSpacing="5">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                            <TextBlock Text="DATOS Y MANTENIMIENTO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
-                            <Grid Grid.Row="1" ColumnSpacing="28" RowSpacing="14">
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="DATOS Y MANTENIMIENTO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70" Margin="0,0,0,3"/>
+                            <Grid Grid.Row="1" ColumnSpacing="28" RowSpacing="14" SizeChanged="SettingsColumns_SizeChanged">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel Spacing="0">
-                                    <TextBlock Text="COPIAS Y RECUPERACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="COPIAS Y RECUPERACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
                                     <StackPanel Padding="0,8" Spacing="6" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
-                                        <StackPanel Spacing="2"><TextBlock Text="Copia cifrada" FontWeight="SemiBold"/><TextBlock Text="Reglas, preferencias e historial." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel>
+                                        <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Copia cifrada" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Reglas, preferencias e historial." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="5"><Button Content="Exportar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ExportBackup_Click"/><Button Content="Restaurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ImportBackup_Click"/></StackPanel>
                                     </StackPanel>
                                     <StackPanel Padding="0,8" Spacing="6">
-                                        <StackPanel Spacing="2"><TextBlock Text="Copias de bóvedas" FontWeight="SemiBold"/><TextBlock x:Name="VaultBackupStatusText" Text="Sin configurar." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel>
+                                        <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Copias de bóvedas" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="VaultBackupStatusText" Text="Sin configurar." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel>
                                         <StackPanel Spacing="4"><StackPanel Orientation="Horizontal" Spacing="5"><Button Width="150" Content="Configurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ConfigureVaultBackups_Click"/><Button x:Name="RunVaultBackupButton" Width="150" Content="Crear ahora" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="RunVaultBackupNow_Click"/></StackPanel><StackPanel Orientation="Horizontal" Spacing="5"><Button Width="150" Content="Abrir carpeta" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="OpenVaultBackupFolder_Click"/><Button Width="150" Content="Limpiar antiguas" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="CleanupVaultBackups_Click"/></StackPanel></StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="0">
-                                    <TextBlock Text="AVISOS Y BLOQUEO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Avisos de bóvedas" FontWeight="SemiBold"/><TextBlock Text="Avisos de Windows si una copia vence, falla o se recupera." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="VaultBackupNotificationsToggle" Grid.Column="1" Toggled="VaultBackupNotificationsToggle_Toggled"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Avisos de cierre automático" FontWeight="SemiBold"/><TextBlock Text="Permite avisar y ampliar los cierres por tiempo o inactividad." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="CloseWarningNotificationsToggle" Grid.Column="1" Toggled="CloseWarningNotificationsToggle_Toggled"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Alertas de seguridad" FontWeight="SemiBold"/><TextBlock Text="Avisa si Guardian deja de estar disponible o se detecta manipulación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="SecurityAlertsToggle" Grid.Column="1" Toggled="SecurityAlertsToggle_Toggled"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Bloqueo inmediato" FontWeight="SemiBold"/><TextBlock Text="Solicita el cierre normal y, tras 5 segundos, fuerza las aplicaciones que sigan abiertas." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button Grid.Column="1" Content="Bloquear…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="TravelModeButton_Click"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Atajo de bloqueo inmediato" FontWeight="SemiBold"/><TextBlock x:Name="ImmediateLockHotkeyStatusText" Text="Sin atajo configurado." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button Grid.Column="1" Width="150" Content="Configurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ConfigureImmediateLockHotkey_Click"/></Grid>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="AVISOS Y BLOQUEO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,0,0,3"/>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Avisos de bóvedas" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Avisos de Windows si una copia vence, falla o se recupera." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="VaultBackupNotificationsToggle" Grid.Column="1" Toggled="VaultBackupNotificationsToggle_Toggled"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Avisos de cierre automático" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Permite avisar y ampliar los cierres por tiempo o inactividad." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="CloseWarningNotificationsToggle" Grid.Column="1" Toggled="CloseWarningNotificationsToggle_Toggled"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Alertas de seguridad" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Avisa si Guardian deja de estar disponible o se detecta manipulación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><ToggleSwitch x:Name="SecurityAlertsToggle" Grid.Column="1" Toggled="SecurityAlertsToggle_Toggled"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bloqueo inmediato" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Solicita el cierre normal y, tras 5 segundos, fuerza las aplicaciones que sigan abiertas." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button Grid.Column="1" Content="Bloquear…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="TravelModeButton_Click"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Atajo de bloqueo inmediato" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ImmediateLockHotkeyStatusText" Text="Sin atajo configurado." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button Grid.Column="1" Width="150" Content="Configurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ConfigureImmediateLockHotkey_Click"/></Grid>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="0">
-                                    <TextBlock Text="SERVICIO Y ACTUALIZACIONES" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,4,0,3"/>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="Servicio Guardian" FontWeight="SemiBold"/><Ellipse x:Name="GuardianStatusDot" Width="7" Height="7" Fill="#6B7384" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="GuardianStatusText" Text="Comprobando estado…" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button x:Name="GuardianServiceButton" Grid.Column="1" Width="150" Content="Instalar servicio" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="GuardianServiceButton_Click"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Alerta remota de manipulación" FontWeight="SemiBold"/><TextBlock Text="Webhook HTTPS informativo; no bloquea ni revierte una manipulación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Width="150" Content="Configurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ConfigureTamperWebhook_Click"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Actualización manual" FontWeight="SemiBold"/><TextBlock x:Name="UpdateStatusText" Text="Comprobación local de instaladores firmados." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button x:Name="ManualUpdateButton" Grid.Column="1" Width="150" Content="Seleccionar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ManualUpdateButton_Click"/></Grid>
-                                    <Grid Padding="0,8" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Desinstalar" FontWeight="SemiBold"/><TextBlock Text="Requiere la contraseña maestra." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel><Button Grid.Column="1" Width="150" Content="Desinstalar…" Style="{StaticResource RoundedDialogButtonStyle}" Foreground="{ThemeResource DangerBrush}" CornerRadius="8" Click="Uninstall_Click"/></Grid>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="SERVICIO Y ACTUALIZACIONES" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="55" Margin="0,4,0,3"/>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Servicio Guardian" FontWeight="SemiBold"/><Ellipse x:Name="GuardianStatusDot" Width="7" Height="7" Fill="#6B7384" VerticalAlignment="Center"/></StackPanel><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="GuardianStatusText" Text="Comprobando estado…" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button x:Name="GuardianServiceButton" Grid.Column="1" Width="150" Content="Instalar servicio" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="GuardianServiceButton_Click"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Alerta remota de manipulación" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Webhook HTTPS informativo; no bloquea ni revierte una manipulación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Width="150" Content="Configurar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ConfigureTamperWebhook_Click"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Actualización manual" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="UpdateStatusText" Text="Comprobación local de instaladores firmados." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Style="{StaticResource TruncatedTextStyle}"/></StackPanel><Button x:Name="ManualUpdateButton" Grid.Column="1" Width="150" Content="Seleccionar…" Style="{StaticResource RoundedDialogButtonStyle}" CornerRadius="8" Click="ManualUpdateButton_Click"/></Grid>
+                                    <Grid Padding="0,8" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Desinstalar" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Requiere la contraseña maestra." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel><Button Grid.Column="1" Width="150" Content="Desinstalar…" Style="{StaticResource RoundedDialogButtonStyle}" Foreground="{ThemeResource DangerBrush}" CornerRadius="8" Click="Uninstall_Click"/></Grid>
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -685,34 +821,34 @@
                         <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="CÓMO FUNCIONA PROTECTEDAPP" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
-                                    <TextBlock Text="ProtectedApp reúne en un solo lugar la protección de aplicaciones y la creación de bóvedas cifradas para guardar información sensible." FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Las opciones se agrupan por finalidad para que puedas decidir qué proteger sin necesitar conocimientos técnicos." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="CÓMO FUNCIONA PROTECTEDAPP" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="ProtectedApp reúne en un solo lugar la protección de aplicaciones y la creación de bóvedas cifradas para guardar información sensible." FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Las opciones se agrupan por finalidad para que puedas decidir qué proteger sin necesitar conocimientos técnicos." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                 </StackPanel>
 
                                 <StackPanel Spacing="10">
                                     <StackPanel Spacing="3">
-                                        <TextBlock Text="Aplicaciones protegidas" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Puedes pedir la contraseña maestra antes de abrir una aplicación elegida. También es posible cerrarla automáticamente tras un tiempo o después de un periodo sin actividad; si activas los avisos, ProtectedApp te avisará y permitirá ampliar ese tiempo." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Aplicaciones protegidas" FontWeight="SemiBold"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Puedes pedir la contraseña maestra antes de abrir una aplicación elegida. También es posible cerrarla automáticamente tras un tiempo o después de un periodo sin actividad; si activas los avisos, ProtectedApp te avisará y permitirá ampliar ese tiempo." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <StackPanel Spacing="3">
-                                        <TextBlock Text="Bóvedas cifradas" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Una bóveda es un archivo .pavault que contiene tus archivos cifrados. Al abrirla con tu contraseña se monta como una unidad normal de Windows; al desmontarla, su contenido vuelve a quedar protegido dentro del archivo. Puedes convertir una carpeta existente en una bóveda y comprobar el resultado antes de eliminar la carpeta original." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Bóvedas cifradas" FontWeight="SemiBold"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Una bóveda es un archivo .pavault que contiene tus archivos cifrados. Al abrirla con tu contraseña se monta como una unidad normal de Windows; al desmontarla, su contenido vuelve a quedar protegido dentro del archivo. Puedes convertir una carpeta existente en una bóveda y comprobar el resultado antes de eliminar la carpeta original." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <StackPanel Spacing="3">
-                                        <TextBlock Text="Copias y recuperación" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Puedes exportar una copia cifrada de la configuración y programar copias de tus bóvedas. Los avisos de bóvedas informan cuando una copia falla, vence o se recupera. Para mantener una bóveda sincronizada con OneDrive u otro servicio similar, sincroniza el archivo .pavault, no una carpeta mientras está abierta." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Copias y recuperación" FontWeight="SemiBold"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Puedes exportar una copia cifrada de la configuración y programar copias de tus bóvedas. Los avisos de bóvedas informan cuando una copia falla, vence o se recupera. Para mantener una bóveda sincronizada con OneDrive u otro servicio similar, sincroniza el archivo .pavault, no una carpeta mientras está abierta." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <StackPanel Spacing="3">
-                                        <TextBlock Text="Guardian y seguridad" FontWeight="SemiBold"/>
-                                        <TextBlock Text="El servicio Guardian comprueba que los componentes de protección estén disponibles y avisa si detecta un problema o una posible manipulación. Las alertas remotas son opcionales y solo envían un aviso a la dirección configurada; no conceden acceso a tus datos." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Guardian y seguridad" FontWeight="SemiBold"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="El servicio Guardian comprueba que los componentes de protección estén disponibles y avisa si detecta un problema o una posible manipulación. Las alertas remotas son opcionales y solo envían un aviso a la dirección configurada; no conceden acceso a tus datos." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <Border Background="{ThemeResource ControlSurfaceBrush}" CornerRadius="8" Padding="12,10">
                                     <StackPanel Spacing="3">
-                                        <TextBlock Text="RECOMENDACIÓN" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="50"/>
-                                        <TextBlock Text="Conserva una copia de seguridad de las bóvedas importantes y no olvides la contraseña maestra: está diseñada para proteger tu información, por lo que ProtectedApp no puede recuperarla por ti." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="RECOMENDACIÓN" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="50"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Conserva una copia de seguridad de las bóvedas importantes y no olvides la contraseña maestra: está diseñada para proteger tu información, por lo que ProtectedApp no puede recuperarla por ti." Foreground="{ThemeResource MutedTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -730,26 +866,26 @@
                                 <Image Source="Assets/BrandShield.png" Stretch="Uniform" Margin="6"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="ProtectedApp" FontSize="22" FontWeight="SemiBold"/>
-                                <TextBlock Text="Protección local gratuita para aplicaciones y bóvedas" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
-                                <TextBlock Text="Uso gratuito, personal y profesional" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11"/>
-                                <TextBlock x:Name="AboutVersionText" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="ProtectedApp" FontSize="22" FontWeight="SemiBold"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección local gratuita para aplicaciones y bóvedas" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Uso gratuito, personal y profesional" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11"/>
+                                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="AboutVersionText" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" FontWeight="SemiBold"/>
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="INFORMACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
+                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="INFORMACIÓN" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
                         <Grid Padding="0,4" ColumnSpacing="20" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,1,0,1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                            <TextBlock Text="Desarrollador" FontWeight="SemiBold" FontSize="11"/>
-                            <TextBlock Grid.Column="1" Text="Valvik" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
-                            <TextBlock Grid.Row="1" Text="Plataforma" FontWeight="SemiBold" FontSize="11" Margin="0,10,0,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Windows · WinUI 3 · x64" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" Margin="0,10,0,0"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Desarrollador" FontWeight="SemiBold" FontSize="11"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Column="1" Text="Valvik" Foreground="{ThemeResource MutedTextBrush}" FontSize="11"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Row="1" Text="Plataforma" FontWeight="SemiBold" FontSize="11" Margin="0,10,0,0"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Grid.Row="1" Grid.Column="1" Text="Windows · WinUI 3 · x64" Foreground="{ThemeResource MutedTextBrush}" FontSize="11" Margin="0,10,0,0"/>
                         </Grid>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="COMPONENTES" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
-                            <TextBlock Text="Guardian aplica las reglas protegidas como SYSTEM. Las bóvedas cifradas se montan mediante Dokany y protegen el contenido mediante cifrado autenticado." Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextWrapping="Wrap"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="COMPONENTES" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Guardian aplica las reglas protegidas como SYSTEM. Las bóvedas cifradas se montan mediante Dokany y protegen el contenido mediante cifrado autenticado." Foreground="{ThemeResource MutedTextBrush}" FontSize="11" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button Content="Licencia GPL" Tag="LICENSE" Click="OpenLegalDocument_Click" Style="{StaticResource RoundedDialogButtonStyle}"/>
                                 <Button Content="Licencias de terceros" Tag="THIRD-PARTY-NOTICES" Click="OpenLegalDocument_Click" Style="{StaticResource RoundedDialogButtonStyle}"/>
@@ -757,9 +893,9 @@
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="PROYECTO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
-                            <TextBlock Text="github.com/valvik77/ProtectedApp" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" IsTextSelectionEnabled="True"/>
-                            <TextBlock Text="© 2026 Valvik. ProtectedApp complementa la seguridad de Windows y no sustituye las políticas empresariales." Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" TextWrapping="Wrap"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="PROYECTO" Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" FontWeight="SemiBold" CharacterSpacing="70"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="github.com/valvik77/ProtectedApp" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="11" IsTextSelectionEnabled="True"/>
+                            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="© 2026 Valvik. ProtectedApp complementa la seguridad de Windows y no sustituye las políticas empresariales." Foreground="{ThemeResource SubtleTextBrush}" FontSize="10" TextWrapping="Wrap"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

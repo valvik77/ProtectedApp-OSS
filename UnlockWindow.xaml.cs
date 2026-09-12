@@ -363,25 +363,25 @@ public sealed partial class UnlockWindow : Window
         var light = Root.ActualTheme == ElementTheme.Light;
         var color = light
             ? Windows.UI.Color.FromArgb(255, 248, 248, 248)
-            : Windows.UI.Color.FromArgb(255, 33, 34, 44);
+            : Windows.UI.Color.FromArgb(255, 15, 20, 28);
         var foreground = light
             ? Windows.UI.Color.FromArgb(255, 31, 31, 31)
-            : Windows.UI.Color.FromArgb(255, 248, 248, 242);
+            : Windows.UI.Color.FromArgb(255, 222, 226, 238);
         _appWindow.TitleBar.BackgroundColor = color;
         _appWindow.TitleBar.ForegroundColor = foreground;
         _appWindow.TitleBar.ButtonBackgroundColor = color;
         _appWindow.TitleBar.ButtonForegroundColor = foreground;
         _appWindow.TitleBar.ButtonHoverBackgroundColor = light
             ? Windows.UI.Color.FromArgb(255, 229, 229, 229)
-            : Windows.UI.Color.FromArgb(255, 52, 55, 70);
+            : Windows.UI.Color.FromArgb(255, 48, 53, 62);
         _appWindow.TitleBar.ButtonPressedBackgroundColor = light
             ? Windows.UI.Color.FromArgb(255, 204, 204, 204)
-            : Windows.UI.Color.FromArgb(255, 68, 71, 90);
+            : Windows.UI.Color.FromArgb(255, 62, 72, 81);
     }
 
     private void CenterWindow(int height = WindowHeight)
     {
-        var area = DisplayArea.GetFromWindowId(_appWindow.Id, DisplayAreaFallback.Primary);
+        var area = GetActiveDisplayArea();
         var dpi = GetDpiForWindow(_hwnd);
         var scale = (dpi > 0 ? dpi : 96f) / 96f;
         var scaledWidth = (int)(WindowWidth * scale);
@@ -389,6 +389,19 @@ public sealed partial class UnlockWindow : Window
         var x = area.WorkArea.X + (area.WorkArea.Width - scaledWidth) / 2;
         var y = area.WorkArea.Y + (area.WorkArea.Height - scaledHeight) / 2;
         _appWindow.Move(new Windows.Graphics.PointInt32(x, y));
+    }
+
+    private static DisplayArea GetActiveDisplayArea()
+    {
+        var foreground = GetForegroundWindow();
+        if (foreground != IntPtr.Zero && GetWindowRect(foreground, out var bounds))
+        {
+            var center = new Windows.Graphics.PointInt32(
+                bounds.Left + (bounds.Right - bounds.Left) / 2,
+                bounds.Top + (bounds.Bottom - bounds.Top) / 2);
+            return DisplayArea.GetFromPoint(center, DisplayAreaFallback.Primary);
+        }
+        return DisplayArea.GetFromPoint(new Windows.Graphics.PointInt32(0, 0), DisplayAreaFallback.Primary);
     }
 
     private const int WindowWidth = 450;
@@ -409,6 +422,18 @@ public sealed partial class UnlockWindow : Window
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
 
     [DllImport("user32.dll")]
     private static extern short GetKeyState(int virtualKey);

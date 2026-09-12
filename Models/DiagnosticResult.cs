@@ -48,9 +48,9 @@ public sealed class DiagnosticResult : System.ComponentModel.INotifyPropertyChan
 
     public string Glyph => Severity switch
     {
-        DiagnosticSeverity.Success => "\uE73E",
-        DiagnosticSeverity.Warning => "\uE7BA",
-        _ => "\uEA39"
+        DiagnosticSeverity.Success => "\ue668",
+        DiagnosticSeverity.Warning => "\uf083",
+        _ => "\ue88e"
     };
 
     public void RefreshLocalizedText()

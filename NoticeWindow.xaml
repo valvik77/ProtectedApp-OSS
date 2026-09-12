@@ -21,11 +21,11 @@
             <Grid x:Name="HeaderDragArea" Grid.ColumnSpan="2" ColumnSpacing="14">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Border Width="40" Height="40" CornerRadius="10" Background="{ThemeResource ControlSurfaceBrush}">
-                    <FontIcon Glyph="&#xE7BA;" FontFamily="Segoe Fluent Icons" Foreground="{ThemeResource WarningBrush}" FontSize="17" />
+                    <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xf083;" Foreground="{ThemeResource WarningBrush}" FontSize="17" />
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock x:Name="AppNameText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="SubtitleText" Text="Ejecución bloqueada" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" />
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="AppNameText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="SubtitleText" Text="Ejecución bloqueada" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" />
                 </StackPanel>
             </Grid>
             <Button Grid.Column="2" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -43,14 +43,14 @@
                                     <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="CloseSurface.Background" Value="{ThemeResource DangerPressedBrush}" /></VisualState.Setters></VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <FontIcon Glyph="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5cd;" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
                 </Button.Template>
             </Button>
         </Grid>
 
-        <TextBlock x:Name="MessageText" Grid.Row="2" Foreground="{ThemeResource PrimaryTextBrush}"
+        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="MessageText" Grid.Row="2" Foreground="{ThemeResource PrimaryTextBrush}"
                    FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
 
         <Grid Grid.Row="4" ColumnSpacing="10">

@@ -99,12 +99,17 @@ public sealed partial class MainWindow
         return true;
     }
 
-    private static ScrollViewer CreateDialogScroller(UIElement content) => new()
+    private ScrollViewer CreateDialogScroller(UIElement content)
     {
-        Content = content, MaxHeight = 390, VerticalScrollMode = ScrollMode.Auto,
-        VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled,
-        HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
-    };
+        var height = Root.XamlRoot?.Size.Height ?? 720;
+        return new ScrollViewer
+        {
+            Content = content, MaxHeight = Math.Clamp(height - 220, 120, 620),
+            VerticalScrollMode = ScrollMode.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        };
+    }
 
     private static ComboBox CreateMinutePresetBox(string header, string disabledLabel, int selectedMinutes,
         out TextBox customValue, out Grid customHost, out TextBlock maximumText)

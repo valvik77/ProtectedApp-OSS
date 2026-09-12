@@ -36,9 +36,47 @@ public sealed partial class MainWindow
         var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes);
         var schedule = CreateScheduleEditor(app.ScheduleEnabled, app.ScheduleDays, app.ScheduleStartMinutes, app.ScheduleEndMinutes, app.BlockOutsideSchedule);
         var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12 };
-        var panel = new StackPanel { Spacing = 10, Width = 420 };
-        panel.Children.Add(name); panel.Children.Add(category); panel.Children.Add(passwordMode); panel.Children.Add(password); panel.Children.Add(confirmation); panel.Children.Add(timePolicy.Panel); panel.Children.Add(schedule.Panel); panel.Children.Add(error);
+        var passwordHint = new TextBlock
+        {
+            Text = "Selecciona la credencial que se solicitará al abrir esta aplicación.",
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 190, 200, 210), Windows.UI.Color.FromArgb(255, 89, 89, 89)),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap
+        };
+        var editorWidth = Math.Min(980, Math.Max(320, (Root.XamlRoot?.Size.Width ?? 1100) - 100));
+        var panel = new Grid { Width = editorWidth, ColumnSpacing = 16, RowSpacing = 12 };
+        var wide = editorWidth >= 840;
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wide ? 0.9 : 1, GridUnitType.Star) });
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = wide ? new GridLength(1.1, GridUnitType.Star) : new GridLength(0) });
+        var rowCount = wide ? 3 : 5;
+        for (var i = 0; i < rowCount; i++) panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        // Use shared grid rows so the lower pair always begins at the same
+        // height, instead of each column laying out its cards independently.
+        var applicationSection = CreateEditorSection("Aplicación", "\uE71D", name, category);
+        var passwordSection = CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation, passwordHint);
+        var closeSection = CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel);
+        var scheduleSection = CreateEditorSection("Horario", "\uE787", schedule.Panel);
+
+        Grid.SetColumn(closeSection, wide ? 1 : 0);
+        Grid.SetColumn(scheduleSection, wide ? 1 : 0);
+        Grid.SetRow(passwordSection, 1);
+        Grid.SetRow(closeSection, wide ? 0 : 2);
+        Grid.SetRow(scheduleSection, wide ? 1 : 3);
+        Grid.SetRow(error, wide ? 2 : 4);
+        Grid.SetColumnSpan(error, 2);
+        panel.Children.Add(applicationSection);
+        panel.Children.Add(passwordSection);
+        panel.Children.Add(closeSection);
+        panel.Children.Add(scheduleSection);
+        panel.Children.Add(error);
         var dialog = CreateDialog("Editar protección", CreateDialogScroller(panel), "Guardar", "Cancelar");
+        // ContentDialog ignores MaxWidth for its outer popup on some WinUI 3
+        // builds, expanding it to the window width and making it appear left
+        // aligned. An explicit width keeps the editor centered and predictable.
+        var dialogWidth = editorWidth + 64;
+        dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
+        dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>
         {
@@ -49,7 +87,7 @@ public sealed partial class MainWindow
             if (!TryReadSchedule(schedule, out _, out _, out _, out _, out _, out var scheduleError)) { error.Text = LocalizationService.T(scheduleError); args.Cancel = true; return; }
             valid = true;
         };
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary || !valid) return;
+        if (await dialog.ShowAsync(ContentDialogPlacement.InPlace) != ContentDialogResult.Primary || !valid) return;
         app.Name = name.Text.Trim();
         app.Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim();
         TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _);

@@ -45,11 +45,11 @@ public sealed class ActivityEntry : System.ComponentModel.INotifyPropertyChanged
     });
     public string Glyph => Kind switch
     {
-        ActivityEventKind.Blocked => "\uE72E",
-        ActivityEventKind.Access => "\uE73E",
-        ActivityEventKind.Warning => "\uE7BA",
-        ActivityEventKind.Error => "\uEA39",
-        _ => "\uE946"
+        ActivityEventKind.Blocked => "\ue899",
+        ActivityEventKind.Access => "\ue668",
+        ActivityEventKind.Warning => "\uf083",
+        ActivityEventKind.Error => "\ue88e",
+        _ => "\ue88e"
     };
 
     public void RefreshLocalizedText()

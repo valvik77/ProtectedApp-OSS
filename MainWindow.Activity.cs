@@ -14,6 +14,34 @@ public sealed partial class MainWindow
     private void RefreshStats()
     {
         EmptyActivityText.Visibility = Activity.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        RefreshDashboard();
+    }
+
+    private void RefreshDashboard()
+    {
+        if (DashboardAppsCountText is null) return;
+
+        var enabledRules = Applications.Count(application => application.IsEnabled);
+        var mountedVaults = Vaults.Count(vault => vault.IsMounted);
+        var recentEvents = ActivityStatisticsService.Create(_activityHistory, DateTimeOffset.Now).Events;
+        var guardianAvailable = _guardianManaged || GuardianServiceDetector.IsRunning();
+
+        DashboardAppsCountText.Text = enabledRules.ToString("N0");
+        DashboardAppsDetailText.Text = LocalizationService.IsEnglish
+            ? $"{Applications.Count:N0} protected application{(Applications.Count == 1 ? string.Empty : "s")}"
+            : $"{Applications.Count:N0} aplicaciones protegidas";
+        DashboardVaultCountText.Text = Vaults.Count.ToString("N0");
+        DashboardVaultDetailText.Text = LocalizationService.IsEnglish
+            ? $"{mountedVaults:N0} open vault{(mountedVaults == 1 ? string.Empty : "s")}"
+            : $"{mountedVaults:N0} bóvedas abiertas";
+        DashboardActivityCountText.Text = recentEvents.ToString("N0");
+        DashboardActivitySummaryText.Text = DashboardActivityCountText.Text;
+        DashboardGuardianText.Text = LocalizationService.T(guardianAvailable ? "Guardian conectado" : "Guardian requiere atención");
+        SidebarStatusText.Text = DashboardGuardianText.Text;
+        DashboardDiagnosticsText.Text = LocalizationService.T(Diagnostics.Count == 0 ? "Pendiente" : "Disponible");
+        DashboardSystemDetailText.Text = LocalizationService.T(Diagnostics.Count == 0
+            ? "La comprobación detallada está disponible en Diagnóstico."
+            : "Consulta Diagnóstico para revisar el estado de los componentes.");
     }
 
     private void AddActivity(string appName, string message)

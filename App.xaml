@@ -10,53 +10,54 @@
                 <ResourceDictionary>
                     <ResourceDictionary.ThemeDictionaries>
                         <ResourceDictionary x:Key="Dark">
-                    <!-- Paleta WinUI neutra: se activa automáticamente con el modo oscuro de Windows. -->
+                    <!-- Superficies azul grafito: contraste sobrio para una consola de seguridad,
+                         sin sugerir capacidades que la aplicación no pueda comprobar. -->
                     <CornerRadius x:Key="ControlCornerRadius">8,8,8,8</CornerRadius>
                     <CornerRadius x:Key="OverlayCornerRadius">14,14,14,14</CornerRadius>
-                    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#202024" />
-                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#D0202024" />
-                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#D91C1C1E" />
+                    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#0F141C" />
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E80F141C" />
+                    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#E8171C24" />
                     <!-- El desenfoque lo aporta DesktopAcrylicBackdrop de la ventana.
                          Esta capa ligera deja visible ese material sin que AcrylicBrush
                          degrade a su fallback opaco en WinUI 3 no empaquetado. -->
-                    <SolidColorBrush x:Key="SidebarAcrylicBrush" Color="#52303038" />
-                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#D929292C" />
-                    <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#B8333336" />
-                    <SolidColorBrush x:Key="ControlHoverBrush" Color="#E6404044" />
-                    <SolidColorBrush x:Key="ControlPressedBrush" Color="#FF4A4A4F" />
-                    <SolidColorBrush x:Key="FilterCardHoverBrush" Color="#FF173B5C" />
-                    <SolidColorBrush x:Key="FilterCardPressedBrush" Color="#FF0E2B45" />
-                    <SolidColorBrush x:Key="CardStrokeBrush" Color="#665F5F62" />
-                    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#60CDFF" />
-                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#8CDCFF" />
-                    <SolidColorBrush x:Key="AccentPressedBrush" Color="#2899E8" />
-                    <SolidColorBrush x:Key="ActiveIndicatorBrush" Color="#60CDFF" />
-                    <SolidColorBrush x:Key="PrimaryActionBrush" Color="#0E639C" />
-                    <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#1177BB" />
-                    <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#0C4A73" />
-                    <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#FFFFFF" />
-                    <SolidColorBrush x:Key="MutedTextBrush" Color="#C5C5C5" />
-                    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F5F5F5" />
-                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#A7A7A7" />
-                    <SolidColorBrush x:Key="SuccessBrush" Color="#6CCB5F" />
+                    <SolidColorBrush x:Key="SidebarAcrylicBrush" Color="#E8171C24" />
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#E81B2028" />
+                    <SolidColorBrush x:Key="ControlSurfaceBrush" Color="#FF252A33" />
+                    <SolidColorBrush x:Key="ControlHoverBrush" Color="#FF30353E" />
+                    <SolidColorBrush x:Key="ControlPressedBrush" Color="#FF343942" />
+                    <SolidColorBrush x:Key="FilterCardHoverBrush" Color="#FF20384A" />
+                    <SolidColorBrush x:Key="FilterCardPressedBrush" Color="#FF183040" />
+                    <SolidColorBrush x:Key="CardStrokeBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="AccentIndigoBrush" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#CBE6FF" />
+                    <SolidColorBrush x:Key="AccentPressedBrush" Color="#00A2ED" />
+                    <SolidColorBrush x:Key="ActiveIndicatorBrush" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="PrimaryActionBrush" Color="#00A2ED" />
+                    <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#3BB8F5" />
+                    <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#006494" />
+                    <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#00344F" />
+                    <SolidColorBrush x:Key="MutedTextBrush" Color="#BEC8D2" />
+                    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#DEE2EE" />
+                    <SolidColorBrush x:Key="SubtleTextBrush" Color="#88929C" />
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#4EDEA3" />
                     <SolidColorBrush x:Key="WarningBrush" Color="#F0B849" />
                     <SolidColorBrush x:Key="DangerBrush" Color="#FF99A4" />
                     <SolidColorBrush x:Key="DangerPressedBrush" Color="#D13438" />
-                    <SolidColorBrush x:Key="CloseButtonBrush" Color="#B8333336" />
+                    <SolidColorBrush x:Key="CloseButtonBrush" Color="#FF252A33" />
                     <!-- Recursos internos consumidos por las plantillas WinUI. -->
                     <SolidColorBrush x:Key="ContentDialogForeground" Color="#F5F5F5" />
-                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FF2B2B2E" />
-                    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#665F5F62" />
-                    <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#FF2B2B2E" />
-                    <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#665F5F62" />
+                    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FF1B2028" />
+                    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#FF1B2028" />
+                    <SolidColorBrush x:Key="ContentDialogSeparatorBorderBrush" Color="#FF3E4851" />
                     <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#99000000" />
-                    <SolidColorBrush x:Key="TextControlBackground" Color="#FF303033" />
-                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF38383B" />
-                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF303033" />
-                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF29292C" />
-                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FF5F5F62" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#60CDFF" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#60CDFF" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF252A33" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF171C24" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FF3E4851" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#8FCDFF" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#8FCDFF" />
                     <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#FF444447" />
                     <SolidColorBrush x:Key="TextControlForeground" Color="#F5F5F5" />
                     <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#F5F5F5" />
@@ -77,7 +78,7 @@
                     <SolidColorBrush x:Key="TextControlButtonForeground" Color="#C5C5C5" />
                     <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#F5F5F5" />
                     <SolidColorBrush x:Key="TextControlButtonForegroundPressed" Color="#60CDFF" />
-                    <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#60CDFF" />
+                    <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#8FCDFF" />
                     <SolidColorBrush x:Key="ListViewItemBackground" Color="Transparent" />
                     <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#E6404044" />
                     <SolidColorBrush x:Key="ListViewItemBackgroundPressed" Color="#FF4A4A4F" />
@@ -191,6 +192,13 @@
         </ResourceDictionary>
     </ResourceDictionary.MergedDictionaries>
 
+            <FontFamily x:Key="PrototypeSansFont">ms-appx:///Assets/Fonts/PlusJakartaSans.ttf#Plus Jakarta Sans</FontFamily>
+            <FontFamily x:Key="PrototypeMonoFont">ms-appx:///Assets/Fonts/JetBrainsMono.ttf#JetBrains Mono</FontFamily>
+            <FontFamily x:Key="PrototypeIconFont">ms-appx:///Assets/Fonts/MaterialSymbolsOutlined.ttf#Material Symbols Outlined</FontFamily>
+            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/PlusJakartaSans.ttf#Plus Jakarta Sans</FontFamily>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource PrototypeSansFont}"/>
+            </Style>
             <!-- Some WinUI 3 control templates resolve these keys before the
                  active theme dictionary is selected. Keep neutral fallbacks at
                  application scope so a theme-only override can never make the
@@ -201,6 +209,7 @@
             <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="Transparent" />
             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="Transparent" />
             <Style x:Key="RoundedDialogButtonStyle" TargetType="Button">
+                <Setter Property="FontFamily" Value="{StaticResource PrototypeSansFont}"/>
                 <Setter Property="MinHeight" Value="38" />
                 <Setter Property="Padding" Value="14,8" />
                 <Setter Property="CornerRadius" Value="9" />
