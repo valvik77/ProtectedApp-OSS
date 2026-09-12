@@ -226,7 +226,19 @@ function Get-NextInstallerVersion
             }
             elseif ($file.Name -match '^ProtectedApp-Setup-x64(?:-\d+\.\d+\.\d+(?:\.\d+)?)?\.exe$')
             {
-                $file.VersionInfo.FileVersion.Trim()
+                # An interrupted Inno Setup invocation can leave a small
+                # bootstrapper without PE version metadata.  Preserve its
+                # version number from the filename so a subsequent build
+                # chooses a fresh output path instead of colliding with a
+                # file Windows still has open.
+                $fileVersion = $file.VersionInfo.FileVersion
+                if (-not [string]::IsNullOrWhiteSpace($fileVersion)) {
+                    $fileVersion.Trim()
+                }
+                elseif ($file.Name -match '^ProtectedApp-Setup-x64-(\d+\.\d+\.\d+(?:\.\d+)?)\.exe$') {
+                    $Matches[1]
+                }
+                else { $null }
             }
             else { $null }
             if ($candidate -match '^1\.4\.(\d+)(?:\.\d+)?$')
