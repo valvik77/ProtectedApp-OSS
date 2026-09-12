@@ -59,8 +59,12 @@ public sealed partial class MainWindow
         // ContentDialog ignores MaxWidth for its outer popup on some WinUI 3
         // builds, expanding it to the window width and making it appear left
         // aligned. An explicit width keeps the editor centered and predictable.
-        dialog.Width = editorWidth + 64;
-        dialog.MaxWidth = editorWidth + 64;
+        var dialogWidth = editorWidth + 64;
+        dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
+        dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
+        dialog.MinWidth = dialogWidth;
+        dialog.Width = dialogWidth;
+        dialog.MaxWidth = dialogWidth;
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>
         {
