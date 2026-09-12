@@ -75,7 +75,7 @@ public sealed partial class MainWindow
             if (!TryReadSchedule(schedule, out _, out _, out _, out _, out _, out var scheduleError)) { error.Text = LocalizationService.T(scheduleError); args.Cancel = true; return; }
             valid = true;
         };
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary || !valid) return;
+        if (await dialog.ShowAsync(ContentDialogPlacement.Popup) != ContentDialogResult.Primary || !valid) return;
         app.Name = name.Text.Trim();
         app.Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim();
         TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _);
