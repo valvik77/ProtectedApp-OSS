@@ -82,7 +82,13 @@ public sealed partial class MainWindow
     private void ApplyDialogPalette(ContentDialog dialog)
     {
         var light = Root.ActualTheme == ElementTheme.Light;
-        var background = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 248, 248, 248) : Windows.UI.Color.FromArgb(255, 27, 32, 40));
+        var backgroundColor = light ? Windows.UI.Color.FromArgb(255, 248, 250, 252) : Windows.UI.Color.FromArgb(255, 21, 27, 36);
+        var background = new AcrylicBrush
+        {
+            TintColor = backgroundColor,
+            TintOpacity = light ? 0.84 : 0.82,
+            FallbackColor = backgroundColor
+        };
         var foreground = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 59, 59, 59) : Windows.UI.Color.FromArgb(255, 222, 226, 238));
         var border = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 229, 229, 229) : Windows.UI.Color.FromArgb(255, 62, 72, 81));
         var inputBorder = new SolidColorBrush(light ? Windows.UI.Color.FromArgb(255, 206, 206, 206) : Windows.UI.Color.FromArgb(255, 62, 72, 81));
@@ -109,7 +115,7 @@ public sealed partial class MainWindow
         dialog.CloseButtonStyle = Application.Current.Resources["RoundedDialogButtonStyle"] as Style;
 
         dialog.Resources["ContentDialogBackground"] = background;
-        dialog.Resources["ContentDialogTopOverlay"] = background;
+        dialog.Resources["ContentDialogTopOverlay"] = new SolidColorBrush(Windows.UI.Color.FromArgb(0, backgroundColor.R, backgroundColor.G, backgroundColor.B));
         dialog.Resources["ContentDialogForeground"] = foreground;
         dialog.Resources["ContentDialogBorderBrush"] = border;
         dialog.Resources["ContentDialogSeparatorBorderBrush"] = border;

@@ -789,12 +789,24 @@ public sealed partial class MainWindow
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap
         };
-        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
-        panel.Children.Add(CreateEditorSection("Bóvedas", "\uEDA2", name, description));
-        panel.Children.Add(CreateEditorSection("Cierre automático", "\uE823", minutes, inactivityMinutes));
-        panel.Children.Add(CreateEditorSection("Contraseña", "\uE72E", newPassword, confirmation));
-        panel.Children.Add(error);
-        var dialog = CreateDialog("Editar bóveda", CreateDialogScroller(panel), "Guardar", "Cancelar");
+        // A wide editor keeps the vault details, automatic locking and password
+        // controls visible together instead of forcing a vertical scroll.
+        var availableWidth = Root.XamlRoot?.Size.Width ?? 1_200;
+        var dialogWidth = Math.Min(1_000, Math.Max(760, availableWidth - 96));
+        var sections = new Grid { MaxWidth = dialogWidth, ColumnSpacing = 16 };
+        sections.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        sections.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var leftColumn = new StackPanel { Spacing = 14 };
+        leftColumn.Children.Add(CreateEditorSection("Bóvedas", "\uEDA2", name, description));
+        leftColumn.Children.Add(CreateEditorSection("Contraseña", "\uE72E", newPassword, confirmation));
+        var rightColumn = new StackPanel { Spacing = 14 };
+        rightColumn.Children.Add(CreateEditorSection("Cierre automático", "\uE823", minutes, inactivityMinutes));
+        Grid.SetColumn(rightColumn, 1);
+        sections.Children.Add(leftColumn);
+        sections.Children.Add(rightColumn);
+
+        var panel = new StackPanel { Spacing = 14, MaxWidth = dialogWidth };
+        panel.Children.Add(sections);
         panel.Children.Add(new TextBlock
         {
             Text = LocalizationService.IsEnglish
@@ -802,6 +814,10 @@ public sealed partial class MainWindow
                 : "Cambiar la contraseña vuelve a cifrar todos los datos. Las copias anteriores conservan sus contraseñas; revísalas si una contraseña se ha filtrado.",
             TextWrapping = TextWrapping.Wrap
         });
+        panel.Children.Add(error);
+        var dialog = CreateDialog("Editar bóveda", CreateDialogScroller(panel), "Guardar", "Cancelar");
+        dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
+        dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
         dialog.PrimaryButtonClick += (_, args) =>
         {
             if (string.IsNullOrWhiteSpace(name.Text)) { error.Text = LocalizationService.T("Introduce un nombre."); args.Cancel = true; return; }
@@ -1177,7 +1193,9 @@ public sealed partial class MainWindow
             IsReadOnly = true,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
-            Width = 540,
+            // Keep the focused border inside the dialog's content padding on
+            // compact windows; a fixed 540 px field could clip its right edge.
+            Width = 500,
             Height = 280,
             Text = entries.Length == 0
                 ? "Todavía no hay eventos registrados para esta bóveda."
