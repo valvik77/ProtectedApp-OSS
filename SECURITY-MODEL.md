@@ -37,6 +37,13 @@ Las bóvedas usan cifrado autenticado; la contraseña de una bóveda no conviert
 el equipo en un entorno aislado ni recupera datos que hayan sido expuestos antes
 de bloquearla. El estado local de la aplicación y los secretos opcionales del
 webhook reciben protección de Windows/DPAPI según el componente que los use.
+De forma opcional, **Protección TPM de la configuración** cifra el estado local
+con una clave aleatoria que queda envuelta por una clave RSA no exportable del
+TPM de ese usuario y equipo. No modifica las bóvedas ni sus contraseñas. No es
+un mecanismo de migración ni de recuperación: antes de restablecer el TPM,
+reinstalar Windows o cambiar la placa base, exporta una copia de configuración.
+Tras cualquiera de esas operaciones puede ser necesario restaurar la copia o
+configurar ProtectedApp de nuevo.
 
 ProtectedApp no incorpora telemetría. Las comunicaciones de red posibles son el
 webhook HTTPS de alertas de manipulación configurado expresamente por la persona

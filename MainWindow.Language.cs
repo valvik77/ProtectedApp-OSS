@@ -13,6 +13,7 @@ public sealed partial class MainWindow
         LocalizationService.ApplyTo(Root);
         TranslateLanguageOptions();
         RefreshLocalizedBoundValues();
+        if (TpmProtectionStatusText is not null) RefreshTpmProtectionStatus();
         SelectNavigation(_selectedNavigation);
         // Some flyouts and templated controls are materialized after startup.
         // Run once more after layout so the selected language also reaches
@@ -21,6 +22,7 @@ public sealed partial class MainWindow
         {
             LocalizationService.ApplyTo(Root);
             RefreshLocalizedBoundValues();
+            if (TpmProtectionStatusText is not null) RefreshTpmProtectionStatus();
         });
     }
 

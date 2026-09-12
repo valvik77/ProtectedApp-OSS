@@ -32,6 +32,12 @@ public sealed partial class MainWindow
                 ShowMainWindow();
                 try
                 {
+                    if (ex is TpmStateProtectionUnavailableException)
+                    {
+                        await ShowMessageAsync("Configuración TPM no disponible",
+                            "ProtectedApp no ha modificado tu configuración. La clave TPM que la protege no está disponible; puede ocurrir después de restablecer el TPM, reinstalar Windows o cambiar la placa base. Restaura una copia de configuración o vuelve a configurarla cuando hayas comprobado el estado del equipo.");
+                        return;
+                    }
                     var persistenceFailure = ex is IOException or UnauthorizedAccessException
                         or System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException;
                     await ShowMessageAsync("No se pudo iniciar ProtectedApp", persistenceFailure
@@ -116,6 +122,8 @@ public sealed partial class MainWindow
         ApplyImmediateLockHotkey(showError: false);
         RefreshImmediateLockHotkeyStatus();
         WindowsHelloToggle.IsOn = _state.UseWindowsHello;
+        TpmProtectionToggle.IsOn = _store.IsTpmProtectionEnabled;
+        RefreshTpmProtectionStatus();
         SelectManagementAutoLock(_state.ManagementAutoLockMinutes);
         SelectPollInterval(_state.PollIntervalMilliseconds);
         RefreshVaultBackupStatus();

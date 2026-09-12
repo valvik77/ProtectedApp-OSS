@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using ProtectedApp.Models;
 using ProtectedApp.Services;
+using System.Security.Cryptography;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -185,6 +186,69 @@ public sealed partial class MainWindow
             _state.UseWindowsHello = false;
             _updatingControls = false;
         }
+    }
+
+    private async void TpmProtectionToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (!_initialized || _updatingControls) return;
+
+        var enable = TpmProtectionToggle.IsOn;
+        if (!await VerifyMasterAsync(enable
+                ? "Activar protección TPM de la configuración"
+                : "Desactivar protección TPM de la configuración"))
+        {
+            RestoreTpmProtectionToggle();
+            return;
+        }
+
+        if (enable)
+        {
+            var confirmation = CreateDialog(
+                "Vincular configuración al TPM",
+                "La configuración de ProtectedApp se cifrará con una clave no exportable del TPM de este equipo. " +
+                "No protege ni modifica las bóvedas. Si se restablece el TPM, se reinstala Windows o se cambia la placa base, deberás restaurar una copia o configurar ProtectedApp de nuevo.",
+                "Activar", "Cancelar");
+            if (await confirmation.ShowAsync() != ContentDialogResult.Primary)
+            {
+                RestoreTpmProtectionToggle();
+                return;
+            }
+        }
+
+        try
+        {
+            await SaveAsync(synchronizeGuardian: false);
+            await _store.SetTpmProtectionAsync(_state, enable);
+            await SaveAsync();
+            AddActivity("ProtectedApp", enable
+                ? "Protección TPM de la configuración activada"
+                : "Protección TPM de la configuración desactivada");
+        }
+        catch (Exception ex) when (ex is CryptographicException or PlatformNotSupportedException)
+        {
+            await ShowMessageAsync("TPM no disponible", enable
+                ? "No se pudo activar la protección TPM. Comprueba que el equipo tenga un TPM disponible y que Windows permita crear claves de plataforma. La configuración actual se ha conservado con la protección anterior."
+                : "No se pudo retirar la protección TPM. La configuración no se ha modificado.");
+            RestoreTpmProtectionToggle();
+        }
+        finally
+        {
+            RefreshTpmProtectionStatus();
+        }
+    }
+
+    private void RestoreTpmProtectionToggle()
+    {
+        _updatingControls = true;
+        TpmProtectionToggle.IsOn = _store.IsTpmProtectionEnabled;
+        _updatingControls = false;
+    }
+
+    private void RefreshTpmProtectionStatus()
+    {
+        TpmProtectionStatusText.Text = LocalizationService.T(_store.IsTpmProtectionEnabled
+            ? "Activa: una clave no exportable del TPM protege el estado local de este equipo."
+            : "Usa una clave no exportable del TPM para proteger el estado local.");
     }
 
     private void SelectManagementAutoLock(int minutes) => ManagementAutoLockBox.SelectedItem = ManagementAutoLockBox.Items.Cast<ComboBoxItem>()

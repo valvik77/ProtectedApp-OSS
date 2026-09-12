@@ -767,6 +767,17 @@
                                 </StackPanel>
                                 <ToggleSwitch x:Name="WindowsHelloToggle" Grid.Column="1" Toggled="WindowsHelloToggle_Toggled"/>
                             </Grid>
+                            <Grid Padding="0,8" ColumnSpacing="14" BorderBrush="{ThemeResource CardStrokeBrush}" BorderThickness="0,0,0,1">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección TPM de la configuración" FontWeight="SemiBold"/>
+                                        <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe90d;" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="TpmProtectionStatusText" Text="Usa una clave no exportable del TPM para proteger el estado local." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="TpmProtectionToggle" Grid.Column="1" Toggled="TpmProtectionToggle_Toggled"/>
+                            </Grid>
                             <Grid Padding="0,8" ColumnSpacing="14">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2"><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Contraseña maestra" FontWeight="SemiBold"/><TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Panel y desinstalación." Foreground="{ThemeResource MutedTextBrush}" FontSize="12"/></StackPanel>

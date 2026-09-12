@@ -173,6 +173,33 @@ public sealed class VaultPasswordChangeTests
         }
     }
 
+    [Fact]
+    public async Task StateStoreLoad_PreservesTpmBoundStateWhenTheTpmKeyIsUnavailable()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));
+        var previousRoot = Environment.GetEnvironmentVariable("PROTECTEDAPP_DATA_DIR");
+        try
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", root);
+            Directory.CreateDirectory(root);
+            var statePath = Path.Combine(root, "state.dat");
+            var envelope = """
+                {"Format":"ProtectedApp.TpmState","Version":1,"KeyName":"ProtectedApp.State.missing-test-key","WrappedDataKey":"AA==","Nonce":"AAAAAAAAAAAAAAAA","Tag":"AAAAAAAAAAAAAAAAAAAAAA==","CipherText":""}
+                """;
+            await File.WriteAllBytesAsync(statePath, [.. "PATPM1\n"u8, .. System.Text.Encoding.UTF8.GetBytes(envelope)]);
+
+            await Assert.ThrowsAsync<TpmStateProtectionUnavailableException>(() => new StateStore().LoadAsync());
+            Assert.True(File.Exists(statePath));
+            Assert.Empty(Directory.EnumerateFiles(root, "*.corrupt-*"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", previousRoot);
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch { }
+        }
+    }
+
     private static void AssertPrivateDirectory(string path, IReadOnlyCollection<string> expectedSids)
     {
         var security = FileSystemAclExtensions.GetAccessControl(new DirectoryInfo(path), AccessControlSections.Access);
