@@ -106,8 +106,10 @@ public sealed partial class MainWindow
     {
         var area = DisplayArea.GetFromWindowId(_appWindow.Id, DisplayAreaFallback.Primary);
         var scale = Root.XamlRoot?.RasterizationScale ?? 1d;
-        var width = Math.Min((int)(1120 * scale), Math.Max(640, area.WorkArea.Width - 48));
-        var height = Math.Min((int)(900 * scale), Math.Max(480, area.WorkArea.Height - 48));
+        // The redesigned workspace includes a persistent navigation rail.  Prefer a
+        // desktop-sized starting canvas, while always respecting the current display.
+        var width = Math.Min((int)(1320 * scale), Math.Max(640, area.WorkArea.Width - 48));
+        var height = Math.Min((int)(920 * scale), Math.Max(480, area.WorkArea.Height - 48));
         var x = area.WorkArea.X + (area.WorkArea.Width - width) / 2;
         var y = area.WorkArea.Y + (area.WorkArea.Height - height) / 2;
         _appWindow.MoveAndResize(new Windows.Graphics.RectInt32(x, y, width, height));
