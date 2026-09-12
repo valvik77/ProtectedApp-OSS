@@ -93,7 +93,7 @@ public sealed partial class MainWindow
             details.Children.Add(new TextBlock
             {
                 Text = package.Sha256,
-                FontFamily = new FontFamily("Cascadia Mono"),
+                FontFamily = (FontFamily)Application.Current.Resources["PrototypeMonoFont"],
                 FontSize = 10,
                 TextWrapping = TextWrapping.Wrap,
                 IsTextSelectionEnabled = true

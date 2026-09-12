@@ -324,7 +324,7 @@ public sealed partial class MainWindow
         _handlingTamper = true;
         _sessionUnlocked = false;
         _monitor.RevokeAllAuthorizations();
-        PauseIcon.Glyph = "\uE769";
+        PauseIcon.Glyph = "\ue034";
         StatusText.Text = LocalizationService.T("Activa");
         StatusDot.Fill = ThemeBrush(
             Windows.UI.Color.FromArgb(255, 80, 250, 123),

@@ -23,11 +23,11 @@
             <Grid x:Name="HeaderDragArea" Grid.ColumnSpan="2" ColumnSpacing="14">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <Border Width="40" Height="40" CornerRadius="10" Background="{ThemeResource ControlSurfaceBrush}">
-                    <FontIcon Glyph="&#xE72E;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="17" />
+                    <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe899;" Foreground="{ThemeResource AccentIndigoBrush}" FontSize="17" />
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock x:Name="AppNameText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="SubtitleText" Text="Introduce la contraseña para continuar" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="AppNameText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="SubtitleText" Text="Introduce la contraseña para continuar" Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Grid>
             <Button Grid.Column="2"
@@ -61,7 +61,7 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <FontIcon Glyph="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe5cd;" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
                 </Button.Template>
@@ -95,18 +95,17 @@
                           AutomationProperties.Name="Mostrar contraseña"
                           ToolTipService.ToolTip="Mostrar contraseña"
                           Click="RevealPasswordButton_Click">
-                <FontIcon Glyph="&#xF78D;"
-                          FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe8f4;"
                           FontSize="14" />
             </ToggleButton>
         </Grid>
         <StackPanel Grid.Row="3" Spacing="3" Margin="2,7,0,0">
-            <TextBlock x:Name="CapsLockHint"
+            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="CapsLockHint"
                        Foreground="{ThemeResource WarningBrush}"
                        FontSize="11"
                        Text="Bloq Mayús está activado"
                        Visibility="Collapsed" />
-            <TextBlock x:Name="ErrorText"
+            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ErrorText"
                        Foreground="{ThemeResource DangerBrush}"
                        FontSize="11"
                        TextWrapping="Wrap"
@@ -121,8 +120,8 @@
                 Visibility="Collapsed"
                 Click="WindowsHelloButton_Click">
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                <FontIcon Glyph="&#xE890;" FontFamily="Segoe Fluent Icons" FontSize="15" Foreground="{ThemeResource AccentIndigoBrush}" />
-                <TextBlock Text="Desbloquear con Windows Hello (PIN / Biometría)" FontSize="12" FontWeight="SemiBold" />
+                <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe90d;" FontSize="15" Foreground="{ThemeResource AccentIndigoBrush}" />
+                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Desbloquear con Windows Hello (PIN / Biometría)" FontSize="12" FontWeight="SemiBold" />
             </StackPanel>
         </Button>
 

@@ -36,13 +36,28 @@ public sealed partial class MainWindow
         var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes);
         var schedule = CreateScheduleEditor(app.ScheduleEnabled, app.ScheduleDays, app.ScheduleStartMinutes, app.ScheduleEndMinutes, app.BlockOutsideSchedule);
         var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12 };
-        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
-        panel.Children.Add(CreateEditorSection("Aplicación", "\uE71D", name, category));
-        panel.Children.Add(CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation));
-        panel.Children.Add(CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel));
-        panel.Children.Add(CreateEditorSection("Horario", "\uE787", schedule.Panel));
+        var editorWidth = Math.Min(980, Math.Max(320, (Root.XamlRoot?.Size.Width ?? 1100) - 100));
+        var panel = new Grid { Width = editorWidth, ColumnSpacing = 16, RowSpacing = 12 };
+        var wide = editorWidth >= 840;
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wide ? 0.9 : 1, GridUnitType.Star) });
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = wide ? new GridLength(1.1, GridUnitType.Star) : new GridLength(0) });
+        for (var i = 0; i < 3; i++) panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var identity = new StackPanel { Spacing = 12 };
+        identity.Children.Add(CreateEditorSection("Aplicación", "\uE71D", name, category));
+        identity.Children.Add(CreateEditorSection("Contraseña", "\uE72E", passwordMode, password, confirmation));
+        var timing = new StackPanel { Spacing = 12 };
+        timing.Children.Add(CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel));
+        timing.Children.Add(CreateEditorSection("Horario", "\uE787", schedule.Panel));
+        Grid.SetColumn(timing, wide ? 1 : 0);
+        Grid.SetRow(timing, wide ? 0 : 1);
+        Grid.SetRow(error, 2);
+        Grid.SetColumnSpan(error, 2);
+        panel.Children.Add(identity);
+        panel.Children.Add(timing);
         panel.Children.Add(error);
         var dialog = CreateDialog("Editar protección", CreateDialogScroller(panel), "Guardar", "Cancelar");
+        dialog.Resources["ContentDialogMaxWidth"] = editorWidth + 64;
+        dialog.MaxWidth = editorWidth + 64;
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) =>
         {

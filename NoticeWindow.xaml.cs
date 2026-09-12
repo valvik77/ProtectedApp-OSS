@@ -149,12 +149,25 @@ public sealed partial class NoticeWindow : Window
 
     private void CenterWindow()
     {
-        var area = DisplayArea.GetFromWindowId(_appWindow.Id, DisplayAreaFallback.Primary);
+        var area = GetActiveDisplayArea();
         const int width = 450;
         const int height = 220;
         _appWindow.Move(new Windows.Graphics.PointInt32(
             area.WorkArea.X + (area.WorkArea.Width - width) / 2,
             area.WorkArea.Y + (area.WorkArea.Height - height) / 2));
+    }
+
+    private static DisplayArea GetActiveDisplayArea()
+    {
+        var foreground = GetForegroundWindow();
+        if (foreground != IntPtr.Zero && GetWindowRect(foreground, out var bounds))
+        {
+            var center = new Windows.Graphics.PointInt32(
+                bounds.Left + (bounds.Right - bounds.Left) / 2,
+                bounds.Top + (bounds.Bottom - bounds.Top) / 2);
+            return DisplayArea.GetFromPoint(center, DisplayAreaFallback.Primary);
+        }
+        return DisplayArea.GetFromPoint(new Windows.Graphics.PointInt32(0, 0), DisplayAreaFallback.Primary);
     }
 
     private const int SwRestore = 9;
@@ -166,10 +179,20 @@ public sealed partial class NoticeWindow : Window
     [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hwnd, int command);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
     [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
     [DllImport("user32.dll")] private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool attach);
     [DllImport("user32.dll")] private static extern bool BringWindowToTop(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern IntPtr SetActiveWindow(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hwnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
 }

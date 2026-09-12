@@ -27,7 +27,7 @@ public sealed partial class MainWindow
             RepairDiagnosticsButton.Visibility = results.Any(result => result.CanRepair && result.Severity != DiagnosticSeverity.Success)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-            DiagnosticsSummaryIcon.Glyph = errors > 0 ? "\uEA39" : warnings > 0 ? "\uE7BA" : "\uE73E";
+            DiagnosticsSummaryIcon.Glyph = errors > 0 ? "\ue88e" : warnings > 0 ? "\uf083" : "\ue668";
             DiagnosticsSummaryText.Text = errors > 0
                 ? LocalizationService.IsEnglish ? $"{errors} errors found" : $"Se encontraron {errors} errores"
                 : warnings > 0
@@ -39,7 +39,7 @@ public sealed partial class MainWindow
         }
         catch (Exception ex)
         {
-            DiagnosticsSummaryIcon.Glyph = "\uEA39";
+            DiagnosticsSummaryIcon.Glyph = "\ue88e";
             DiagnosticsSummaryText.Text = LocalizationService.T("No se pudo completar el diagnóstico");
             DiagnosticsSummaryDetail.Text = LocalizationService.UserFacingError(ex);
         }

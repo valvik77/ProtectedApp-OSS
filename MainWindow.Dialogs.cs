@@ -14,7 +14,8 @@ public sealed partial class MainWindow
         var heading = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         heading.Children.Add(new FontIcon
         {
-            Glyph = glyph, FontSize = 16,
+            Glyph = glyph switch { "\uE71D" => "\ue5c3", "\uE72E" => "\ue899", "\uEDA2" => "\ue617", _ => "\uefd6" },
+            FontFamily = (FontFamily)Application.Current.Resources["PrototypeIconFont"], FontSize = 20,
             Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 143, 205, 255), Windows.UI.Color.FromArgb(255, 0, 95, 184))
         });
         heading.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
@@ -39,7 +40,9 @@ public sealed partial class MainWindow
             Title = title,
             Content = content,
             PrimaryButtonText = primary,
-            DefaultButton = ContentDialogButton.Primary
+            DefaultButton = ContentDialogButton.Primary,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
         };
         if (!string.IsNullOrWhiteSpace(close)) dialog.CloseButtonText = close;
         LocalizationService.ApplyTo(dialog);

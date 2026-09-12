@@ -192,6 +192,13 @@
         </ResourceDictionary>
     </ResourceDictionary.MergedDictionaries>
 
+            <FontFamily x:Key="PrototypeSansFont">ms-appx:///Assets/Fonts/PlusJakartaSans.ttf#Plus Jakarta Sans</FontFamily>
+            <FontFamily x:Key="PrototypeMonoFont">ms-appx:///Assets/Fonts/JetBrainsMono.ttf#JetBrains Mono</FontFamily>
+            <FontFamily x:Key="PrototypeIconFont">ms-appx:///Assets/Fonts/MaterialSymbolsOutlined.ttf#Material Symbols Outlined</FontFamily>
+            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/PlusJakartaSans.ttf#Plus Jakarta Sans</FontFamily>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource PrototypeSansFont}"/>
+            </Style>
             <!-- Some WinUI 3 control templates resolve these keys before the
                  active theme dictionary is selected. Keep neutral fallbacks at
                  application scope so a theme-only override can never make the
@@ -202,6 +209,7 @@
             <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="Transparent" />
             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="Transparent" />
             <Style x:Key="RoundedDialogButtonStyle" TargetType="Button">
+                <Setter Property="FontFamily" Value="{StaticResource PrototypeSansFont}"/>
                 <Setter Property="MinHeight" Value="38" />
                 <Setter Property="Padding" Value="14,8" />
                 <Setter Property="CornerRadius" Value="9" />
