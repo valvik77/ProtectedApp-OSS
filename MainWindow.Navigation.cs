@@ -36,6 +36,12 @@ public sealed partial class MainWindow
             (SettingsInformationButton, section == "information")
         })
         {
+            // A selected section needs the primary button template as well as
+            // the primary colours. Otherwise the generic hover state replaces
+            // its blue surface with dark grey while keeping dark blue text.
+            button.Style = Application.Current.Resources[selected
+                ? "RoundedPrimaryButtonStyle"
+                : "RoundedDialogButtonStyle"] as Style;
             button.Background = (SolidColorBrush)Application.Current.Resources[selected ? "PrimaryActionBrush" : "ControlSurfaceBrush"];
             button.BorderBrush = (SolidColorBrush)Application.Current.Resources[selected ? "AccentIndigoBrush" : "CardStrokeBrush"];
             button.Foreground = (SolidColorBrush)Application.Current.Resources[selected ? "PrimaryActionTextBrush" : "PrimaryTextBrush"];
