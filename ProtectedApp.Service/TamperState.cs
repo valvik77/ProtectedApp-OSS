@@ -125,7 +125,7 @@ internal static class TamperState
             EventLog.WriteEntry(GuardianConstants.EventSource, reason, EventLogEntryType.Warning, 1001);
         }
         catch (Exception ex) { logger?.LogWarning(ex, "No se pudo escribir en el Visor de eventos."); }
-        try { TamperWebhookNotifier.Enqueue(code); }
+        try { TamperWebhookNotifier.Enqueue(code, reason); }
         catch (Exception ex) { logger?.LogWarning(ex, "No se pudo poner en cola la alerta remota de manipulación."); }
     }
 
@@ -145,7 +145,7 @@ internal static class TamperState
             WriteJsonAtomically(GuardianConstants.SafeRecoveryPath,
                 new SafeRecoveryState(DateTimeOffset.UtcNow, reason));
             EventLog.WriteEntry(GuardianConstants.EventSource, reason, EventLogEntryType.Error, 1003);
-            TamperWebhookNotifier.Enqueue(TamperEventCode.RecoveryFailed);
+            TamperWebhookNotifier.Enqueue(TamperEventCode.RecoveryFailed, reason);
         }
         catch (Exception ex) { logger?.LogWarning(ex, "No se pudo activar el estado de recuperación segura."); }
     }

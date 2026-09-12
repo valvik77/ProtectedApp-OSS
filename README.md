@@ -108,9 +108,12 @@ roles, privacy, release approval, and the intended SignPath integration.
 ## Privacy
 
 ProtectedApp does not include telemetry. The optional tamper-alert webhook is
-configured explicitly by the installer or operator. When a user manually
-selects a local update, Windows may contact certificate-revocation services
-(OCSP or CRL) while validating its Authenticode signature.
+configured explicitly by the installer or operator. Its JSON carries a random
+event ID, a stable random installation ID, UTC timestamp, event code, a stable
+incident category, severity, and a safe summary; it never includes paths,
+user names, passwords, vault contents, or raw local error details. When a user
+manually selects a local update, Windows may contact certificate-revocation
+services (OCSP or CRL) while validating its Authenticode signature.
 
 ## Security reports and contributions
 

@@ -53,13 +53,15 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
         WriteBytesAtomically(GuardianConstants.WebhookConfigPath, encrypted);
     }
 
-    public static void Enqueue(TamperEventCode code)
+    public static void Enqueue(TamperEventCode code, string? reason = null)
     {
         if (LoadConfig()?.Enabled != true) return;
+        var description = DescribeEvent(code, reason);
         lock (QueueSync)
         {
             var queue = LoadQueue();
-            queue.Add(new(Guid.NewGuid().ToString("N"), DateTimeOffset.UtcNow, code.ToString(), 0, DateTimeOffset.UtcNow));
+            queue.Add(new(Guid.NewGuid().ToString("N"), DateTimeOffset.UtcNow, code.ToString(), description.Category,
+                description.Severity, description.Summary, 0, DateTimeOffset.UtcNow));
             if (queue.Count > 20) queue.RemoveRange(0, queue.Count - 20);
             SaveQueue(queue);
         }
@@ -91,7 +93,12 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
             lock (QueueSync) item = LoadQueue().Where(x => x.NextAttemptUtc <= DateTimeOffset.UtcNow)
                 .OrderBy(x => x.OccurredUtc).FirstOrDefault();
             if (item is null) return;
-            var body = CreatePayload(item.Id, GetOrCreateInstallationId(), item.OccurredUtc, item.Code);
+            var description = string.IsNullOrWhiteSpace(item.Category) || string.IsNullOrWhiteSpace(item.Severity)
+                || string.IsNullOrWhiteSpace(item.Summary)
+                ? DescribeEvent(ParseEventCode(item.Code), null)
+                : new WebhookEventDescription(item.Category, item.Severity, item.Summary);
+            var body = CreatePayload(item.Id, GetOrCreateInstallationId(), item.OccurredUtc, item.Code,
+                description.Category, description.Severity, description.Summary);
             using var request = new HttpRequestMessage(HttpMethod.Post, uri)
             { Content = new StringContent(body, Encoding.UTF8, "application/json") };
             if (config.UseHmac && !string.IsNullOrWhiteSpace(config.Secret))
@@ -144,8 +151,42 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         return "sha256=" + Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(body))).ToLowerInvariant();
     }
-    internal static string CreatePayload(string eventId, string installationId, DateTimeOffset occurredUtc, string eventCode) =>
-        JsonSerializer.Serialize(new { eventId, installationId, occurredUtc, @event = eventCode }, JsonOptions);
+    internal static string CreatePayload(string eventId, string installationId, DateTimeOffset occurredUtc, string eventCode,
+        string category, string severity, string summary) =>
+        JsonSerializer.Serialize(new { eventId, installationId, occurredUtc, @event = eventCode, category, severity, summary }, JsonOptions);
+
+    private static TamperEventCode ParseEventCode(string value) =>
+        Enum.TryParse<TamperEventCode>(value, ignoreCase: true, out var code) ? code : TamperEventCode.TamperDetected;
+
+    // Do not forward the raw local audit reason. It may contain a local path or
+    // an operating-system error. These stable categories are actionable for a
+    // webhook receiver while preserving the privacy boundary of remote alerts.
+    private static WebhookEventDescription DescribeEvent(TamperEventCode code, string? reason)
+    {
+        var value = reason ?? string.Empty;
+        if (value.Contains("proceso del servicio Guardian fue terminado", StringComparison.OrdinalIgnoreCase))
+            return new("GuardianServiceUnexpectedTermination", "warning", "The Guardian service process ended unexpectedly.");
+        if (value.Contains("configuración de Guardian", StringComparison.OrdinalIgnoreCase))
+            return new("GuardianServiceConfigurationChanged", "warning", "Guardian service configuration was changed and was restored.");
+        if (value.Contains("tarea SYSTEM", StringComparison.OrdinalIgnoreCase))
+            return code == TamperEventCode.RecoveryFailed
+                ? new("GuardianRecoveryTaskChanged", "critical", "The Guardian SYSTEM recovery task was changed and could not be restored.")
+                : new("GuardianRecoveryTaskChanged", "warning", "The Guardian SYSTEM recovery task was changed and was restored.");
+        if (value.Contains("binarios", StringComparison.OrdinalIgnoreCase))
+            return code == TamperEventCode.RecoveryFailed
+                ? new("GuardianBinaryIntegrityChanged", "critical", "Guardian binary integrity changed and the component could not be restored.")
+                : new("GuardianBinaryIntegrityChanged", "warning", "Guardian binary integrity changed and the component was restored.");
+        if (value.Contains("registro de seguridad", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("registro protegido", StringComparison.OrdinalIgnoreCase))
+            return new("GuardianAuditTrailInvalid", "critical", "The Guardian protected audit trail is not continuous.");
+        if (value.Contains("servicio Guardian dejó de ejecutarse", StringComparison.OrdinalIgnoreCase))
+            return new("GuardianServiceStopped", "critical", "The Guardian service stopped and preventive protection was rearmed.");
+        if (value.Contains("servicio Guardian fue eliminado", StringComparison.OrdinalIgnoreCase))
+            return new("GuardianServiceRemoved", "critical", "The Guardian service was removed and preventive protection remains active.");
+        if (code == TamperEventCode.RecoveryFailed)
+            return new("GuardianRecoveryFailed", "critical", "Guardian could not complete a security recovery action.");
+        return new("GuardianTamperingDetected", "warning", "Guardian detected a change to its protected configuration or components.");
+    }
 
     private static string GetOrCreateInstallationId()
     {
@@ -250,7 +291,9 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
         };
     }
     private sealed record WebhookConfig(bool Enabled, string Url, bool UseHmac, string? Secret);
-    private sealed record WebhookEvent(string Id, DateTimeOffset OccurredUtc, string Code, int Attempts, DateTimeOffset NextAttemptUtc);
+    private sealed record WebhookEvent(string Id, DateTimeOffset OccurredUtc, string Code, string? Category,
+        string? Severity, string? Summary, int Attempts, DateTimeOffset NextAttemptUtc);
+    private sealed record WebhookEventDescription(string Category, string Severity, string Summary);
 }
 
 internal sealed record WebhookStatus(bool Enabled, string? Url, bool UseHmac, string InstallationId);

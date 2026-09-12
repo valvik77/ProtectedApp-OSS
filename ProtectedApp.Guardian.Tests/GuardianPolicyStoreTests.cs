@@ -380,10 +380,14 @@ public sealed class GuardianPolicyStoreTests
         using var queue = System.Text.Json.JsonDocument.Parse(File.ReadAllText(GuardianConstants.WebhookQueuePath));
         Assert.Equal(20, queue.RootElement.GetArrayLength());
         var payload = TamperWebhookNotifier.CreatePayload("event-1", status.InstallationId,
-            DateTimeOffset.Parse("2026-09-02T12:34:56Z"), TamperEventCode.TamperDetected.ToString());
+            DateTimeOffset.Parse("2026-09-02T12:34:56Z"), TamperEventCode.TamperDetected.ToString(),
+            "GuardianBinaryIntegrityChanged", "warning", "Guardian binary integrity changed and the component was restored.");
         using var payloadJson = System.Text.Json.JsonDocument.Parse(payload);
         Assert.Equal(status.InstallationId, payloadJson.RootElement.GetProperty("installationId").GetString());
         Assert.Equal("TamperDetected", payloadJson.RootElement.GetProperty("event").GetString());
+        Assert.Equal("GuardianBinaryIntegrityChanged", payloadJson.RootElement.GetProperty("category").GetString());
+        Assert.Equal("warning", payloadJson.RootElement.GetProperty("severity").GetString());
+        Assert.DoesNotContain("C:\\", payloadJson.RootElement.GetProperty("summary").GetString());
         using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("test-secret"));
         var expected = "sha256=" + Convert.ToHexString(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes("payload"))).ToLowerInvariant();
         Assert.Equal(expected, TamperWebhookNotifier.ComputeSignature("payload", "test-secret"));
