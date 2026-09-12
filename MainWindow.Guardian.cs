@@ -52,9 +52,10 @@ public sealed partial class MainWindow
                         _guardianUnavailableAlerted = true;
                         AddActivity("Guardian", "Alerta: Guardian no está disponible; la protección administrada necesita reparación");
                         if (_state.SecurityAlertsEnabled)
-                            _tray.ShowBalloon("Alerta de seguridad", "Guardian no está disponible. Repara el servicio para restaurar la protección.");
+                        _tray.ShowBalloon("Alerta de seguridad", "Guardian no está disponible. Repara el servicio para restaurar la protección.");
                     }
                 }
+                RefreshDashboard();
             }
             if (!_guardianManaged) return;
 

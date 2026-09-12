@@ -46,6 +46,7 @@ public sealed partial class MainWindow
     private void SelectNavigation(string tag)
     {
         _selectedNavigation = tag;
+        DashboardView.Visibility = tag == "dashboard" ? Visibility.Visible : Visibility.Collapsed;
         AppsView.Visibility = tag == "apps" ? Visibility.Visible : Visibility.Collapsed;
         VaultsView.Visibility = tag == "vaults" ? Visibility.Visible : Visibility.Collapsed;
         ActivityView.Visibility = tag == "activity" ? Visibility.Visible : Visibility.Collapsed;
@@ -54,6 +55,7 @@ public sealed partial class MainWindow
         AboutView.Visibility = tag == "about" ? Visibility.Visible : Visibility.Collapsed;
         LocalizationService.ApplyTo(tag switch
         {
+            "dashboard" => DashboardView,
             "vaults" => VaultsView,
             "activity" => ActivityView,
             "diagnostics" => DiagnosticsView,
@@ -63,6 +65,7 @@ public sealed partial class MainWindow
         });
         var (title, subtitle) = tag switch
         {
+            "dashboard" => ("Inicio", "Resumen de la protección de este equipo"),
             "activity" => ("Actividad", "Consulta el historial de seguridad del equipo"),
             "vaults" => ("Bóvedas cifradas", "Protege archivos dentro de contenedores con contraseña"),
             "diagnostics" => ("Diagnóstico", "Comprueba que todas las capas de protección funcionan"),
@@ -72,20 +75,21 @@ public sealed partial class MainWindow
         };
         PageTitle.Text = LocalizationService.T(title);
         PageSubtitle.Text = LocalizationService.T(subtitle);
-        foreach (var (button, selected) in new[] { (AppsNavButton, tag == "apps"), (VaultsNavButton, tag == "vaults"), (ActivityNavButton, tag == "activity"), (DiagnosticsNavButton, tag == "diagnostics"), (SettingsNavButton, tag == "settings"), (AboutNavButton, tag == "about") })
+        foreach (var (button, selected) in new[] { (DashboardNavButton, tag == "dashboard"), (AppsNavButton, tag == "apps"), (VaultsNavButton, tag == "vaults"), (ActivityNavButton, tag == "activity"), (DiagnosticsNavButton, tag == "diagnostics"), (SettingsNavButton, tag == "settings"), (AboutNavButton, tag == "about") })
         {
             var light = Root.ActualTheme == ElementTheme.Light;
             button.Background = new SolidColorBrush(selected
-                ? light ? Windows.UI.Color.FromArgb(255, 232, 232, 232) : Windows.UI.Color.FromArgb(16, 189, 147, 249)
+                ? light ? Windows.UI.Color.FromArgb(255, 221, 237, 248) : Windows.UI.Color.FromArgb(255, 35, 48, 63)
                 : Windows.UI.Color.FromArgb(0, 0, 0, 0));
             button.Foreground = new SolidColorBrush(selected
-                ? light ? Windows.UI.Color.FromArgb(255, 31, 31, 31) : Windows.UI.Color.FromArgb(255, 248, 248, 242)
-                : light ? Windows.UI.Color.FromArgb(255, 97, 97, 97) : Windows.UI.Color.FromArgb(255, 98, 114, 164));
+                ? light ? Windows.UI.Color.FromArgb(255, 0, 75, 120) : Windows.UI.Color.FromArgb(255, 220, 239, 255)
+                : light ? Windows.UI.Color.FromArgb(255, 85, 95, 105) : Windows.UI.Color.FromArgb(255, 166, 180, 194));
             button.BorderBrush = new SolidColorBrush(selected
-                ? light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(180, 96, 205, 255)
+                ? light ? Windows.UI.Color.FromArgb(255, 0, 95, 184) : Windows.UI.Color.FromArgb(255, 96, 205, 255)
                 : Windows.UI.Color.FromArgb(0, 0, 0, 0));
-            button.BorderThickness = selected ? new Thickness(2, 0, 0, 0) : new Thickness(0);
+            button.BorderThickness = selected ? new Thickness(1) : new Thickness(0);
         }
+        RefreshDashboard();
         if (tag == "settings")
         {
             SelectSettingsSection("general");
