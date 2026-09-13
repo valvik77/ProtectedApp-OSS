@@ -27,5 +27,7 @@ jobs:
         run: ./Scripts/Test-OpenSourceRelease.ps1
       - name: Repository safety audit
         run: ./Scripts/Test-RepositorySafety.ps1
-      - name: Validate development installer (not for public distribution)
-        run: ./Build-Installer.ps1 -AllowUnsignedDevelopmentBuild
+      # Building an installer launches unpackaged WinUI probes. That validation
+      # runs in the tag-only release-candidate workflow, where the artifact is
+      # actually produced and attested. Keeping it out of ordinary PR/push CI
+      # avoids depending on an interactive desktop in ephemeral hosted runners.
