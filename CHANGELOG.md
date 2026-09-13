@@ -25,6 +25,13 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Changed
 
+- Accelerated virtual-vault work: repeated reads reuse an authenticated
+  in-memory block cache and a session file handle, file and chunk lookups are
+  indexed, and clearly incompressible blocks skip unnecessary compression.
+- Reused the authenticated vault session for its immediate virtual mount,
+  avoiding a second password derivation and TPM operation for normal opens.
+- Coalesced ordinary Explorer handle-close journal requests. Explicit file
+  flushes and final vault locking still wait for a durable encrypted journal.
 - Clarified TPM wording throughout the settings UI and security documentation:
   configuration TPM protection safeguards local configuration and protected-app
   rules; it does not change vault encryption unless TPM is enabled per vault.

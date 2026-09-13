@@ -26,6 +26,16 @@ firma.
 
 ### Modificado
 
+- Acelerado el trabajo en unidades virtuales: las lecturas repetidas reutilizan
+  una caché autenticada en memoria y el descriptor de la sesión, las búsquedas
+  de archivos y bloques se indexan y los bloques claramente no comprimibles no
+  consumen CPU intentando comprimirse.
+- La sesión validada de una bóveda se reutiliza al montar inmediatamente la
+  unidad virtual, evitando una segunda derivación de contraseña y operación TPM
+  en aperturas normales.
+- Los cierres ordinarios de manejadores de Explorador se agrupan antes de crear
+  el diario. Los `Flush` explícitos y el bloqueo final siguen esperando un
+  diario cifrado durable.
 - Aclarado el texto de TPM en la interfaz de Configuración y la documentación:
   la protección TPM de configuración protege reglas locales y aplicaciones
   protegidas; no modifica el cifrado de una bóveda salvo que se active TPM en
