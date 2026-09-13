@@ -238,6 +238,34 @@ public sealed class VaultService : IDisposable
         await LoadVaultAsync(vaultFilePath, password) is not null;
 
     /// <summary>
+    /// Authenticates a current-format vault once and retains the validated
+    /// session for the immediately following virtual mount. Pending recovery
+    /// journals deliberately use the normal recovery path instead.
+    /// </summary>
+    internal async Task<VaultFormatV3.OpenedVault?> AuthenticateForVirtualMountAsync(VaultContainer vault,
+        string password)
+    {
+        LastError = null;
+        if (vault is null || string.IsNullOrWhiteSpace(vault.VaultFilePath)
+            || !VaultFormatV3.IsFormat(vault.VaultFilePath) || HasPendingJournal(vault))
+            return null;
+        try
+        {
+            var opened = await VaultFormatV3.OpenAsync(vault.VaultFilePath, password);
+            if (opened.Vault.Id == vault.Id) return opened;
+            opened.Dispose();
+            LastError = "El contenedor pertenece a otra bóveda.";
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                   or CryptographicException or JsonException or ArgumentException)
+        {
+            LastError = ex.Message;
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Adds or removes the TPM second factor without changing a vault password.
     /// Enabling first keeps a portable pre-TPM copy beside the container.
     /// </summary>
@@ -688,12 +716,19 @@ public sealed class VaultService : IDisposable
         }
     }
 
-    public async Task<string?> MountReadOnlyVaultAsync(VaultContainer vault, string password)
+    internal async Task<string?> MountReadOnlyVaultAsync(VaultContainer vault, string password,
+        VaultFormatV3.OpenedVault? authenticatedOpened = null)
     {
+        void DisposeUnusedAuthentication()
+        {
+            authenticatedOpened?.Dispose();
+            authenticatedOpened = null;
+        }
         LastError = null;
         LastMountUsedJournal = false;
         if (vault is null || string.IsNullOrWhiteSpace(vault.VaultFilePath))
         {
+            DisposeUnusedAuthentication();
             LastError = "La bóveda no tiene un contenedor cifrado asociado.";
             return null;
         }
@@ -701,7 +736,10 @@ public sealed class VaultService : IDisposable
         {
             if (vault.IsMounted && vault.IsReadOnlyMounted && existingVirtualSession.IsRunning
                 && !string.IsNullOrWhiteSpace(vault.MountPath) && Directory.Exists(vault.MountPath))
+            {
+                DisposeUnusedAuthentication();
                 return vault.MountPath;
+            }
 
             // Windows can remove a drive independently (session end, runtime
             // restart, manual Dokany unmount). Do not leave a stale logical
@@ -715,11 +753,13 @@ public sealed class VaultService : IDisposable
         }
         if (vault.IsMounted || _sessions.ContainsKey(vault.Id) || _virtualSessions.ContainsKey(vault.Id))
         {
+            DisposeUnusedAuthentication();
             LastError = "La bóveda ya tiene una sesión abierta.";
             return null;
         }
         if (!VaultFormatV3.IsFormat(vault.VaultFilePath))
         {
+            DisposeUnusedAuthentication();
             LastError = "El montaje virtual necesita PAVLT003. Abre esta bóveda para editar y bloquéala una vez para migrarla.";
             return null;
         }
@@ -731,7 +771,14 @@ public sealed class VaultService : IDisposable
         {
             var journalPath = GetJournalPath(vault.Id);
             var alternateJournalPath = journalPath + ".next";
-            (opened, var sourcePath) = await OpenNewestUsableVaultAsync(vault, password, journalPath,
+            string sourcePath;
+            if (authenticatedOpened is not null)
+            {
+                opened = authenticatedOpened;
+                authenticatedOpened = null;
+                sourcePath = vault.VaultFilePath;
+            }
+            else (opened, sourcePath) = await OpenNewestUsableVaultAsync(vault, password, journalPath,
                 alternateJournalPath);
             LastMountUsedJournal = !PathsEqual(sourcePath, vault.VaultFilePath);
 
@@ -789,23 +836,32 @@ public sealed class VaultService : IDisposable
         }
         finally
         {
+            authenticatedOpened?.Dispose();
             try { instance?.Dispose(); } catch { }
             try { dokan?.Dispose(); } catch { }
             opened?.Dispose();
         }
     }
 
-    public async Task<string?> MountReadWriteVaultAsync(VaultContainer vault, string password)
+    internal async Task<string?> MountReadWriteVaultAsync(VaultContainer vault, string password,
+        VaultFormatV3.OpenedVault? authenticatedOpened = null)
     {
+        void DisposeUnusedAuthentication()
+        {
+            authenticatedOpened?.Dispose();
+            authenticatedOpened = null;
+        }
         LastError = null;
         LastMountUsedJournal = false;
         if (vault is null || string.IsNullOrWhiteSpace(vault.VaultFilePath))
         {
+            DisposeUnusedAuthentication();
             LastError = "La bóveda no tiene un contenedor cifrado asociado.";
             return null;
         }
         if (!VaultFormatV3.IsFormat(vault.VaultFilePath))
         {
+            DisposeUnusedAuthentication();
             LastError = "La edición virtual necesita PAVLT003. Abre y bloquea esta bóveda una vez para migrarla.";
             return null;
         }
@@ -815,6 +871,7 @@ public sealed class VaultService : IDisposable
         VaultFormatV3.DeleteStaleWriteTemporaries(vault.VaultFilePath);
         if (vault.IsMounted || _sessions.ContainsKey(vault.Id) || _virtualSessions.ContainsKey(vault.Id))
         {
+            DisposeUnusedAuthentication();
             LastError = "La bóveda ya tiene una sesión abierta.";
             return null;
         }
@@ -826,9 +883,18 @@ public sealed class VaultService : IDisposable
         {
             var journalPath = GetJournalPath(vault.Id);
             var alternateJournalPath = journalPath + ".next";
-            var (usableVault, sourcePath) = await OpenNewestUsableVaultAsync(vault, password, journalPath,
-                alternateJournalPath);
-            opened = usableVault;
+            string sourcePath;
+            if (authenticatedOpened is not null)
+            {
+                opened = authenticatedOpened;
+                authenticatedOpened = null;
+                sourcePath = vault.VaultFilePath;
+            }
+            else
+            {
+                (opened, sourcePath) = await OpenNewestUsableVaultAsync(vault, password, journalPath,
+                    alternateJournalPath);
+            }
             LastMountUsedJournal = !PathsEqual(sourcePath, vault.VaultFilePath);
             var journalWritePath = PathsEqual(sourcePath, journalPath) ? alternateJournalPath : journalPath;
             var driveLetter = FindAvailableVirtualDriveLetter()
@@ -889,6 +955,7 @@ public sealed class VaultService : IDisposable
         }
         finally
         {
+            authenticatedOpened?.Dispose();
             try { instance?.Dispose(); } catch { }
             try { dokan?.Dispose(); } catch { }
             opened?.Dispose();

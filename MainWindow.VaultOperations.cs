@@ -1452,8 +1452,11 @@ public sealed partial class MainWindow
             string? mountPath = null;
             string? recoverableBackupPassword = null;
             VaultBackupValidation? recoverableBackup = null;
+            VaultFormatV3.OpenedVault? authenticatedVirtualMount = null;
             var unlock = new UnlockWindow(vault.Name, "Introduce la contraseña para abrir la bóveda", async candidatePassword =>
             {
+                authenticatedVirtualMount?.Dispose();
+                authenticatedVirtualMount = null;
                 recoverableBackupPassword = null;
                 recoverableBackup = null;
                 VaultContainer? imported = null;
@@ -1467,7 +1470,13 @@ public sealed partial class MainWindow
                     }
                     else
                     {
-                        valid = await _vaultService.VerifyVaultPasswordAsync(vault.VaultFilePath, candidatePassword);
+                        if (VaultFormatV3.IsFormat(vault.VaultFilePath) && !_vaultService.HasPendingJournal(vault))
+                        {
+                            authenticatedVirtualMount = await _vaultService.AuthenticateForVirtualMountAsync(vault,
+                                candidatePassword);
+                            valid = authenticatedVirtualMount is not null;
+                        }
+                        else valid = await _vaultService.VerifyVaultPasswordAsync(vault.VaultFilePath, candidatePassword);
                     }
                 }
                 if (valid && imported is not null)
@@ -1504,10 +1513,11 @@ public sealed partial class MainWindow
                     "Contraseña incorrecta al abrir la bóveda");
                 if (!throttle.Attempt.Success) return throttle.Attempt;
                 mountPath = useReadOnlyVirtual
-                    ? await _vaultService.MountReadOnlyVaultAsync(vault, candidatePassword)
+                    ? await _vaultService.MountReadOnlyVaultAsync(vault, candidatePassword, authenticatedVirtualMount)
                     : VaultFormatV3.IsFormat(vault.VaultFilePath)
-                        ? await _vaultService.MountReadWriteVaultAsync(vault, candidatePassword)
+                        ? await _vaultService.MountReadWriteVaultAsync(vault, candidatePassword, authenticatedVirtualMount)
                         : await _vaultService.MountVaultAsync(vault, candidatePassword);
+                authenticatedVirtualMount = null;
                 return mountPath is null
                     ? new UnlockAttemptResult(false, _vaultService.LastError
                         ?? (useReadOnlyVirtual
@@ -1515,7 +1525,11 @@ public sealed partial class MainWindow
                             : "No se pudo abrir la bóveda para editar."))
                     : UnlockAttemptResult.Accepted;
             });
-            if (!await ShowUnlockWindowAsync(unlock)) return;
+            if (!await ShowUnlockWindowAsync(unlock))
+            {
+                authenticatedVirtualMount?.Dispose();
+                return;
+            }
             if (recoverableBackupPassword is not null && recoverableBackup is not null)
             {
                 if (!recoverableBackup.PrimaryValid)
