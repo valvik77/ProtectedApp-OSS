@@ -244,13 +244,23 @@ public sealed partial class MainWindow
         var installed = await InstalledAppsService.GetInstalledApplicationsAsync();
         await PrepareInstalledApplicationIconsAsync(installed);
         var visible = new ObservableCollection<InstalledApplication>(installed);
-        var search = new TextBox { PlaceholderText = "Buscar aplicaciones instaladas", Padding = new Thickness(12, 8, 12, 8) };
+        var search = new TextBox
+        {
+            PlaceholderText = "Buscar aplicaciones instaladas",
+            Padding = new Thickness(12, 8, 12, 8),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            // Preserve a small gutter inside ContentDialog's clipped content
+            // presenter so the right-hand border is never cut at high DPI.
+            Margin = new Thickness(0, 0, 3, 0)
+        };
         var list = new ListView { ItemsSource = visible, SelectionMode = ListViewSelectionMode.Single, ItemTemplate = (DataTemplate)Root.Resources["InstalledAppTemplate"], HorizontalContentAlignment = HorizontalAlignment.Stretch };
         var empty = new TextBlock { Text = "No se encontraron aplicaciones", Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 98, 114, 164), Windows.UI.Color.FromArgb(255, 118, 118, 118)), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Center, IsHitTestVisible = false };
         var listHost = new Grid(); listHost.Children.Add(list); listHost.Children.Add(empty);
         listHost.SizeChanged += (_, _) => empty.Width = listHost.ActualWidth;
         empty.Visibility = visible.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        var layout = new Grid { Width = 620, Height = 430, RowSpacing = 10 };
+        // Keep the content comfortably inside the dialog's inner padding.
+        // 620 DIPs reaches its clipped edge on 125%/150% display scaling.
+        var layout = new Grid { Width = 580, Height = 430, RowSpacing = 10 };
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         layout.Children.Add(search); Grid.SetRow(listHost, 1); layout.Children.Add(listHost);
         var note = new TextBlock { Text = $"{installed.Count} aplicaciones de escritorio detectadas", Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 98, 114, 164), Windows.UI.Color.FromArgb(255, 118, 118, 118)), FontSize = 10 };

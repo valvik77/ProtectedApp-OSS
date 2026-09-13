@@ -39,6 +39,11 @@
                     <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#3BB8F5" />
                     <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#006494" />
                     <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#00344F" />
+                    <!-- A disabled primary action must remain legible without
+                         looking actionable. Do not fade the whole control: it
+                         also fades its label into the blue surface. -->
+                    <SolidColorBrush x:Key="PrimaryActionDisabledBrush" Color="#355468" />
+                    <SolidColorBrush x:Key="PrimaryActionDisabledTextBrush" Color="#D8E8F2" />
                     <SolidColorBrush x:Key="MutedTextBrush" Color="#BEC8D2" />
                     <SolidColorBrush x:Key="PrimaryTextBrush" Color="#DEE2EE" />
                     <SolidColorBrush x:Key="SubtleTextBrush" Color="#88929C" />
@@ -132,6 +137,8 @@
                     <SolidColorBrush x:Key="PrimaryActionHoverBrush" Color="#0258A8" />
                     <SolidColorBrush x:Key="PrimaryActionPressedBrush" Color="#004F98" />
                     <SolidColorBrush x:Key="PrimaryActionTextBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="PrimaryActionDisabledBrush" Color="#AFC4D4" />
+                    <SolidColorBrush x:Key="PrimaryActionDisabledTextBrush" Color="#35505F" />
                     <SolidColorBrush x:Key="MutedTextBrush" Color="#3B3B3B" />
                     <SolidColorBrush x:Key="PrimaryTextBrush" Color="#3B3B3B" />
                     <SolidColorBrush x:Key="SubtleTextBrush" Color="#767676" />
@@ -300,7 +307,11 @@
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Disabled">
-                                            <VisualState.Setters><Setter Target="ButtonSurface.Opacity" Value="0.45" /></VisualState.Setters>
+                                            <VisualState.Setters>
+                                                <Setter Target="ButtonSurface.Background" Value="{ThemeResource PrimaryActionDisabledBrush}" />
+                                                <Setter Target="ButtonSurface.BorderBrush" Value="{ThemeResource PrimaryActionDisabledBrush}" />
+                                                <Setter Target="ButtonContent.Foreground" Value="{ThemeResource PrimaryActionDisabledTextBrush}" />
+                                            </VisualState.Setters>
                                         </VisualState>
                                     </VisualStateGroup>
                                 </VisualStateManager.VisualStateGroups>
