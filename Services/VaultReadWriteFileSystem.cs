@@ -11,6 +11,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     private const int BlockSize = 64 * 1024;
     private readonly VaultFormatV3.OpenedVault _opened;
     private readonly Dictionary<string, Node> _nodes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<Node>> _children = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _sync = new();
     private readonly SemaphoreSlim _journalGate = new(1, 1);
     private readonly Action? _activityObserved;
@@ -30,6 +31,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             _nodes[path] = new Node(path, entry.IsDirectory, entry.Length, entry.CreationUtc,
                 entry.LastWriteUtc, true, path, entry.Length);
         }
+        RebuildChildren();
     }
 
     public bool HasChanges { get; private set; }
@@ -111,6 +113,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                 node = new Node(path, info.IsDirectory, 0, DateTime.UtcNow, DateTime.UtcNow, false,
                     null, 0);
                 _nodes[path] = node;
+                AddChild(node);
                 MarkChanged();
             }
             else if (mode == FileMode.CreateNew)
@@ -279,6 +282,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                 item.Path = newPath + item.Path[oldPath.Length..];
                 _nodes[item.Path] = item;
             }
+            RebuildChildren();
             MarkChanged();
             return NtStatus.Success;
         }
@@ -354,9 +358,9 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             var path = NormalizePath(fileName);
             if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory)
             { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
-            files = _nodes.Values.Where(child => GetParent(child.Path).Equals(path, StringComparison.OrdinalIgnoreCase)
-                    && (string.IsNullOrWhiteSpace(pattern) || FileSystemName.MatchesWin32Expression(pattern,
-                        GetName(child.Path), true)))
+            files = (_children.TryGetValue(path, out var children) ? children : [])
+                .Where(child => string.IsNullOrWhiteSpace(pattern) || FileSystemName.MatchesWin32Expression(pattern,
+                    GetName(child.Path), true))
                 .Select(ToInfo).ToArray();
             return NtStatus.Success;
         }
@@ -368,6 +372,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (directory && _nodes.Keys.Any(candidate => GetParent(candidate).Equals(path, StringComparison.OrdinalIgnoreCase))) return;
         ClearBlocks(node);
         _nodes.Remove(path);
+        RebuildChildren();
         MarkChanged();
     }
 
@@ -399,6 +404,21 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                 DateTime.UtcNow, true, parent, 0);
             parent = GetParent(parent);
         }
+    }
+
+    private void RebuildChildren()
+    {
+        _children.Clear();
+        foreach (var node in _nodes.Values.Where(node => node.Path.Length > 0)) AddChild(node);
+        foreach (var children in _children.Values)
+            children.Sort((left, right) => StringComparer.OrdinalIgnoreCase.Compare(GetName(left.Path), GetName(right.Path)));
+    }
+
+    private void AddChild(Node node)
+    {
+        var parent = GetParent(node.Path);
+        if (!_children.TryGetValue(parent, out var children)) _children[parent] = children = [];
+        children.Add(node);
     }
 
     private int ReadNodeRange(Node node, byte[] buffer, int bufferOffset, long offset, int count) =>
@@ -523,6 +543,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         {
             foreach (var node in _nodes.Values) ClearBlocks(node);
             _nodes.Clear();
+            _children.Clear();
         }
     }
 

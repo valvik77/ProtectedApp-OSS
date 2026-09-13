@@ -132,7 +132,7 @@ internal static class VaultFormatV3
             long expandedBytes = 0;
             var chunkCount = 0;
             await using (var output = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite,
-                             FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
+                             FileShare.None, 128 * 1024, FileOptions.Asynchronous))
             {
                 output.Position = headerSize;
                 if (!string.IsNullOrWhiteSpace(sourceDirectory))
@@ -246,7 +246,7 @@ internal static class VaultFormatV3
             long expandedBytes = 0;
             var chunkCount = 0;
             await using (var output = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite,
-                             FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
+                             FileShare.None, 128 * 1024, FileOptions.Asynchronous))
             {
                 output.Position = headerSize;
                 foreach (var source in sources.OrderBy(item => item.Path, StringComparer.OrdinalIgnoreCase))
@@ -661,7 +661,7 @@ internal static class VaultFormatV3
             await using (var source = new FileStream(opened.Path, FileMode.Open, FileAccess.Read, FileShare.Read,
                              128 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
             await using (var destination = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite,
-                             FileShare.None, 128 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough))
+                             FileShare.None, 128 * 1024, FileOptions.Asynchronous))
             {
                 await destination.WriteAsync(headerBytes);
                 source.Position = opened.Header.HeaderSize;
