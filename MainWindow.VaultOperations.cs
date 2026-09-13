@@ -1243,16 +1243,33 @@ public sealed partial class MainWindow
             IsReadOnly = true,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
-            // Keep the focused border inside the dialog's content padding on
-            // compact windows; a fixed 540 px field could clip its right edge.
-            Width = 500,
-            Height = 280,
+            // The extra right padding reserves a gutter for the overlay
+            // scrollbar so text never runs beneath it.
+            Padding = new Thickness(12, 8, 28, 8),
+            BorderThickness = new Thickness(0),
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
             Text = entries.Length == 0
                 ? "Todavía no hay eventos registrados para esta bóveda."
                 : string.Join(Environment.NewLine + Environment.NewLine, entries.Select(entry =>
                     $"{entry.Timestamp.ToLocalTime():dd/MM/yyyy HH:mm:ss} · {entry.KindLabel}{Environment.NewLine}{entry.Message}"))
         };
         ScrollViewer.SetVerticalScrollBarVisibility(content, ScrollBarVisibility.Auto);
+        // Draw the field boundary outside the TextBox's internal ScrollViewer.
+        // WinUI's overlay scrollbar otherwise paints over the right border at
+        // high DPI, which makes the outline appear cut off.
+        var contentFrame = new Border
+        {
+            Width = 500,
+            Height = 280,
+            Padding = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Background = ThemeBrush(Windows.UI.Color.FromArgb(255, 37, 42, 51), Windows.UI.Color.FromArgb(255, 255, 255, 255)),
+            BorderBrush = ThemeBrush(Windows.UI.Color.FromArgb(255, 143, 205, 255), Windows.UI.Color.FromArgb(255, 0, 95, 184)),
+            BorderThickness = new Thickness(1),
+            Child = content
+        };
         var panel = new StackPanel { Spacing = 8 };
         panel.Children.Add(new TextBlock
         {
@@ -1263,7 +1280,7 @@ public sealed partial class MainWindow
                     : $"{vault.Name} · {entries.Length} evento(s) más recientes",
             TextWrapping = TextWrapping.Wrap
         });
-        panel.Children.Add(content);
+        panel.Children.Add(contentFrame);
         await CreateDialog("Historial de bóveda", panel, "Cerrar", null).ShowAsync();
     }
 
