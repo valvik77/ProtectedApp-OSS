@@ -37,7 +37,7 @@ Las bóvedas usan cifrado autenticado; la contraseña de una bóveda no conviert
 el equipo en un entorno aislado ni recupera datos que hayan sido expuestos antes
 de bloquearla. El estado local de la aplicación y los secretos opcionales del
 webhook reciben protección de Windows/DPAPI según el componente que los use.
-De forma opcional, **Protección TPM de la configuración** cifra el estado local
+De forma opcional, **Protección TPM de configuración y reglas** cifra el estado local
 con una clave aleatoria que queda envuelta por una clave RSA no exportable del
 TPM de ese usuario y equipo. No modifica las bóvedas ni sus contraseñas. No es
 un mecanismo de migración ni de recuperación: antes de restablecer el TPM,

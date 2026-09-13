@@ -771,10 +771,10 @@
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección TPM de la configuración" FontWeight="SemiBold"/>
+                                        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" Text="Protección TPM de configuración y reglas" FontWeight="SemiBold"/>
                                         <FontIcon FontFamily="{StaticResource PrototypeIconFont}" Glyph="&#xe90d;" FontSize="13" Foreground="{ThemeResource AccentIndigoBrush}" VerticalAlignment="Center"/>
                                     </StackPanel>
-                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="TpmProtectionStatusText" Text="Usa una clave no exportable del TPM para proteger el estado local." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                    <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="TpmProtectionStatusText" Text="Usa una clave no exportable del TPM para proteger la configuración, las reglas y el historial local." Foreground="{ThemeResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch x:Name="TpmProtectionToggle" Grid.Column="1" Toggled="TpmProtectionToggle_Toggled"/>
                             </Grid>

@@ -35,7 +35,7 @@ Vaults use authenticated encryption. A vault password does not turn the computer
 into an isolated environment or recover data exposed before the vault was
 locked. The local application state and optional webhook secrets receive Windows
 DPAPI protection appropriate to the component that uses them. Optionally,
-**TPM configuration protection** encrypts local state with a random key wrapped
+**TPM protection for configuration and rules** encrypts local state with a random key wrapped
 by a non-exportable RSA key in that user's TPM on that computer. It does not
 modify vaults or their passwords. It is not a migration or recovery mechanism:
 export a configuration backup before resetting the TPM, reinstalling Windows,
