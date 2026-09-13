@@ -15,6 +15,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     private readonly SemaphoreSlim _journalGate = new(1, 1);
     private readonly Action? _activityObserved;
     private long _changeVersion;
+    private int _journalSaveQueued;
 
     public VaultReadWriteFileSystem(VaultFormatV3.OpenedVault opened, Action? activityObserved = null)
     {
@@ -51,6 +52,24 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             }
         }
         finally { _journalGate.Release(); }
+    }
+
+    private void QueueJournalSave()
+    {
+        if (!NeedsJournal || JournalWriter is null || Interlocked.Exchange(ref _journalSaveQueued, 1) != 0) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // Explorer closes several metadata handles for one visible
+                // save. Coalescing them prevents each close from blocking the
+                // editor while the encrypted recovery journal is rebuilt.
+                await Task.Delay(250).ConfigureAwait(false);
+                await SaveJournalAsync().ConfigureAwait(false);
+            }
+            catch { /* The durable flush/final lock will retry the journal. */ }
+            finally { Interlocked.Exchange(ref _journalSaveQueued, 0); }
+        });
     }
 
     // Dokany invokes Cleanup/FlushFileBuffers while its instance is being
@@ -125,11 +144,10 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         {
             lock (_sync) RemovePath(NormalizePath(fileName), info.IsDirectory);
         }
-        if (NeedsJournal && JournalWriter is not null)
-        {
-            try { SaveJournalAsync().GetAwaiter().GetResult(); }
-            catch { /* El commit final reintentará; Dokany no permite devolver estado desde Cleanup. */ }
-        }
+        // Cleanup is issued for ordinary handle lifetime events. Do not block
+        // the calling application on a full vault journal here; a real
+        // FlushFileBuffers remains synchronous below and therefore durable.
+        QueueJournalSave();
         info.Context = null;
     }
 
