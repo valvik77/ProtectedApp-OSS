@@ -36,6 +36,11 @@ firma.
 - Los cierres ordinarios de manejadores de Explorador se agrupan antes de crear
   el diario. Los `Flush` explícitos y el bloqueo final siguen esperando un
   diario cifrado durable.
+- Las carpetas virtuales editables indexan sus hijos directos, evitando
+  recorrer toda la bóveda cada vez que Explorer enumera una carpeta.
+- Las escrituras de contenedores cifrados temporales se agrupan en memoria y
+  siguen vaciándose a almacenamiento físico antes de verificarse y sustituirse
+  atómicamente.
 - Aclarado el texto de TPM en la interfaz de Configuración y la documentación:
   la protección TPM de configuración protege reglas locales y aplicaciones
   protegidas; no modifica el cifrado de una bóveda salvo que se active TPM en

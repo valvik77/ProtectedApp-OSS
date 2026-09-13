@@ -32,6 +32,10 @@ candidate** is not a public release and must not be distributed as one; see
   avoiding a second password derivation and TPM operation for normal opens.
 - Coalesced ordinary Explorer handle-close journal requests. Explicit file
   flushes and final vault locking still wait for a durable encrypted journal.
+- Indexed direct children for editable virtual folders, avoiding a full-vault
+  scan whenever Explorer lists a directory.
+- Buffered writes to temporary encrypted containers and still flush them to
+  physical storage immediately before verification and atomic replacement.
 - Clarified TPM wording throughout the settings UI and security documentation:
   configuration TPM protection safeguards local configuration and protected-app
   rules; it does not change vault encryption unless TPM is enabled per vault.
