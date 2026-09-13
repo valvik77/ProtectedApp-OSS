@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Win32.SafeHandles;
 using ProtectedApp.Models;
 
 namespace ProtectedApp.Services;
@@ -356,9 +357,9 @@ internal static class VaultFormatV3
     {
         if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException();
         var normalized = NormalizeRelativePath(relativePath);
-        var entryIndex = opened.Index.Entries.FindIndex(entry =>
-            !entry.IsDirectory && entry.Path.Equals(normalized, StringComparison.OrdinalIgnoreCase));
-        if (entryIndex < 0) throw new FileNotFoundException("El archivo no existe dentro de la bóveda.", relativePath);
+        if (!opened.TryGetEntryIndex(normalized, out var entryIndex)
+            || opened.Index.Entries[entryIndex].IsDirectory)
+            throw new FileNotFoundException("El archivo no existe dentro de la bóveda.", relativePath);
         var entry = opened.Index.Entries[entryIndex];
         if (offset > entry.Length) throw new ArgumentOutOfRangeException(nameof(offset));
         var resultLength = (int)Math.Min(count, entry.Length - offset);
@@ -366,11 +367,11 @@ internal static class VaultFormatV3
         if (resultLength == 0) return result;
         var requestedEnd = offset + resultLength;
         var written = 0;
-        for (var chunkIndex = 0; chunkIndex < entry.Chunks.Count; chunkIndex++)
+        for (var chunkIndex = FindFirstIntersectingChunk(entry.Chunks, offset);
+             chunkIndex < entry.Chunks.Count; chunkIndex++)
         {
             var chunk = entry.Chunks[chunkIndex];
-            var chunkEnd = chunk.PlainOffset + chunk.PlainLength;
-            if (chunkEnd <= offset || chunk.PlainOffset >= requestedEnd) continue;
+            if (chunk.PlainOffset >= requestedEnd) break;
             var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex).ConfigureAwait(false);
             try
             {
@@ -596,16 +597,15 @@ internal static class VaultFormatV3
 
     private static async Task<byte[]> ReadChunkAsync(OpenedVault opened, int entryIndex, int chunkIndex)
     {
+        if (opened.TryGetCachedChunk(entryIndex, chunkIndex, out var cached)) return cached;
         var entry = opened.Index.Entries[entryIndex];
         var chunk = entry.Chunks[chunkIndex];
         var ciphertext = new byte[chunk.CipherLength];
         var prepared = new byte[chunk.CipherLength];
         try
         {
-            await using var stream = new FileStream(opened.Path, FileMode.Open, FileAccess.Read,
-                FileShare.Read | FileShare.Delete, 128 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
-            stream.Position = opened.Header.HeaderSize + chunk.Offset;
-            await ReadExactIntoAsync(stream, ciphertext).ConfigureAwait(false);
+            await ReadExactAtAsync(opened.ReadHandle, ciphertext,
+                opened.Header.HeaderSize + chunk.Offset).ConfigureAwait(false);
             using (var aes = new AesGcm(opened.DataKey, TagSize))
                 aes.Decrypt(chunk.Nonce, ciphertext, chunk.Tag, prepared,
                     BuildChunkAad(opened.Vault.Id, entryIndex, chunkIndex, chunk.PlainOffset,
@@ -616,9 +616,12 @@ internal static class VaultFormatV3
                     throw new InvalidDataException("La longitud del bloque no es válida.");
                 var result = prepared;
                 prepared = Array.Empty<byte>();
+                opened.CacheChunk(entryIndex, chunkIndex, result);
                 return result;
             }
-            return DecompressExact(prepared, chunk.PlainLength);
+            var decompressed = DecompressExact(prepared, chunk.PlainLength);
+            opened.CacheChunk(entryIndex, chunkIndex, decompressed);
+            return decompressed;
         }
         catch (AuthenticationTagMismatchException)
         {
@@ -922,6 +925,13 @@ internal static class VaultFormatV3
 
     private static bool CompressIfUseful(ReadOnlySpan<byte> plaintext, out byte[] prepared)
     {
+        // Most media and installers are already compressed. Avoid spending CPU
+        // on Deflate only to discard its result for high-entropy blocks.
+        if (!ShouldAttemptCompression(plaintext))
+        {
+            prepared = plaintext.ToArray();
+            return false;
+        }
         using var output = new MemoryStream();
         using (var compressor = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
             compressor.Write(plaintext);
@@ -1006,6 +1016,22 @@ internal static class VaultFormatV3
     private static byte[] DerivePasswordKey(string password, byte[] salt) =>
         Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, KeySize);
 
+    private static bool ShouldAttemptCompression(ReadOnlySpan<byte> plaintext)
+    {
+        if (plaintext.Length < 4096) return true;
+        var sampleLength = Math.Min(plaintext.Length, 64 * 1024);
+        Span<int> frequencies = stackalloc int[256];
+        for (var index = 0; index < sampleLength; index++) frequencies[plaintext[index]]++;
+        double entropy = 0;
+        foreach (var frequency in frequencies)
+        {
+            if (frequency == 0) continue;
+            var probability = (double)frequency / sampleLength;
+            entropy -= probability * Math.Log2(probability);
+        }
+        return entropy < 7.65;
+    }
+
     private static void ValidateKeyMaterial(byte[] passwordKey, byte[] salt)
     {
         if (passwordKey.Length != KeySize || salt.Length != SaltSize)
@@ -1042,6 +1068,32 @@ internal static class VaultFormatV3
         }
     }
 
+    private static async Task ReadExactAtAsync(SafeFileHandle handle, byte[] destination, long fileOffset)
+    {
+        var offset = 0;
+        while (offset < destination.Length)
+        {
+            var read = await RandomAccess.ReadAsync(handle, destination.AsMemory(offset), fileOffset + offset)
+                .ConfigureAwait(false);
+            if (read == 0) throw new EndOfStreamException("El contenedor está truncado.");
+            offset += read;
+        }
+    }
+
+    private static int FindFirstIntersectingChunk(IReadOnlyList<IndexChunk> chunks, long offset)
+    {
+        var low = 0;
+        var high = chunks.Count - 1;
+        while (low <= high)
+        {
+            var middle = low + ((high - low) / 2);
+            var chunkEnd = chunks[middle].PlainOffset + chunks[middle].PlainLength;
+            if (chunkEnd <= offset) low = middle + 1;
+            else high = middle - 1;
+        }
+        return low;
+    }
+
     private static async Task CopyExactlyAsync(Stream source, Stream destination, long bytes)
     {
         var buffer = new byte[128 * 1024];
@@ -1062,6 +1114,13 @@ internal static class VaultFormatV3
 
     internal sealed class OpenedVault : IDisposable
     {
+        private const int MaximumCachedPlaintextBytes = 64 * 1024 * 1024;
+        private readonly Dictionary<string, int> _entryIndices;
+        private readonly Dictionary<(int EntryIndex, int ChunkIndex), LinkedListNode<CachedChunk>> _cachedChunks = [];
+        private readonly LinkedList<CachedChunk> _cacheLru = [];
+        private readonly object _cacheSync = new();
+        private int _cachedPlaintextBytes;
+
         internal OpenedVault(string path, Header header, IndexDocument index, byte[] passwordKey, byte[] dataKey,
             VaultTpmBinding? tpmBinding)
         {
@@ -1073,6 +1132,11 @@ internal static class VaultFormatV3
             TpmBinding = tpmBinding;
             Vault = index.Vault.ToVault();
             Vault.IsTpmBound = tpmBinding is not null;
+            _entryIndices = index.Entries
+                .Select((entry, entryIndex) => (entry.Path, entryIndex))
+                .ToDictionary(item => item.Path, item => item.entryIndex, StringComparer.OrdinalIgnoreCase);
+            ReadHandle = File.OpenHandle(Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete,
+                FileOptions.Asynchronous | FileOptions.RandomAccess);
         }
 
         public string Path { get; }
@@ -1083,13 +1147,71 @@ internal static class VaultFormatV3
         public byte[] Salt => Header.Salt;
         internal Header Header { get; }
         internal IndexDocument Index { get; }
+        internal SafeFileHandle ReadHandle { get; }
+
+        internal bool TryGetEntryIndex(string normalizedPath, out int entryIndex) =>
+            _entryIndices.TryGetValue(normalizedPath, out entryIndex);
+
+        internal bool TryGetCachedChunk(int entryIndex, int chunkIndex, out byte[] plaintext)
+        {
+            lock (_cacheSync)
+            {
+                if (!_cachedChunks.TryGetValue((entryIndex, chunkIndex), out var node))
+                {
+                    plaintext = Array.Empty<byte>();
+                    return false;
+                }
+                _cacheLru.Remove(node);
+                _cacheLru.AddFirst(node);
+                plaintext = node.Value.Plaintext.ToArray();
+                return true;
+            }
+        }
+
+        internal void CacheChunk(int entryIndex, int chunkIndex, byte[] plaintext)
+        {
+            if (plaintext.Length <= 0 || plaintext.Length > MaximumCachedPlaintextBytes) return;
+            lock (_cacheSync)
+            {
+                var key = (entryIndex, chunkIndex);
+                if (_cachedChunks.TryGetValue(key, out var existing))
+                {
+                    _cacheLru.Remove(existing);
+                    _cachedPlaintextBytes -= existing.Value.Plaintext.Length;
+                    CryptographicOperations.ZeroMemory(existing.Value.Plaintext);
+                    _cachedChunks.Remove(key);
+                }
+                while (_cachedPlaintextBytes + plaintext.Length > MaximumCachedPlaintextBytes
+                       && _cacheLru.Last is { } evicted)
+                {
+                    _cacheLru.RemoveLast();
+                    _cachedChunks.Remove((evicted.Value.EntryIndex, evicted.Value.ChunkIndex));
+                    _cachedPlaintextBytes -= evicted.Value.Plaintext.Length;
+                    CryptographicOperations.ZeroMemory(evicted.Value.Plaintext);
+                }
+                var copy = plaintext.ToArray();
+                var node = _cacheLru.AddFirst(new CachedChunk(entryIndex, chunkIndex, copy));
+                _cachedChunks[key] = node;
+                _cachedPlaintextBytes += copy.Length;
+            }
+        }
 
         public void Dispose()
         {
+            lock (_cacheSync)
+            {
+                foreach (var chunk in _cacheLru) CryptographicOperations.ZeroMemory(chunk.Plaintext);
+                _cachedChunks.Clear();
+                _cacheLru.Clear();
+                _cachedPlaintextBytes = 0;
+            }
+            ReadHandle.Dispose();
             CryptographicOperations.ZeroMemory(PasswordKey);
             CryptographicOperations.ZeroMemory(DataKey);
             TpmBinding?.Dispose();
         }
+
+        private sealed record CachedChunk(int EntryIndex, int ChunkIndex, byte[] Plaintext);
     }
 
     internal sealed record VirtualEntrySource(string Path, bool IsDirectory, long Length,
