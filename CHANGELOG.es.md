@@ -59,6 +59,10 @@ firma.
 
 - Bloqueos de la interfaz al convertir una bóveda a protección TPM y al ejecutar
   la comprobación de copias de bóveda del instalador.
+- La versión automática del instalador local tiene en cuenta la versión del
+  proyecto, los tags publicados, los binarios instalados y los instaladores ya
+  generados, evitando crear un downgrade o reutilizar una versión pública de la
+  extensión del Explorador.
 
 ## 1.4.186 — 2026-09-13 (candidato de revisión sin firmar)
 

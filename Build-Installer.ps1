@@ -207,11 +207,34 @@ function Copy-DistributionLegalFiles
 
 function Get-NextInstallerVersion
 {
-    # Version 1.4.57 is the last fixed version. Every unattended local build
-    # advances the third component, so Explorer never has to replace a DLL it
-    # may still have loaded from a previous installation.
-    $highestBuild = 57
+    # Every unattended local build advances the highest source, tag, installed,
+    # or previously generated version. Explorer can retain the old extension in
+    # memory, so reusing a public version can make an otherwise valid upgrade
+    # fail or accidentally create a downgrade installer.
+    $highestBuild = 0
+    $projectFile = Join-Path $projectRoot 'ProtectedApp.csproj'
+    if (Test-Path -LiteralPath $projectFile -PathType Leaf)
+    {
+        [xml]$projectXml = Get-Content -LiteralPath $projectFile -Raw
+        $projectVersion = [string]$projectXml.Project.PropertyGroup.Version | Select-Object -First 1
+        if ($projectVersion -match '^1\.4\.(\d+)(?:\.\d+)?$')
+        {
+            $highestBuild = [Math]::Max($highestBuild, [int]$Matches[1])
+        }
+    }
+    if (Get-Command git -ErrorAction SilentlyContinue)
+    {
+        $releaseTags = @(& git -C $projectRoot tag --list 'v1.4.*' 2>$null)
+        foreach ($tag in $releaseTags)
+        {
+            if ($tag -match '^v1\.4\.(\d+)(?:\.\d+)?$')
+            {
+                $highestBuild = [Math]::Max($highestBuild, [int]$Matches[1])
+            }
+        }
+    }
     $knownLocations = @(
+        (Join-Path $env:ProgramFiles 'ProtectedApp'),
         (Join-Path $env:ProgramFiles 'ProtectedApp\Shell'),
         $installerFolder
     )
@@ -247,6 +270,7 @@ function Get-NextInstallerVersion
             }
         }
     }
+    if ($highestBuild -eq 0) { throw 'No se pudo determinar una versión base segura para el instalador.' }
     return "1.4.$($highestBuild + 1)"
 }
 

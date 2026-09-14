@@ -40,6 +40,13 @@ public sealed class VaultDeltaJournalTests
                 Assert.Equal("hello", System.Text.Encoding.UTF8.GetString(bytes));
             }
 
+            using (var invalid = new VaultJournalSnapshot([
+                       new VaultJournalNode("invalid.txt", false, 1, DateTime.UtcNow, DateTime.UtcNow,
+                           false, null, 0, new Dictionary<long, byte[]> { [long.MaxValue] = new byte[64 * 1024] })
+                   ]))
+            using (var validationOverlay = new VaultReadWriteFileSystem(opened))
+                Assert.Throws<InvalidDataException>(() => validationOverlay.ApplyJournalSnapshot(invalid));
+
             var tampered = await File.ReadAllBytesAsync(journalPath);
             tampered[^1] ^= 0x01;
             await File.WriteAllBytesAsync(journalPath, tampered);

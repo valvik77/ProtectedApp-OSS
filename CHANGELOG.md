@@ -52,6 +52,9 @@ candidate** is not a public release and must not be distributed as one; see
 
 - Prevented UI deadlocks while converting a vault to TPM protection and while
   running the installer vault-backup verification probe.
+- Automatic local installer versions now consider the checked-in version,
+  release tags, installed binaries, and existing installers, preventing
+  accidental downgrade builds or reuse of a published shell-extension version.
 
 ## 1.4.186 — 2026-09-13 (unsigned review candidate)
 

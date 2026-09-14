@@ -472,7 +472,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                     foreach (var block in item.Blocks)
                     {
                         if (block.Key < 0 || block.Value.Length != BlockSize
-                            || block.Key * (long)BlockSize >= Capacity)
+                            || block.Key >= Capacity / BlockSize)
                             throw new InvalidDataException("El diario contiene un bloque no válido.");
                         blocks.Add(block.Key, block.Value.ToArray());
                     }
