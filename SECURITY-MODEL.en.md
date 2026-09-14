@@ -33,7 +33,12 @@ own components; Dokany is retained when it may be shared with other software.
 
 Vaults use authenticated encryption. A vault password does not turn the computer
 into an isolated environment or recover data exposed before the vault was
-locked. The local application state and optional webhook secrets receive Windows
+locked. Editable mounts persist recovery state in a `PAVJ001` AES-GCM journal
+bound to that vault's identity and data key. It contains metadata and only the
+modified 64 KiB blocks; large changes fall back to the established encrypted
+full journal. The primary container is replaced only after a verified atomic
+commit, and changing credentials or restoring a backup is refused while a
+journal is pending. The local application state and optional webhook secrets receive Windows
 DPAPI protection appropriate to the component that uses them. Optionally,
 **TPM protection for configuration and rules** encrypts local state with a random key wrapped
 by a non-exportable RSA key in that user's TPM on that computer. It does not

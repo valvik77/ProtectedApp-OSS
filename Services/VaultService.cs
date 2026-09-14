@@ -79,6 +79,18 @@ public sealed class VaultService : IDisposable
             vault.SessionExpiresUtc = null;
             service = new VaultService();
 
+            mount = await service.MountReadOnlyVaultAsync(vault, password)
+                ?? throw new IOException(service.LastError ?? "No se pudo consultar el diario recuperado.");
+            if (!service.LastMountUsedJournal)
+                throw new InvalidDataException("La consulta no abrió el diario diferencial pendiente.");
+            var consulted = await File.ReadAllTextAsync(Path.Combine(mount, "Documentos", "prueba.txt"));
+            if (!consulted.Equals("0123456789", StringComparison.Ordinal))
+                throw new InvalidDataException("La consulta del diario devolvió contenido distinto.");
+            if (!await service.UnmountVaultAsync(vault))
+                throw new IOException(service.LastError ?? "No se pudo desmontar la consulta recuperada.");
+            if (!service.HasPendingJournal(vault))
+                throw new InvalidDataException("La consulta eliminó indebidamente el diario pendiente.");
+
             mount = await service.MountReadWriteVaultAsync(vault, password)
                 ?? throw new IOException(service.LastError ?? "No se pudo volver a montar la prueba editable.");
             if (!service.LastMountUsedJournal)
@@ -126,6 +138,9 @@ public sealed class VaultService : IDisposable
                 var journal = GetJournalPath(vault.Id);
                 if (File.Exists(journal)) File.Delete(journal);
                 if (File.Exists(journal + ".next")) File.Delete(journal + ".next");
+                var deltaJournal = GetDeltaJournalPath(vault.Id);
+                if (File.Exists(deltaJournal)) File.Delete(deltaJournal);
+                if (File.Exists(deltaJournal + ".next")) File.Delete(deltaJournal + ".next");
             }
             catch { }
             try { if (Directory.Exists(root)) Directory.Delete(root, recursive: false); } catch { }
@@ -149,6 +164,11 @@ public sealed class VaultService : IDisposable
         byte[]? salt = null;
         try
         {
+            if (existingContainer && !vault.IsMounted && HasPendingJournal(vault))
+            {
+                LastError = "Abre y bloquea la bóveda para consolidar sus cambios pendientes antes de modificarla.";
+                return false;
+            }
             if (vault.IsMounted && _sessions.TryGetValue(vault.Id, out var session))
             {
                 await VaultFormatV3.WriteFromDirectoryAsync(vault, session.WorkingDirectory, vaultFilePath,
@@ -285,6 +305,11 @@ public sealed class VaultService : IDisposable
         if (vault.IsMounted || _sessions.ContainsKey(vault.Id) || _virtualSessions.ContainsKey(vault.Id))
         {
             LastError = "Guarda y bloquea la bóveda antes de cambiar su protección TPM.";
+            return false;
+        }
+        if (HasPendingJournal(vault))
+        {
+            LastError = "Abre y bloquea la bóveda para consolidar sus cambios pendientes antes de cambiar su protección TPM.";
             return false;
         }
 
@@ -606,6 +631,12 @@ public sealed class VaultService : IDisposable
     public async Task<VaultBackupRestoreResult> RestoreScheduledBackupAsync(VaultContainer vault, string backupPath, string password)
     {
         LastError = null;
+        if (HasPendingJournal(vault))
+        {
+            const string message = "Abre y bloquea la bóveda para consolidar sus cambios pendientes antes de restaurar una copia.";
+            LastError = message;
+            return new(false, null, message);
+        }
         var validation = await ValidateScheduledBackupAsync(vault, backupPath, password);
         if (!validation.BackupValid || validation.BackupVault is null) return new(false, null, validation.Message);
         if (string.IsNullOrWhiteSpace(vault.VaultFilePath)) return new(false, null, "La bóveda no tiene un contenedor principal.");
@@ -671,14 +702,22 @@ public sealed class VaultService : IDisposable
 
     public async Task<bool> ChangeVaultPasswordAsync(string vaultFilePath, string oldPassword, string newPassword)
     {
+        LastError = null;
         if (string.IsNullOrEmpty(newPassword) || newPassword.Length < PasswordService.MinimumPasswordLength) return false;
         if (VaultFormatV3.IsFormat(vaultFilePath))
         {
             try
             {
                 using (var opened = await VaultFormatV3.OpenAsync(vaultFilePath, oldPassword))
+                {
                     if (_sessions.ContainsKey(opened.Vault.Id) || _virtualSessions.ContainsKey(opened.Vault.Id))
                         return false;
+                    if (HasPendingJournal(opened.Vault))
+                    {
+                        LastError = "Abre y bloquea la bóveda para consolidar sus cambios pendientes antes de cambiar la contraseña.";
+                        return false;
+                    }
+                }
                 await VaultFormatV3.ChangePasswordAsync(vaultFilePath, oldPassword, newPassword);
                 return true;
             }
@@ -767,6 +806,7 @@ public sealed class VaultService : IDisposable
         VaultFormatV3.OpenedVault? opened = null;
         Dokan? dokan = null;
         DokanInstance? instance = null;
+        IDisposable? mountedOperations = null;
         try
         {
             var journalPath = GetJournalPath(vault.Id);
@@ -786,7 +826,18 @@ public sealed class VaultService : IDisposable
             if (driveLetter is null)
                 throw new IOException("No hay ninguna letra de unidad disponible para montar la bóveda.");
             var mountPoint = $"{driveLetter}:\\";
-            var operations = new VaultReadOnlyFileSystem(opened, () => vault.LastAccessUtc = DateTime.UtcNow);
+            DokanNet.IDokanOperations operations;
+            var recoveredReadOnly = PathsEqual(sourcePath, vault.VaultFilePath)
+                ? await TryCreateDeltaOverlayAsync(vault.Id, opened, () => vault.LastAccessUtc = DateTime.UtcNow,
+                    writeProtected: true)
+                : null;
+            if (recoveredReadOnly is not null)
+            {
+                operations = recoveredReadOnly;
+                mountedOperations = recoveredReadOnly;
+                LastMountUsedJournal = true;
+            }
+            else operations = new VaultReadOnlyFileSystem(opened, () => vault.LastAccessUtc = DateTime.UtcNow);
             (dokan, instance) = await Task.Run(() =>
             {
                 var mountDokan = new Dokan(new NullLogger());
@@ -805,7 +856,9 @@ public sealed class VaultService : IDisposable
             if (!instance.IsFileSystemRunning())
                 throw new IOException("Dokany no pudo iniciar la unidad virtual.");
 
-            var session = new VirtualVaultSession(mountPoint, opened, dokan, instance);
+            var session = new VirtualVaultSession(mountPoint, opened, dokan, instance,
+                mountedOperations: mountedOperations);
+            mountedOperations = null;
             opened = null;
             dokan = null;
             instance = null;
@@ -837,6 +890,7 @@ public sealed class VaultService : IDisposable
         finally
         {
             authenticatedOpened?.Dispose();
+            mountedOperations?.Dispose();
             try { instance?.Dispose(); } catch { }
             try { dokan?.Dispose(); } catch { }
             opened?.Dispose();
@@ -897,16 +951,53 @@ public sealed class VaultService : IDisposable
             }
             LastMountUsedJournal = !PathsEqual(sourcePath, vault.VaultFilePath);
             var journalWritePath = PathsEqual(sourcePath, journalPath) ? alternateJournalPath : journalPath;
+            var deltaJournalPath = GetDeltaJournalPath(vault.Id);
             var driveLetter = FindAvailableVirtualDriveLetter()
                 ?? throw new IOException("No hay ninguna letra de unidad disponible para montar la bóveda.");
             var mountPoint = $"{driveLetter}:\\";
             var openedVault = opened;
             var operations = new VaultReadWriteFileSystem(openedVault, () => vault.LastAccessUtc = DateTime.UtcNow);
-            operations.JournalWriter = async sources =>
+            var canUseDeltaJournal = PathsEqual(sourcePath, vault.VaultFilePath);
+            if (canUseDeltaJournal)
             {
+                var recovered = await TryCreateDeltaOverlayAsync(vault.Id, openedVault,
+                    () => vault.LastAccessUtc = DateTime.UtcNow, writeProtected: false);
+                if (recovered is not null)
+                {
+                    operations.Dispose();
+                    operations = recovered;
+                    LastMountUsedJournal = true;
+                }
+            }
+            var mountedOperations = operations;
+            operations.JournalWriter = async () =>
+            {
+                if (canUseDeltaJournal
+                    && mountedOperations.EstimateJournalPlaintextBytes()
+                        <= VaultDeltaJournal.MaximumEstimatedPlaintextBytes)
+                {
+                    try
+                    {
+                        using var snapshot = mountedOperations.CreateJournalSnapshot();
+                        await VaultDeltaJournal.WriteAsync(deltaJournalPath, openedVault, snapshot);
+                        return;
+                    }
+                    catch (VaultDeltaJournalTooLargeException)
+                    {
+                        // A very large dirty overlay remains recoverable using
+                        // the established full-journal format.
+                    }
+                }
                 Directory.CreateDirectory(Path.GetDirectoryName(journalWritePath)!);
-                await Task.Run(() => VaultFormatV3.WriteFromVirtualEntriesAsync(vault, sources, journalWritePath,
-                    openedVault.PasswordKey, openedVault.Salt, openedVault.DataKey, openedVault.TpmBinding, createRecoveryBackup: false));
+                await VaultFormatV3.WriteFromVirtualEntriesAsync(vault, mountedOperations.CreateSnapshot(), journalWritePath,
+                    openedVault.PasswordKey, openedVault.Salt, openedVault.DataKey, openedVault.TpmBinding,
+                    createRecoveryBackup: false);
+                try
+                {
+                    if (File.Exists(deltaJournalPath)) File.Delete(deltaJournalPath);
+                    if (File.Exists(deltaJournalPath + ".next")) File.Delete(deltaJournalPath + ".next");
+                }
+                catch { /* The newer full journal remains authoritative. */ }
             };
             (dokan, instance) = await Task.Run(() =>
             {
@@ -926,7 +1017,7 @@ public sealed class VaultService : IDisposable
             if (!instance.IsFileSystemRunning()) throw new IOException("Dokany no pudo iniciar la unidad virtual editable.");
 
             var session = new VirtualVaultSession(mountPoint, opened, dokan, instance, operations,
-                vault.VaultFilePath, journalPath, alternateJournalPath);
+                vault.VaultFilePath, journalPath, alternateJournalPath, deltaJournalPath, operations);
             opened = null;
             dokan = null;
             instance = null;
@@ -1126,6 +1217,9 @@ public sealed class VaultService : IDisposable
         return Path.Combine(journalDirectory, vaultId.ToString("N") + ".pavault");
     }
 
+    private static string GetDeltaJournalPath(Guid vaultId) =>
+        Path.ChangeExtension(GetJournalPath(vaultId), ".pajournal");
+
     private static string? GetNewestExistingPath(params string[] paths) => paths
         .Where(File.Exists)
         .OrderByDescending(path => File.GetLastWriteTimeUtc(path))
@@ -1135,7 +1229,37 @@ public sealed class VaultService : IDisposable
     {
         if (vault is null || vault.Id == Guid.Empty) return false;
         var journalPath = GetJournalPath(vault.Id);
-        return File.Exists(journalPath) || File.Exists(journalPath + ".next");
+        var deltaPath = GetDeltaJournalPath(vault.Id);
+        return File.Exists(journalPath) || File.Exists(journalPath + ".next")
+            || File.Exists(deltaPath) || File.Exists(deltaPath + ".next");
+    }
+
+    private static async Task<VaultReadWriteFileSystem?> TryCreateDeltaOverlayAsync(Guid vaultId,
+        VaultFormatV3.OpenedVault opened, Action? activityObserved, bool writeProtected)
+    {
+        var deltaPath = GetDeltaJournalPath(vaultId);
+        var candidates = new[] { deltaPath, deltaPath + ".next" }
+            .Where(File.Exists)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .ToArray();
+        if (candidates.Length == 0) return null;
+        Exception? lastError = null;
+        foreach (var path in candidates)
+        {
+            try
+            {
+                using var snapshot = await VaultDeltaJournal.ReadAsync(path, opened);
+                var operations = new VaultReadWriteFileSystem(opened, activityObserved, writeProtected);
+                operations.ApplyJournalSnapshot(snapshot);
+                return operations;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                       or CryptographicException or JsonException)
+            {
+                lastError = ex;
+            }
+        }
+        throw lastError ?? new InvalidDataException("No se pudo recuperar el diario diferencial.");
     }
 
     private static async Task<(VaultFormatV3.OpenedVault Opened, string Path)> OpenNewestUsableVaultAsync(
@@ -1235,6 +1359,12 @@ public sealed class VaultService : IDisposable
     public async Task<VaultBackupRestoreResult> RestoreVaultBackupAsync(VaultContainer vault, string password)
     {
         LastError = null;
+        if (HasPendingJournal(vault))
+        {
+            const string message = "Abre y bloquea la bóveda para consolidar sus cambios pendientes antes de restaurar la copia anterior.";
+            LastError = message;
+            return new(false, null, message);
+        }
         var validation = await ValidateVaultBackupAsync(vault, password);
         if (!validation.BackupValid || validation.BackupVault is null)
         {
@@ -2082,7 +2212,8 @@ public sealed class VaultService : IDisposable
     private sealed class VirtualVaultSession(string mountPoint, VaultFormatV3.OpenedVault opened,
         Dokan dokan, DokanInstance instance, VaultReadWriteFileSystem? writableOperations = null,
         string? destinationPath = null, string? journalPath = null,
-        string? alternateJournalPath = null) : IDisposable
+        string? alternateJournalPath = null, string? deltaJournalPath = null,
+        IDisposable? mountedOperations = null) : IDisposable
     {
         private int _disposed;
         public string MountPoint { get; } = mountPoint;
@@ -2103,7 +2234,7 @@ public sealed class VaultService : IDisposable
             try { instance.Dispose(); } catch { }
             try { dokan.RemoveMountPoint(MountPoint); } catch { }
             try { dokan.Dispose(); } catch { }
-            try { writableOperations?.Dispose(); } catch { }
+            try { (mountedOperations ?? writableOperations)?.Dispose(); } catch { }
             // The opened vault owns the decrypted data-encryption key. Always
             // zero it, including after an externally disconnected drive.
             opened.Dispose();
@@ -2141,6 +2272,8 @@ public sealed class VaultService : IDisposable
                 {
                     if (!string.IsNullOrWhiteSpace(journalPath) && File.Exists(journalPath)) File.Delete(journalPath);
                     if (!string.IsNullOrWhiteSpace(alternateJournalPath) && File.Exists(alternateJournalPath)) File.Delete(alternateJournalPath);
+                    if (!string.IsNullOrWhiteSpace(deltaJournalPath) && File.Exists(deltaJournalPath)) File.Delete(deltaJournalPath);
+                    if (!string.IsNullOrWhiteSpace(deltaJournalPath) && File.Exists(deltaJournalPath + ".next")) File.Delete(deltaJournalPath + ".next");
                 }
                 catch { /* El contenedor principal ya quedó verificado y es autoritativo. */ }
             }

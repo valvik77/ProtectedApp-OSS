@@ -35,7 +35,13 @@ otros programas.
 
 Las bóvedas usan cifrado autenticado; la contraseña de una bóveda no convierte
 el equipo en un entorno aislado ni recupera datos que hayan sido expuestos antes
-de bloquearla. El estado local de la aplicación y los secretos opcionales del
+de bloquearla. Las unidades editables conservan su recuperación en un diario
+`PAVJ001` cifrado con AES-GCM y vinculado a la identidad y la clave de datos de
+esa bóveda. Solo contiene metadatos y los bloques modificados de 64 KiB; los
+cambios grandes recurren al diario completo cifrado ya compatible. El contenedor
+principal solo se sustituye tras una consolidación atómica verificada, y se
+rechaza cambiar credenciales o restaurar una copia mientras haya un diario
+pendiente. El estado local de la aplicación y los secretos opcionales del
 webhook reciben protección de Windows/DPAPI según el componente que los use.
 De forma opcional, **Protección TPM de configuración y reglas** cifra el estado local
 con una clave aleatoria que queda envuelta por una clave RSA no exportable del

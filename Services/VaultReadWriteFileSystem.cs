@@ -7,6 +7,10 @@ namespace ProtectedApp.Services;
 
 internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 {
+    private const DokanFileAccess WriteAccess = DokanFileAccess.WriteData | DokanFileAccess.AppendData
+        | DokanFileAccess.WriteExtendedAttributes | DokanFileAccess.WriteAttributes | DokanFileAccess.Delete
+        | DokanFileAccess.DeleteChild | DokanFileAccess.ChangePermissions | DokanFileAccess.SetOwnership
+        | DokanFileAccess.GenericWrite | DokanFileAccess.GenericAll;
     private const long Capacity = 1024L * 1024 * 1024;
     private const int BlockSize = 64 * 1024;
     private readonly VaultFormatV3.OpenedVault _opened;
@@ -15,13 +19,16 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     private readonly object _sync = new();
     private readonly SemaphoreSlim _journalGate = new(1, 1);
     private readonly Action? _activityObserved;
+    private readonly bool _writeProtected;
     private long _changeVersion;
     private int _journalSaveQueued;
 
-    public VaultReadWriteFileSystem(VaultFormatV3.OpenedVault opened, Action? activityObserved = null)
+    public VaultReadWriteFileSystem(VaultFormatV3.OpenedVault opened, Action? activityObserved = null,
+        bool writeProtected = false)
     {
         _opened = opened;
         _activityObserved = activityObserved;
+        _writeProtected = writeProtected;
         _nodes[string.Empty] = new Node(string.Empty, true, 0, DateTime.UtcNow, DateTime.UtcNow, true,
             string.Empty, 0);
         foreach (var entry in opened.Index.Entries)
@@ -36,7 +43,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public bool HasChanges { get; private set; }
     public bool NeedsJournal { get; private set; }
-    public Func<IReadOnlyList<VaultFormatV3.VirtualEntrySource>, Task>? JournalWriter { get; set; }
+    public Func<Task>? JournalWriter { get; set; }
     public async Task SaveJournalAsync()
     {
         if (!NeedsJournal || JournalWriter is null) return;
@@ -47,7 +54,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             if (!NeedsJournal || writer is null) return;
             long version;
             lock (_sync) version = _changeVersion;
-            await writer(CreateSnapshot());
+            await writer();
             lock (_sync)
             {
                 if (_changeVersion == version) NeedsJournal = false;
@@ -100,6 +107,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     {
         var path = NormalizePath(fileName);
         if (path.StartsWith('\0')) return NtStatus.ObjectNameInvalid;
+        if (_writeProtected && ((access & WriteAccess) != 0 || mode != FileMode.Open
+                                || options.HasFlag(FileOptions.DeleteOnClose))) return NtStatus.AccessDenied;
         ReportActivity();
         lock (_sync)
         {
@@ -179,6 +188,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, IDokanFileInfo info)
     {
         bytesWritten = 0;
+        if (_writeProtected) return NtStatus.AccessDenied;
         if (offset < 0) return NtStatus.InvalidParameter;
         ReportActivity();
         lock (_sync)
@@ -229,11 +239,13 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         out IList<FileInformation> files, IDokanFileInfo info) => FindFilesCore(fileName, searchPattern, out files);
 
     public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, IDokanFileInfo info) =>
-        _nodes.ContainsKey(NormalizePath(fileName)) ? NtStatus.Success : NtStatus.ObjectNameNotFound;
+        _writeProtected ? NtStatus.AccessDenied
+            : _nodes.ContainsKey(NormalizePath(fileName)) ? NtStatus.Success : NtStatus.ObjectNameNotFound;
 
     public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime,
         DateTime? lastWriteTime, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         lock (_sync)
         {
             if (!_nodes.TryGetValue(NormalizePath(fileName), out var node)) return NtStatus.ObjectNameNotFound;
@@ -246,6 +258,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus DeleteFile(string fileName, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         lock (_sync)
         {
             var path = NormalizePath(fileName);
@@ -256,6 +269,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus DeleteDirectory(string fileName, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         lock (_sync)
         {
             var path = NormalizePath(fileName);
@@ -267,6 +281,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus MoveFile(string oldName, string newName, bool replace, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         lock (_sync)
         {
             var oldPath = NormalizePath(oldName);
@@ -290,6 +305,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus SetEndOfFile(string fileName, long length, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         if (length < 0 || length > Capacity) return NtStatus.DiskFull;
         lock (_sync)
         {
@@ -306,6 +322,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus SetAllocationSize(string fileName, long length, IDokanFileInfo info)
     {
+        if (_writeProtected) return NtStatus.AccessDenied;
         // Windows can reserve a larger allocation before or after changing
         // EOF.  Allocation must not alter the logical file length; treating
         // it as SetEndOfFile re-expanded files that had just been truncated.
@@ -381,6 +398,103 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         HasChanges = true;
         NeedsJournal = true;
         _changeVersion++;
+    }
+
+    internal VaultJournalSnapshot CreateJournalSnapshot()
+    {
+        lock (_sync)
+        {
+            return new VaultJournalSnapshot(_nodes.Values.Where(node => node.Path.Length > 0)
+                .OrderBy(node => node.Path, StringComparer.OrdinalIgnoreCase)
+                .Select(node => new VaultJournalNode(node.Path, node.IsDirectory, node.Length, node.CreationUtc,
+                    node.LastWriteUtc, node.FromOriginal, node.SourcePath, node.OriginalReadableLength,
+                    node.Blocks?.ToDictionary(item => item.Key, item => item.Value.ToArray())))
+                .ToArray());
+        }
+    }
+
+    internal long EstimateJournalPlaintextBytes()
+    {
+        lock (_sync)
+        {
+            return _nodes.Values.Where(node => node.Path.Length > 0).Sum(node =>
+                256L + (node.Path.Length + (node.SourcePath?.Length ?? 0)) * 4L
+                + (node.Blocks?.Count ?? 0) * (BlockSize + 48L));
+        }
+    }
+
+    internal void ApplyJournalSnapshot(VaultJournalSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (snapshot.Nodes.Count > 20_000) throw new InvalidDataException("El diario contiene demasiados elementos.");
+        lock (_sync)
+        {
+            var restored = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase)
+            {
+                [string.Empty] = new Node(string.Empty, true, 0, DateTime.UtcNow, DateTime.UtcNow, true,
+                    string.Empty, 0)
+            };
+            long totalLength = 0;
+            foreach (var item in snapshot.Nodes)
+            {
+                var path = NormalizePath(item.Path);
+                if (path.Length == 0 || path.StartsWith('\0') || item.Length < 0 || item.Length > Capacity
+                    || item.OriginalReadableLength < 0 || item.OriginalReadableLength > Capacity)
+                    throw new InvalidDataException("El diario contiene una entrada no válida.");
+                if (item.IsDirectory && (item.Length != 0 || item.Blocks is { Count: > 0 }))
+                    throw new InvalidDataException("El diario contiene un directorio no válido.");
+                var sourcePath = item.SourcePath;
+                if (item.FromOriginal && !item.IsDirectory)
+                {
+                    if (string.IsNullOrWhiteSpace(sourcePath)
+                        || !_opened.TryGetEntryIndex(sourcePath, out var sourceIndex)
+                        || _opened.Index.Entries[sourceIndex].IsDirectory)
+                    {
+                        // A crash can occur after the new primary container is
+                        // atomically installed but before its journal is
+                        // deleted. Renamed entries then already use their new
+                        // path in the primary; applying the journal again must
+                        // remain idempotent.
+                        sourcePath = path;
+                        if (!_opened.TryGetEntryIndex(sourcePath, out sourceIndex)
+                            || _opened.Index.Entries[sourceIndex].IsDirectory)
+                            throw new InvalidDataException("El diario hace referencia a contenido base no válido.");
+                    }
+                    if (item.OriginalReadableLength > _opened.Index.Entries[sourceIndex].Length)
+                        throw new InvalidDataException("El diario supera la longitud del contenido base.");
+                }
+                totalLength = checked(totalLength + item.Length);
+                if (totalLength > Capacity) throw new InvalidDataException("El diario supera la capacidad de la bóveda.");
+                Dictionary<long, byte[]>? blocks = null;
+                if (item.Blocks is { Count: > 0 })
+                {
+                    blocks = new Dictionary<long, byte[]>();
+                    foreach (var block in item.Blocks)
+                    {
+                        if (block.Key < 0 || block.Value.Length != BlockSize
+                            || block.Key * (long)BlockSize >= Capacity)
+                            throw new InvalidDataException("El diario contiene un bloque no válido.");
+                        blocks.Add(block.Key, block.Value.ToArray());
+                    }
+                }
+                var node = new Node(path, item.IsDirectory, item.Length, item.CreationUtc, item.LastWriteUtc,
+                    item.FromOriginal, sourcePath, item.OriginalReadableLength) { Blocks = blocks };
+                if (!restored.TryAdd(path, node)) throw new InvalidDataException("El diario contiene rutas duplicadas.");
+            }
+            foreach (var node in restored.Values.Where(node => node.Path.Length > 0))
+            {
+                var parent = GetParent(node.Path);
+                if (!restored.TryGetValue(parent, out var parentNode) || !parentNode.IsDirectory)
+                    throw new InvalidDataException("El diario contiene una jerarquía no válida.");
+            }
+            foreach (var oldNode in _nodes.Values) ClearBlocks(oldNode);
+            _nodes.Clear();
+            foreach (var item in restored) _nodes.Add(item.Key, item.Value);
+            RebuildChildren();
+            HasChanges = true;
+            NeedsJournal = false;
+            _changeVersion++;
+        }
     }
 
     private void ReportActivity()
@@ -615,3 +729,19 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
+
+internal sealed record VaultJournalSnapshot(IReadOnlyList<VaultJournalNode> Nodes) : IDisposable
+{
+    public void Dispose()
+    {
+        foreach (var node in Nodes)
+        {
+            if (node.Blocks is null) continue;
+            foreach (var block in node.Blocks.Values)
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(block);
+        }
+    }
+}
+internal sealed record VaultJournalNode(string Path, bool IsDirectory, long Length, DateTime CreationUtc,
+    DateTime LastWriteUtc, bool FromOriginal, string? SourcePath, long OriginalReadableLength,
+    Dictionary<long, byte[]>? Blocks);

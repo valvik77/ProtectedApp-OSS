@@ -51,7 +51,7 @@ La conversión cifra los datos en un contenedor; no aplica bloqueos NTFS a la ca
 2. Ábrela en modo **Solo lectura** para consultar archivos o en modo **Editar** para trabajar en una unidad virtual.
 3. Al terminar, usa **Guardar y bloquear bóveda**. ProtectedApp cifra los cambios y desmonta la unidad.
 
-Si el equipo se apaga, bloquea la sesión o se interrumpe el proceso con una bóveda editable abierta, ProtectedApp conserva un diario cifrado. La próxima apertura ofrece recuperar el trabajo válido; no deja una carpeta de archivos descifrados en el disco.
+Si el equipo se apaga, bloquea la sesión o se interrumpe el proceso con una bóveda editable abierta, ProtectedApp conserva un diario diferencial cifrado y autenticado con los metadatos y bloques modificados. Los cambios excepcionalmente grandes recurren automáticamente al diario completo cifrado compatible. La próxima apertura permite consultar el trabajo en solo lectura o recuperarlo; no deja una carpeta de archivos descifrados en el disco.
 
 Cada bóveda puede vincularse opcionalmente al TPM de este equipo. En ese modo
 exige tanto su contraseña como una clave TPM no exportable, y permanece

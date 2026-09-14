@@ -59,8 +59,10 @@ to 1 GB of content, 20,000 entries, and 100,000 blocks.
 
 When editing a vault, use **Save and lock vault** when finished. ProtectedApp
 validates the vault and atomically replaces it only after a successful encrypted
-write. Interrupted editable sessions can offer recovery of the valid encrypted
-journal at the next unlock. Do not synchronize an open vault work directory;
+write. Normal edits use an authenticated encrypted differential journal with
+only changed blocks and metadata; very large edits automatically use the
+compatible encrypted full journal. Interrupted sessions can be recovered or
+inspected read-only at the next unlock. Do not synchronize an open vault work directory;
 synchronize the closed `.pavault` file instead.
 
 An optional per-vault TPM mode requires both the vault password and a

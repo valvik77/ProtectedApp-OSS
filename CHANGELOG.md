@@ -32,6 +32,10 @@ candidate** is not a public release and must not be distributed as one; see
   avoiding a second password derivation and TPM operation for normal opens.
 - Coalesced ordinary Explorer handle-close journal requests. Explicit file
   flushes and final vault locking still wait for a durable encrypted journal.
+- Replaced routine full-container edit journals with an authenticated,
+  encrypted differential journal containing only changed 64 KiB blocks and
+  metadata. Oversized overlays automatically retain the compatible full-journal
+  fallback, and interrupted journals can be inspected read-only before commit.
 - Indexed direct children for editable virtual folders, avoiding a full-vault
   scan whenever Explorer lists a directory.
 - Buffered writes to temporary encrypted containers and still flush them to

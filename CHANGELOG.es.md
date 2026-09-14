@@ -36,6 +36,11 @@ firma.
 - Los cierres ordinarios de manejadores de Explorador se agrupan antes de crear
   el diario. Los `Flush` explícitos y el bloqueo final siguen esperando un
   diario cifrado durable.
+- Los diarios completos usados habitualmente durante la edición se sustituyen
+  por un diario diferencial cifrado y autenticado que conserva solo metadatos y
+  bloques modificados de 64 KiB. Las modificaciones demasiado grandes recurren
+  automáticamente al diario completo compatible y un diario interrumpido puede
+  consultarse en solo lectura antes de consolidarlo.
 - Las carpetas virtuales editables indexan sus hijos directos, evitando
   recorrer toda la bóveda cada vez que Explorer enumera una carpeta.
 - Las escrituras de contenedores cifrados temporales se agrupan en memoria y
