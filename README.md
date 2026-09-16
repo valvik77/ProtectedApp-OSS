@@ -2,6 +2,20 @@
 
 > **English** | [Español](README.es.md)
 
+> [!WARNING]
+> **Development/test certificate — not a publicly trusted release certificate.**
+> This repository publishes only the public part of its self-signed development
+> certificate; it contains no private key. Installing it deliberately changes
+> the trust settings of the current Windows user and should be done only on a
+> test machine or virtual machine that you control. It does not make a build an
+> official release, and Smart App Control, WDAC, antivirus software, or
+> organizational policies may still block it. Never install this certificate in
+> the machine-wide (`LocalMachine`) stores or accept a certificate whose SHA-256
+> and thumbprint do not exactly match the documented values. Read and follow the
+> complete [verification, current-user installation, build verification, risk,
+> expiry, replacement, and removal instructions](DEVELOPMENT-CERTIFICATE.en.md)
+> **before installing or running any development-signed build**.
+
 ProtectedApp is an open-source WinUI 3 application for Windows that password-
 protects selected desktop applications and provides encrypted vaults for
 sensitive files. Guardian monitors configured processes, requires authorization

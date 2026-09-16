@@ -2,6 +2,21 @@
 
 > [English](README.md) | **Español**
 
+> [!WARNING]
+> **Certificado de desarrollo/pruebas: no es un certificado de publicación con
+> confianza pública.** Este repositorio publica exclusivamente la parte pública
+> del certificado autofirmado; no contiene ninguna clave privada. Instalarlo
+> modifica deliberadamente la confianza del usuario actual de Windows y solo
+> debe hacerse en un equipo de pruebas o máquina virtual bajo tu control. No
+> convierte una compilación en versión oficial, y Smart App Control, WDAC, el
+> antivirus o las políticas de una organización todavía pueden bloquearla. No
+> lo instales nunca en los almacenes de todo el equipo (`LocalMachine`) ni
+> aceptes un certificado cuyos valores SHA-256 y huella digital no coincidan
+> exactamente con los documentados. Lee y sigue las [instrucciones completas de
+> comprobación, instalación para el usuario actual, verificación del instalador,
+> riesgos, caducidad, sustitución y retirada](DEVELOPMENT-CERTIFICATE.md)
+> **antes de instalarlo o ejecutar cualquier compilación firmada para pruebas**.
+
 Aplicación WinUI 3 para proteger aplicaciones de escritorio y bóvedas cifradas
 en Windows. Guardian detecta los procesos configurados, impide su uso hasta
 validar la contraseña y los inicia de nuevo cuando la autorización es correcta.
