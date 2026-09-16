@@ -16,7 +16,7 @@ public sealed partial class MainWindow
         {
             while (true)
             {
-                var password = new PasswordBox { PlaceholderText = "Mínimo 12 caracteres", PasswordRevealMode = PasswordRevealMode.Peek };
+                var password = new PasswordBox { PlaceholderText = "Mínimo 8 caracteres", PasswordRevealMode = PasswordRevealMode.Peek };
                 var confirmation = new PasswordBox { PlaceholderText = "Repite la contraseña", PasswordRevealMode = PasswordRevealMode.Peek };
                 var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12, TextWrapping = TextWrapping.Wrap };
                 var panel = new StackPanel { Spacing = 10 };
@@ -28,7 +28,7 @@ public sealed partial class MainWindow
                 var valid = false;
                 dialog.PrimaryButtonClick += (_, args) =>
                 {
-                    if (password.Password.Length < PasswordService.MinimumPasswordLength) { error.Text = LocalizationService.T("La contraseña debe tener al menos 12 caracteres."); args.Cancel = true; return; }
+                    if (password.Password.Length < PasswordService.MasterPasswordMinimumLength) { error.Text = LocalizationService.T("La contraseña debe tener al menos 8 caracteres."); args.Cancel = true; return; }
                     if (password.Password != confirmation.Password) { error.Text = LocalizationService.T("Las contraseñas no coinciden."); args.Cancel = true; return; }
                     valid = true;
                 };
@@ -191,6 +191,10 @@ public sealed partial class MainWindow
                     {
                         if (!string.IsNullOrWhiteSpace(guardianResponse.TimedSessionToken))
                             _timedSessionTokens[app.Id] = guardianResponse.TimedSessionToken;
+                        // A new authorization starts a new automatic-close
+                        // session. The first real input in that process must
+                        // always be eligible for reporting to Guardian.
+                        _lastReportedInputTicks.Remove(app.Id);
                         AddActivity(app.Name, "Acceso autorizado por Guardian; aplicación iniciada");
                     }
                     else

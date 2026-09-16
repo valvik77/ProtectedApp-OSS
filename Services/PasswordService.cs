@@ -4,6 +4,10 @@ namespace ProtectedApp.Services;
 
 public static class PasswordService
 {
+    // The management-panel credential is intentionally less restrictive than
+    // passwords that encrypt portable vault and backup data. It remains
+    // salted and PBKDF2-hardened like every other credential.
+    public const int MasterPasswordMinimumLength = 8;
     public const int MinimumPasswordLength = 12;
     private const int LegacyIterations = 210_000;
     private const int Iterations = 600_000;

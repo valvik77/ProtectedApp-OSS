@@ -1,4 +1,5 @@
 using Microsoft.UI.Windowing;
+using ProtectedApp.Services;
 using WinRT.Interop;
 
 namespace ProtectedApp;
@@ -143,6 +144,18 @@ public sealed partial class MainWindow
     }
 
     public void RequestShowFromActivation() => _ = ShowAndAuthenticateAsync();
+
+    public void RequestPostInstallActivation()
+    {
+        if (!_initialized)
+        {
+            _postInstallRequestedWhileLoading = true;
+            return;
+        }
+        if (AppLaunchMode.ShouldOpenInitialSetup(["--post-install"],
+                !string.IsNullOrWhiteSpace(_state.MasterPasswordHash)))
+            RequestShowFromActivation();
+    }
 
     public void RequestUpdateShutdown() => _ = ShutdownForUpdateAsync();
 

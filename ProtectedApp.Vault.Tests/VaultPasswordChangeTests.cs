@@ -11,6 +11,22 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class VaultPasswordChangeTests
 {
     [Fact]
+    public void PasswordRetryDelay_SurvivesReopenedPrompt()
+    {
+        var scope = "retry-window-" + Guid.NewGuid().ToString("N");
+        var initial = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
+
+        UnlockRetryRegistry.Record(scope,
+            new UnlockAttemptResult(false, "Demasiados intentos.", RetryAfterSeconds: 30), initial);
+        var reopened = UnlockRetryRegistry.GetActive(scope, initial.AddSeconds(10));
+
+        Assert.NotNull(reopened);
+        Assert.Equal(initial.AddSeconds(30), reopened!.RetryUntilUtc);
+        Assert.Equal("Demasiados intentos.", reopened.Message);
+        Assert.Null(UnlockRetryRegistry.GetActive(scope, initial.AddSeconds(31)));
+    }
+
+    [Fact]
     public async Task CreateVaultFromFolder_CreatesVerifiedContainerWithoutChangingSource()
     {
         var directory = Path.Combine(Path.GetTempPath(), "ProtectedApp.Vault.Tests", Guid.NewGuid().ToString("N"));

@@ -218,12 +218,46 @@ public sealed partial class MainWindow
         var name = new TextBox { Header = "Nombre", Text = suggestedName }; var category = CreateCategoryEditor("General");
         var password = new PasswordBox { Header = "Contraseña propia (opcional)", PlaceholderText = "Vacío = usar contraseña maestra", PasswordRevealMode = PasswordRevealMode.Peek }; var confirmation = new PasswordBox { Header = "Confirmar contraseña", PasswordRevealMode = PasswordRevealMode.Peek };
         var timePolicy = CreateTimePolicyEditor(0, 0, 0); var schedule = CreateScheduleEditor(false, (int)ScheduleDays.EveryDay, 9 * 60, 17 * 60, false);
-        var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,255,85,85), Windows.UI.Color.FromArgb(255,248,81,73)), FontSize = 12 }; var panel = new StackPanel { Spacing = 10, Width = 420 };
-        panel.Children.Add(new TextBlock { Text = executablePath, Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,98,114,164), Windows.UI.Color.FromArgb(255,118,118,118)), FontSize = 11, TextWrapping = TextWrapping.Wrap });
-        panel.Children.Add(name); panel.Children.Add(category); panel.Children.Add(password); panel.Children.Add(confirmation); panel.Children.Add(timePolicy.Panel); panel.Children.Add(schedule.Panel); panel.Children.Add(error);
-        var dialog = CreateDialog("Añadir aplicación", CreateDialogScroller(panel), "Añadir", "Cancelar"); var valid = false;
+        var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,255,85,85), Windows.UI.Color.FromArgb(255,248,81,73)), FontSize = 12, TextWrapping = TextWrapping.Wrap };
+        var editorWidth = Math.Min(980, Math.Max(320, (Root.XamlRoot?.Size.Width ?? 1100) - 100));
+        var panel = new Grid { Width = editorWidth, ColumnSpacing = 16, RowSpacing = 12 };
+        var wide = editorWidth >= 840;
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wide ? 0.9 : 1, GridUnitType.Star) });
+        panel.ColumnDefinitions.Add(new ColumnDefinition { Width = wide ? new GridLength(1.1, GridUnitType.Star) : new GridLength(0) });
+        var rowCount = wide ? 3 : 5;
+        for (var i = 0; i < rowCount; i++) panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var path = new TextBlock
+        {
+            Text = executablePath,
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,98,114,164), Windows.UI.Color.FromArgb(255,118,118,118)),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap
+        };
+        var applicationSection = CreateEditorSection("Aplicación", "\uE71D", path, name, category);
+        var passwordSection = CreateEditorSection("Contraseña", "\uE72E", password, confirmation);
+        var closeSection = CreateEditorSection("Cierre automático", "\uE823", timePolicy.Panel);
+        var scheduleSection = CreateEditorSection("Horario", "\uE787", schedule.Panel);
+
+        Grid.SetColumn(closeSection, wide ? 1 : 0);
+        Grid.SetColumn(scheduleSection, wide ? 1 : 0);
+        Grid.SetRow(passwordSection, 1);
+        Grid.SetRow(closeSection, wide ? 0 : 2);
+        Grid.SetRow(scheduleSection, wide ? 1 : 3);
+        Grid.SetRow(error, wide ? 2 : 4);
+        Grid.SetColumnSpan(error, 2);
+        panel.Children.Add(applicationSection);
+        panel.Children.Add(passwordSection);
+        panel.Children.Add(closeSection);
+        panel.Children.Add(scheduleSection);
+        panel.Children.Add(error);
+        var dialog = CreateDialog("Añadir aplicación", CreateDialogScroller(panel), "Añadir", "Cancelar");
+        var dialogWidth = editorWidth + 64;
+        dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
+        dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
+        var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) => { if (string.IsNullOrWhiteSpace(name.Text)) { error.Text=LocalizationService.T("Indica un nombre."); args.Cancel=true; return; } if (password.Password != confirmation.Password) { error.Text=LocalizationService.T("Las contraseñas no coinciden."); args.Cancel=true; return; } if (password.Password.Length is > 0 and < PasswordService.MinimumPasswordLength) { error.Text=LocalizationService.T("La contraseña propia debe tener al menos 12 caracteres."); args.Cancel=true; return; } if (!TryReadTimePolicy(timePolicy,out _,out _,out _,out var timeError)) { error.Text=LocalizationService.T(timeError); args.Cancel=true; return; } if (!TryReadSchedule(schedule,out _,out _,out _,out _,out _,out var scheduleError)) { error.Text=LocalizationService.T(scheduleError); args.Cancel=true; return; } valid=true; };
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary || !valid) return;
+        if (await dialog.ShowAsync(ContentDialogPlacement.InPlace) != ContentDialogResult.Primary || !valid) return;
         TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _); TryReadSchedule(schedule, out var scheduleEnabled, out var scheduleDays, out var scheduleStart, out var scheduleEnd, out var blockOutsideSchedule, out _);
         var app = new ProtectedApplication { Name=name.Text.Trim(), Path=executablePath, Category=string.IsNullOrWhiteSpace(category.Text)?"General":category.Text.Trim(), UnlockGraceMinutes=unlockMinutes, ForceCloseAfterMinutes=forceCloseMinutes, ForceCloseAfterInactivityMinutes=inactiveCloseMinutes, ScheduleEnabled=scheduleEnabled, ScheduleDays=scheduleDays, ScheduleStartMinutes=scheduleStart, ScheduleEndMinutes=scheduleEnd, BlockOutsideSchedule=blockOutsideSchedule };
         if (!string.IsNullOrEmpty(password.Password)) { var hashed=PasswordService.Hash(password.Password); app.PasswordHash=hashed.Hash; app.PasswordSalt=hashed.Salt; }
@@ -249,24 +283,44 @@ public sealed partial class MainWindow
             PlaceholderText = "Buscar aplicaciones instaladas",
             Padding = new Thickness(12, 8, 12, 8),
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            // Preserve a small gutter inside ContentDialog's clipped content
-            // presenter so the right-hand border is never cut at high DPI.
-            Margin = new Thickness(0, 0, 3, 0)
+            MinWidth = 0
         };
         var list = new ListView { ItemsSource = visible, SelectionMode = ListViewSelectionMode.Single, ItemTemplate = (DataTemplate)Root.Resources["InstalledAppTemplate"], HorizontalContentAlignment = HorizontalAlignment.Stretch };
         var empty = new TextBlock { Text = "No se encontraron aplicaciones", Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 98, 114, 164), Windows.UI.Color.FromArgb(255, 118, 118, 118)), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Center, IsHitTestVisible = false };
         var listHost = new Grid(); listHost.Children.Add(list); listHost.Children.Add(empty);
         listHost.SizeChanged += (_, _) => empty.Width = listHost.ActualWidth;
         empty.Visibility = visible.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        // Keep the content comfortably inside the dialog's inner padding.
-        // 620 DIPs reaches its clipped edge on 125%/150% display scaling.
-        var layout = new Grid { Width = 580, Height = 430, RowSpacing = 10 };
+        // Do not give the content a fixed width. The dialog may be hosted in
+        // a narrower client area than XamlRoot reports (notably with DPI
+        // scaling), which made the right end of the search field disappear.
+        // Stretch within a capped dialog instead.
+        var layout = new Grid
+        {
+            MaxWidth = 580,
+            Height = 430,
+            RowSpacing = 10,
+            MinWidth = 0,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         layout.Children.Add(search); Grid.SetRow(listHost, 1); layout.Children.Add(listHost);
         var note = new TextBlock { Text = $"{installed.Count} aplicaciones de escritorio detectadas", Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 98, 114, 164), Windows.UI.Color.FromArgb(255, 118, 118, 118)), FontSize = 10 };
         Grid.SetRow(note, 2); layout.Children.Add(note);
         var dialog = new ContentDialog { XamlRoot = Root.XamlRoot, Style = Application.Current.Resources["ProtectedContentDialogStyle"] as Style, Title = "Añadir aplicación", Content = layout, PrimaryButtonText = "Proteger seleccionada", SecondaryButtonText = "Elegir archivo…", CloseButtonText = "Cancelar", IsPrimaryButtonEnabled = false, DefaultButton = ContentDialogButton.Primary };
-        ApplyDialogPalette(dialog); dialog.Loaded += Dialog_Loaded; TrackDialogActivity(dialog);
+        dialog.Loaded += (_, _) =>
+        {
+            Dialog_Loaded(dialog, null!);
+            // Root.ActualWidth is the actual client width in DIPs. XamlRoot
+            // can still report a larger scaled surface while a dialog opens.
+            var clientWidth = Root.ActualWidth > 0 ? Root.ActualWidth : Root.XamlRoot.Size.Width;
+            var dialogWidth = Math.Max(320, clientWidth - 24);
+            var contentWidth = Math.Max(240, dialogWidth - 64);
+            layout.MaxWidth = Math.Min(580, contentWidth);
+            dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
+            dialog.Resources["ContentDialogMinWidth"] = Math.Min(420, dialogWidth);
+            dialog.MaxWidth = dialogWidth;
+        };
+        ApplyDialogPalette(dialog); TrackDialogActivity(dialog);
         list.SelectionChanged += (_, _) => dialog.IsPrimaryButtonEnabled = list.SelectedItem is not null;
         var protectSelectionRequested = false;
         list.DoubleTapped += (_, _) =>
@@ -281,7 +335,7 @@ public sealed partial class MainWindow
             foreach (var item in installed.Where(item => query.Length == 0 || item.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) || item.Publisher.Contains(query, StringComparison.CurrentCultureIgnoreCase) || item.Path.Contains(query, StringComparison.OrdinalIgnoreCase))) visible.Add(item);
             empty.Visibility = visible.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         };
-        var result = await dialog.ShowAsync();
+        var result = await dialog.ShowAsync(ContentDialogPlacement.InPlace);
         if (result == ContentDialogResult.Primary || protectSelectionRequested) return list.SelectedItem as InstalledApplication;
         if (result != ContentDialogResult.Secondary) return null;
         var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.Desktop };

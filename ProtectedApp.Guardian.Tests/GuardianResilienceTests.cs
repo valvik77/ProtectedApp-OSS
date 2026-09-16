@@ -8,6 +8,37 @@ public sealed class GuardianResilienceTests
 {
     private const string TestSigner = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
+    [Theory]
+    [InlineData(1, 15)]
+    [InlineData(2, 30)]
+    [InlineData(4, 60)]
+    [InlineData(60, 60)]
+    public void AutomaticCloseWarning_OnlyUsesTheFinalPartOfTheInterval(int configuredMinutes,
+        int expectedWarningSeconds)
+    {
+        Assert.Equal(TimeSpan.FromSeconds(expectedWarningSeconds),
+            GuardianEnforcer.GetAutomaticCloseWarningLead(TimeSpan.FromMinutes(configuredMinutes)));
+    }
+
+    [Fact]
+    public void AutomaticCloseWarning_IgnoresThePointerMoveNeededToDismissIt()
+    {
+        var warning = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
+
+        Assert.True(GuardianEnforcer.ShouldIgnoreActivityAfterWarning(warning, warning.AddSeconds(5)));
+        Assert.False(GuardianEnforcer.ShouldIgnoreActivityAfterWarning(warning, warning.AddSeconds(6)));
+        Assert.False(GuardianEnforcer.ShouldIgnoreActivityAfterWarning(null, warning.AddSeconds(1)));
+    }
+
+    [Fact]
+    public void AutomaticCloseRestartShield_OnlyCoversTheImmediateHelperRestart()
+    {
+        var closedAt = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
+
+        Assert.True(GuardianEnforcer.IsWithinAutomaticCloseRestartShield(closedAt, closedAt.AddSeconds(5)));
+        Assert.False(GuardianEnforcer.IsWithinAutomaticCloseRestartShield(closedAt, closedAt.AddSeconds(6)));
+    }
+
     [Fact]
     public void TamperAuditTrail_DetectsDeletedOrAlteredHistory()
     {

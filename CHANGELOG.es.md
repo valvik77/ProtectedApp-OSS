@@ -30,6 +30,9 @@ firma.
 
 ### Modificado
 
+- La contraseña maestra requiere ahora al menos 8 caracteres. Las contraseñas
+  de bóvedas, copias cifradas y credenciales propias de aplicaciones mantienen
+  un mínimo de 12 porque protegen directamente datos cifrados o portátiles.
 - Acelerado el trabajo en unidades virtuales: las lecturas repetidas reutilizan
   una caché autenticada en memoria y el descriptor de la sesión, las búsquedas
   de archivos y bloques se indexan y los bloques claramente no comprimibles no
@@ -58,9 +61,31 @@ firma.
   los cambios de configuración sigan respondiendo.
 - Las pruebas completas del instalador ya no se ejecutan en cada *push* o
   solicitud de cambios: se reservan para los candidatos de revisión etiquetados.
+- El editor para añadir una aplicación protegida se reorganizó en dos columnas
+  en ventanas anchas, evitando desplazamiento vertical innecesario.
 
 ### Corregido
 
+- Un cierre por inactividad o por tiempo de un minuto avisa ahora 15 segundos
+  antes de cerrar, y no inmediatamente al arrancar ni al ampliar el plazo.
+- Al descartar un aviso de inactividad, el movimiento del puntero necesario
+  para llegar al diálogo ya no amplía el plazo por accidente; la opción ahora
+  se llama **No ampliar**.
+- El selector de aplicaciones protegidas ahora detecta programas de escritorio
+  también desde App Paths y los accesos del menú Inicio, y excluye la utilidad
+  interna de Dokan.
+- El selector de aplicaciones protegidas se adapta a ventanas estrechas y DPI
+  altos para que ni el buscador ni las filas se corten por la derecha.
+- Las subcarpetas inaccesibles del menú Inicio se omiten al detectar
+  aplicaciones, para que una carpeta protegida no pueda cerrar ProtectedApp.
+- Se ignoran únicamente los relanzamientos inmediatos de procesos auxiliares
+  tras un cierre automático, evitando que el temporizador muestre una petición
+  de contraseña no solicitada. Los nuevos inicios autorizados parten de un
+  estado de temporizador limpio.
+- Se mantiene visible y activo el tiempo de espera por contraseñas erróneas al
+  cerrar y volver a abrir su ventana, en lugar de aparentar que el bloqueo se
+  reinicia.
+- El instalador abre la creación de la contraseña maestra en una instalación nueva; las actualizaciones mantienen el panel en segundo plano. También funciona si ProtectedApp ya estaba en ejecución.
 - La instalación, actualización y desinstalación de Guardian gestionan ahora su tarea de vigilancia SYSTEM mediante la API local del Programador de tareas en lugar de CIM, que puede denegar el acceso en Windows Sandbox.
 - Se muestra el error real del instalador de Guardian antes de intentar crear la política contra un servicio que siguió en ejecución, evitando el aviso engañoso de autorización inválida.
 - La reparación omite la reconfiguración innecesaria del servicio si su ejecutable y arranque automático ya son correctos; cuando Windows rechaza un cambio necesario se conserva el error concreto.

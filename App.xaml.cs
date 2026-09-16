@@ -58,6 +58,7 @@ public partial class App : Application
             var updateShutdownRequested = commandLine.Any(argument =>
                 argument.Equals("--shutdown-for-update", StringComparison.OrdinalIgnoreCase));
             var silentLaunch = AppLaunchMode.IsSilent(commandLine);
+            var postInstallLaunch = AppLaunchMode.IsPostInstall(commandLine);
             LogDiagnostic($"Silent launch: {silentLaunch}, Folder: {requestedFolder}, Vault: {requestedVault}");
             if (commandLine.Any(argument =>
                     argument.Equals("--authorize-uninstall", StringComparison.OrdinalIgnoreCase)))
@@ -168,7 +169,7 @@ public partial class App : Application
                 var primaryInstance = AppInstance.FindOrRegisterForKey(string.IsNullOrWhiteSpace(instanceKey)
                     ? "ProtectedApp.Primary"
                     : instanceKey);
-                if (silentLaunch && requestedFolder is null && requestedVault is null
+                if (silentLaunch && !postInstallLaunch && requestedFolder is null && requestedVault is null
                     && requestedVaultUnmountDrive is null)
                 {
                     Exit();
@@ -227,6 +228,7 @@ public partial class App : Application
                 var updateShutdownRequested = launchArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                     .Any(argument => argument.Equals("--shutdown-for-update", StringComparison.OrdinalIgnoreCase));
                 var isInteractiveActivation = !AppLaunchMode.IsSilent(launchArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+                var isPostInstallActivation = AppLaunchMode.IsPostInstall(launchArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
                 MainWindow.DispatcherQueue.TryEnqueue(() =>
                 {
@@ -251,6 +253,11 @@ public partial class App : Application
                         {
                             LogDiagnostic("Vault drive unmount activation");
                             MainWindow.RequestVaultUnmountFromActivation(vaultUnmountDrive);
+                        }
+                        else if (isPostInstallActivation)
+                        {
+                            LogDiagnostic("Post-install activation - opening initial setup only if needed");
+                            MainWindow.RequestPostInstallActivation();
                         }
                         else if (isInteractiveActivation)
                         {

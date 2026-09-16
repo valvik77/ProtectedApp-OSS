@@ -8,6 +8,13 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class SecurityRegressionTests
 {
     [Fact]
+    public void MasterPasswordPolicy_RequiresEightCharactersWhileVaultDataRemainsStricter()
+    {
+        Assert.Equal(8, PasswordService.MasterPasswordMinimumLength);
+        Assert.Equal(12, PasswordService.MinimumPasswordLength);
+    }
+
+    [Fact]
     public void PasswordRecords_AreVersionedAndLegacyRecordsRemainVerifiable()
     {
         const string password = "A long test password 123!";

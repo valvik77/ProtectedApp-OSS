@@ -29,6 +29,9 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Changed
 
+- Master passwords now require at least 8 characters. Passwords for vaults,
+  encrypted backups, and app-specific credentials remain at least 12
+  characters because they directly protect encrypted or portable data.
 - Accelerated virtual-vault work: repeated reads reuse an authenticated
   in-memory block cache and a session file handle, file and chunk lookups are
   indexed, and clearly incompressible blocks skip unnecessary compression.
@@ -51,9 +54,29 @@ candidate** is not a public release and must not be distributed as one; see
   changes responsive.
 - Kept full installer probes out of ordinary pull-request and push CI; they now
   run only for tagged review candidates.
+- Reworked the new protected-application editor into a two-column layout on
+  wide windows, avoiding unnecessary vertical scrolling.
 
 ### Fixed
 
+- A one-minute inactivity or timed-close limit now warns 15 seconds before
+  closing rather than immediately at launch or after an extension.
+- Dismissing an inactivity warning no longer turns the pointer movement needed
+  to reach the dialog into an unintended activity extension; the choice is now
+  labelled **Do not extend**.
+- The protected-app picker now discovers desktop programs from App Paths and
+  Start-menu shortcuts as well as uninstall entries, while excluding Dokan's
+  internal command-line tool.
+- Made the protected-app picker responsive on narrow and high-DPI windows so
+  its search field and rows no longer clip at the right edge.
+- Ignore inaccessible Start-menu subdirectories while discovering applications
+  so a protected folder cannot close ProtectedApp.
+- Suppress only immediate helper-process relaunches after automatic closing,
+  preventing a timeout from opening an unsolicited password prompt. New
+  authorized launches start with fresh timer UI state.
+- Keep password retry delays visible and enforced when a password window is
+  closed and reopened, instead of appearing to reset the lockout.
+- The setup now opens master-password creation on a first installation; upgrades keep the panel in the background. Post-install activation also works when a ProtectedApp instance is already running.
 - Guardian service installation, update, and removal now manage the SYSTEM health task through the local Task Scheduler API instead of CIM, which can deny access in Windows Sandbox.
 - Report a failed Guardian installer before attempting policy bootstrap against a still-running service; this preserves the real installation error instead of misleadingly reporting an invalid authorization secret.
 - Skip redundant Guardian service reconfiguration during repair when its binary path and automatic start are already correct; retain the actual Windows error if reconfiguration is needed and fails.

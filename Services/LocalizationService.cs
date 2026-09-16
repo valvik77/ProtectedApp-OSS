@@ -654,6 +654,7 @@ public static class LocalizationService
         ["No se pudo iniciar"] = "Could not start",
         ["Entendido"] = "OK",
         ["Ahora no"] = "Not now",
+        ["No ampliar"] = "Do not extend",
         ["Autoriza el desbloqueo de"] = "Authorize unlocking",
         ["Autorización no concedida."] = "Authorization was not granted."
         ,["Aceptar"] = "OK"

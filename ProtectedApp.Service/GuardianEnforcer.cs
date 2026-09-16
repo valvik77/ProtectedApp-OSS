@@ -15,11 +15,17 @@ internal sealed class GuardianEnforcer(
     private const int GracefulCloseTimeoutMilliseconds = 2_500;
     private const int ImmediateLockGracePeriodMilliseconds = 5_000;
     private static readonly TimeSpan InteractiveCloseGracePeriod = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan WarningInteractionShield = TimeSpan.FromSeconds(5);
+    // Some applications leave a helper that immediately tries to restart the
+    // main executable when it is closed. A timeout-driven close must not turn
+    // that helper into a password prompt the user never requested.
+    private static readonly TimeSpan AutomaticCloseRestartShield = TimeSpan.FromSeconds(5);
     private readonly ConcurrentDictionary<int, AllowedProcess> _allowedProcesses = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _launchAllowances = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, TrustedAuthorization> _trustedUntil = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, TimedSession> _timedSessions = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, InactiveSession> _inactiveSessions = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _automaticCloseRestartSuppressions = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, PendingProcess> _pending = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<int, SessionIdentity> _sessionIdentities = new();
     private readonly ConcurrentDictionary<int, byte> _eventChecks = new();
@@ -405,6 +411,7 @@ internal sealed class GuardianEnforcer(
             PasswordHash = credential.Hash,
             PasswordSalt = credential.Salt,
             WarningIssued = false,
+            WarningIssuedUtc = null,
             GracefulCloseRequestedUtc = null
         };
         logger.LogInformation("Cierre automático ampliado para {Rule}, sesión {SessionId}.", rule.Name, sessionId);
@@ -419,10 +426,16 @@ internal sealed class GuardianEnforcer(
         if (rule is null) return false;
         var key = ProcessKey(userSid, sessionId, rule.Path);
         if (!_inactiveSessions.TryGetValue(key, out var session)) return false;
+        var now = DateTimeOffset.UtcNow;
+        // The warning window takes focus only after Windows has delivered the
+        // pointer movement that opened it. Do not let that unavoidable move
+        // turn "No ampliar" into an implicit one-minute extension.
+        if (ShouldIgnoreActivityAfterWarning(session.WarningIssuedUtc, now)) return true;
         _inactiveSessions[key] = session with
         {
-            LastActivityUtc = DateTimeOffset.UtcNow,
+            LastActivityUtc = now,
             WarningIssued = false,
+            WarningIssuedUtc = null,
             GracefulCloseRequestedUtc = null
         };
         return true;
@@ -453,6 +466,7 @@ internal sealed class GuardianEnforcer(
             PasswordHash = credential.Hash,
             PasswordSalt = credential.Salt,
             WarningIssued = false,
+            WarningIssuedUtc = null,
             GracefulCloseRequestedUtc = null
         };
         logger.LogInformation("Cierre por inactividad ampliado para {Rule}, sesión {SessionId}.", rule.Name, sessionId);
@@ -624,13 +638,16 @@ internal sealed class GuardianEnforcer(
         return summary;
     }
 
-    public int? RevokeRuleAndTerminate(string userSid, int sessionId, Guid ruleId, bool gracefulClose = false)
+    public int? RevokeRuleAndTerminate(string userSid, int sessionId, Guid ruleId, bool gracefulClose = false,
+        bool suppressImmediateRestartPrompt = false)
     {
         var policy = policyStore.GetPolicy(userSid);
         var rule = policy?.Rules.FirstOrDefault(candidate => candidate.Id == ruleId);
         if (rule is null) return null;
 
         var key = ProcessKey(userSid, sessionId, rule.Path);
+        if (suppressImmediateRestartPrompt)
+            _automaticCloseRestartSuppressions[key] = DateTimeOffset.UtcNow.Add(AutomaticCloseRestartShield);
         _launchAllowances.TryRemove(key, out _);
         _trustedUntil.TryRemove(key, out _);
         _timedSessions.TryRemove(key, out _);
@@ -785,6 +802,12 @@ internal sealed class GuardianEnforcer(
 
         var now = DateTimeOffset.UtcNow;
         var pendingKey = ProcessKey(userSid, sessionId, normalized);
+        if (ShouldSuppressAutomaticRestart(pendingKey, now))
+        {
+            logger.LogInformation("Relanzamiento auxiliar ignorado después del cierre automático: {Rule}, sesión {SessionId}.",
+                rule.Name, sessionId);
+            return true;
+        }
         var schedule = GetScheduleDisposition(rule, now);
         if (schedule == ScheduleDisposition.Block)
         {
@@ -1101,6 +1124,18 @@ internal sealed class GuardianEnforcer(
             return true;
         }
         var launchKey = ProcessKey(sid, sessionId, protectedPath);
+        if (ShouldSuppressAutomaticRestart(launchKey, now))
+        {
+            try
+            {
+                process.Kill(true);
+                process.WaitForExit(2_000);
+            }
+            catch { }
+            logger.LogInformation("Proceso auxiliar terminado después del cierre automático: {Rule}, PID {ProcessId}.",
+                rule.Name, process.Id);
+            return true;
+        }
         if (_launchAllowances.TryGetValue(launchKey, out var expires) && expires > now)
         {
             TryRememberAllowedProcess(process.Id, protectedPath, sid, sessionId);
@@ -1281,6 +1316,8 @@ internal sealed class GuardianEnforcer(
         EnforceInactiveSessions(now);
         foreach (var allowance in _launchAllowances)
             if (allowance.Value <= now) _launchAllowances.TryRemove(allowance.Key, out _);
+        foreach (var suppression in _automaticCloseRestartSuppressions)
+            if (suppression.Value <= now) _automaticCloseRestartSuppressions.TryRemove(suppression.Key, out _);
         foreach (var trust in _trustedUntil)
             if (trust.Value.ExpiresUtc <= now) _trustedUntil.TryRemove(trust.Key, out _);
         foreach (var pending in _pending)
@@ -1333,10 +1370,15 @@ internal sealed class GuardianEnforcer(
                 continue;
             }
 
-            var expiresUtc = session.LastActivityUtc.AddMinutes(rule.ForceCloseAfterInactivityMinutes);
+            var closeInterval = TimeSpan.FromMinutes(rule.ForceCloseAfterInactivityMinutes);
+            var expiresUtc = session.LastActivityUtc + closeInterval;
             if (policy!.CloseWarningNotificationsEnabled && !session.WarningIssued && expiresUtc > now
-                && expiresUtc - now <= TimeSpan.FromMinutes(1)
-                && _inactiveSessions.TryUpdate(pair.Key, session with { WarningIssued = true }, session))
+                && expiresUtc - now <= GetAutomaticCloseWarningLead(closeInterval)
+                && _inactiveSessions.TryUpdate(pair.Key, session with
+                {
+                    WarningIssued = true,
+                    WarningIssuedUtc = now
+                }, session))
             {
                 SetPending(pair.Key, session.UserSid, session.SessionId, rule, now, null,
                     GuardianProtocol.PendingNotice,
@@ -1345,7 +1387,8 @@ internal sealed class GuardianEnforcer(
             if (expiresUtc > now) continue;
             if (TryRequestInteractiveClose(pair.Key, session, rule, now)) continue;
             if (!((ICollection<KeyValuePair<string, InactiveSession>>)_inactiveSessions).Remove(pair)) continue;
-            var terminated = RevokeRuleAndTerminate(session.UserSid, session.SessionId, session.RuleId) ?? 0;
+            var terminated = RevokeRuleAndTerminate(session.UserSid, session.SessionId, session.RuleId,
+                suppressImmediateRestartPrompt: true) ?? 0;
             SynchronizeExecutionGates();
             logger.LogInformation("Cierre por inactividad: {Rule}, sesión {SessionId}, procesos terminados {Count}.",
                 session.Name, session.SessionId, terminated);
@@ -1401,9 +1444,15 @@ internal sealed class GuardianEnforcer(
                 continue;
             }
 
-            var expiresUtc = session.GrantedUtc.AddMinutes(rule.ForceCloseAfterMinutes);
-            if (policy!.CloseWarningNotificationsEnabled && !session.WarningIssued && expiresUtc > now && expiresUtc - now <= TimeSpan.FromMinutes(1)
-                && _timedSessions.TryUpdate(pair.Key, session with { WarningIssued = true }, session))
+            var closeInterval = TimeSpan.FromMinutes(rule.ForceCloseAfterMinutes);
+            var expiresUtc = session.GrantedUtc + closeInterval;
+            if (policy!.CloseWarningNotificationsEnabled && !session.WarningIssued && expiresUtc > now
+                && expiresUtc - now <= GetAutomaticCloseWarningLead(closeInterval)
+                && _timedSessions.TryUpdate(pair.Key, session with
+                {
+                    WarningIssued = true,
+                    WarningIssuedUtc = now
+                }, session))
             {
                 SetPending(pair.Key, session.UserSid, session.SessionId, rule, now, null,
                     GuardianProtocol.PendingNotice,
@@ -1426,7 +1475,8 @@ internal sealed class GuardianEnforcer(
             if (_scriptHostAuthorizations.TryRemove(pair.Key, out var hostAuthorization))
                 executionGate.CancelHostAuthorization(hostAuthorization.HostPaths);
 
-            var terminated = RevokeRuleAndTerminate(session.UserSid, session.SessionId, session.RuleId) ?? 0;
+            var terminated = RevokeRuleAndTerminate(session.UserSid, session.SessionId, session.RuleId,
+                suppressImmediateRestartPrompt: true) ?? 0;
             // Do not wait for the periodic authorization reconciliation. A
             // user can launch the same application immediately after its
             // timed close; its gate must already be armed so that attempt
@@ -1448,6 +1498,33 @@ internal sealed class GuardianEnforcer(
         TryRequestInteractiveClose(key, session.UserSid, session.SessionId, session.RuleId, session.Path,
             session.GracefulCloseRequestedUtc, requestedUtc => session with { GracefulCloseRequestedUtc = requestedUtc },
             session, rule, now, _inactiveSessions);
+
+    /// <summary>
+    /// A one-minute closing interval must not warn immediately on launch: that
+    /// would turn every activity reset or user extension into another prompt.
+    /// Warn during the final quarter of the interval, with a useful 10-second
+    /// minimum and a one-minute maximum for longer durations.
+    /// </summary>
+    internal static TimeSpan GetAutomaticCloseWarningLead(TimeSpan closeInterval)
+    {
+        if (closeInterval <= TimeSpan.Zero) return TimeSpan.Zero;
+        return TimeSpan.FromSeconds(Math.Clamp(closeInterval.TotalSeconds / 4d, 10d, 60d));
+    }
+
+    internal static bool ShouldIgnoreActivityAfterWarning(DateTimeOffset? warningIssuedUtc,
+        DateTimeOffset now) => warningIssuedUtc is { } issued
+            && now >= issued && now - issued <= WarningInteractionShield;
+
+    internal static bool IsWithinAutomaticCloseRestartShield(DateTimeOffset closedAt,
+        DateTimeOffset now) => now >= closedAt && now - closedAt <= AutomaticCloseRestartShield;
+
+    private bool ShouldSuppressAutomaticRestart(string key, DateTimeOffset now)
+    {
+        if (!_automaticCloseRestartSuppressions.TryGetValue(key, out var until)) return false;
+        if (until > now) return true;
+        _automaticCloseRestartSuppressions.TryRemove(key, out _);
+        return false;
+    }
 
     private bool TryRequestInteractiveClose<TSession>(string key, string userSid, int sessionId, Guid ruleId, string path,
         DateTimeOffset? requestedUtc, Func<DateTimeOffset, TSession> createRequestedSession, TSession currentSession,
@@ -1641,10 +1718,12 @@ internal sealed class GuardianEnforcer(
         int GraceMinutes, string? PasswordHash, string? PasswordSalt);
     private sealed record TimedSession(DateTimeOffset GrantedUtc, string UserSid, int SessionId,
         Guid RuleId, string Path, string Name, string? PasswordHash, string? PasswordSalt,
-        bool WarningIssued = false, DateTimeOffset? GracefulCloseRequestedUtc = null);
+        bool WarningIssued = false, DateTimeOffset? WarningIssuedUtc = null,
+        DateTimeOffset? GracefulCloseRequestedUtc = null);
     private sealed record InactiveSession(DateTimeOffset LastActivityUtc, string UserSid, int SessionId,
         Guid RuleId, string Path, string Name, string? PasswordHash, string? PasswordSalt,
-        bool WarningIssued = false, DateTimeOffset? GracefulCloseRequestedUtc = null);
+        bool WarningIssued = false, DateTimeOffset? WarningIssuedUtc = null,
+        DateTimeOffset? GracefulCloseRequestedUtc = null);
     private sealed record ScriptHostAuthorization(string UserSid, int SessionId, DateTime StartUtc,
         DateTimeOffset GraceExpiresUtc, string[] HostPaths);
     internal readonly record struct ProcessCloseSummary(int GracefulCloseCount, int ForcedTerminationCount)

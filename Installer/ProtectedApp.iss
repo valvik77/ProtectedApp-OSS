@@ -74,8 +74,8 @@ english.CleanShell=Cleaning obsolete Explorer components...
 spanish.CleanShell=Limpiando extensiones antiguas del Explorador...
 english.RestartExplorer=Restart Windows Explorer
 spanish.RestartExplorer=Restaurar el Explorador de Windows
-english.StartProtection=Start protection in the background
-spanish.StartProtection=Iniciar la protección en segundo plano
+english.StartProtection=Start ProtectedApp (set up a master password if needed)
+spanish.StartProtection=Iniciar ProtectedApp (configurar contraseña maestra si es necesario)
 english.CloseProtectedApp=Closing ProtectedApp...
 spanish.CloseProtectedApp=Cerrando ProtectedApp...
 
@@ -114,7 +114,7 @@ Root: HKLM; Subkey: "Software\Classes\Drive\shell\ProtectedApp.UnmountVault\comm
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Install-ShellExtension.ps1"""; StatusMsg: "{cm:DisableLegacyShell}"; Flags: runhidden waituntilterminated
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Cleanup-ShellExtensions.ps1"" -ShellDirectory ""{app}\Shell"" -RemoveAll"; StatusMsg: "{cm:CleanShell}"; Flags: runhidden waituntilterminated
 Filename: "{sys}\explorer.exe"; Description: "{cm:RestartExplorer}"; Flags: nowait postinstall skipifsilent runasoriginaluser; Check: RestartExplorerAfterInstall
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--background --install-language ""{language}"""; Description: "{cm:StartProtection}"; Flags: nowait postinstall skipifsilent runasoriginaluser
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--post-install --install-language ""{language}"""; Description: "{cm:StartProtection}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [UninstallRun]
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Remove-ShellExtension.ps1"" -AssemblyPath ""{app}\Shell\ProtectedApp.ShellExtension.{#MyAppVersion}.dll"""; RunOnceId: "RemoveShellExtension"; Flags: runhidden waituntilterminated

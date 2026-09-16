@@ -50,7 +50,9 @@ the [security model](SECURITY-MODEL.en.md).
 
 ## Getting started
 
-1. Open ProtectedApp interactively from Start, its shortcut, or the tray icon.
+1. After a new interactive installation, leave **Start ProtectedApp** selected:
+   the app opens master-password setup automatically. Otherwise, open it from
+   Start, its shortcut, or the tray icon. An upgrade stays in the background.
 2. Create the master password. It is required to manage rules, restore backups,
    and uninstall safely.
 3. In **Settings**, confirm that the **Guardian service** is running.

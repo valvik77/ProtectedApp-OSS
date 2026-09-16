@@ -93,6 +93,11 @@ public sealed partial class MainWindow
             }
             if (string.Equals(pending.Kind, GuardianProtocol.PendingGracefulClose, StringComparison.OrdinalIgnoreCase))
             {
+                // The session is now on its way out. Do not carry its IPC
+                // token or last-input tick into a later, separately
+                // authenticated launch of the same application.
+                _timedSessionTokens.Remove(app.Id);
+                _lastReportedInputTicks.Remove(app.Id);
                 RequestGracefulClose(pending.ProcessIds);
                 await _guardianClient.DismissPendingAsync(pending.RuleId);
                 AddActivity(app.Name, "Cierre normal solicitado; guarda los cambios pendientes si la aplicación lo requiere");
@@ -436,6 +441,7 @@ public sealed partial class MainWindow
             if (!response.Success) return;
             if (!string.IsNullOrWhiteSpace(response.TimedSessionToken))
                 _timedSessionTokens[app.Id] = response.TimedSessionToken;
+            _lastReportedInputTicks.Remove(app.Id);
             _lastReportedInputTicks[app.Id] = info.dwTime;
             _nextApplicationActivityReportUtc = now.AddSeconds(1);
         }

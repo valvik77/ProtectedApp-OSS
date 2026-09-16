@@ -25,6 +25,7 @@ public sealed partial class UnlockWindow : Window
     private bool _unlockContentLoaded;
     private DateTimeOffset _retryUntilUtc;
     private string _retryMessage = string.Empty;
+    private readonly string _retryScope;
 
     private readonly Func<Task<UnlockAttemptResult>>? _verifyHello;
     private readonly bool _allowWindowsHello;
@@ -49,7 +50,8 @@ public sealed partial class UnlockWindow : Window
     }
 
     public UnlockWindow(string title, string subtitle, Func<string, Task<UnlockAttemptResult>> verifyPassword,
-        bool allowWindowsHello = false, Func<Task<UnlockAttemptResult>>? verifyHello = null)
+        bool allowWindowsHello = false, Func<Task<UnlockAttemptResult>>? verifyHello = null,
+        string? retryScope = null)
     {
         InitializeComponent();
         LocalizationService.LanguageChanged += RefreshLanguage;
@@ -63,6 +65,9 @@ public sealed partial class UnlockWindow : Window
         _verifyPassword = verifyPassword;
         _verifyHello = verifyHello;
         _allowWindowsHello = allowWindowsHello;
+        // A title/subtitle pair is stable for the same prompt. Callers can
+        // provide a more specific scope when several credentials share text.
+        _retryScope = retryScope ?? $"{title}\n{subtitle}";
         _retryTimer.Tick += RetryTimer_Tick;
 
         var targetHeight = allowWindowsHello ? WindowHeightWithHello : WindowHeight;
@@ -98,6 +103,7 @@ public sealed partial class UnlockWindow : Window
             LocalizationService.ApplyTo(Root);
             _unlockContentLoaded = true;
             UpdateCapsLockHint();
+            RestoreRetryCountdown();
             BringToForeground();
         };
         CenterWindow(targetHeight);
@@ -267,6 +273,7 @@ public sealed partial class UnlockWindow : Window
     private async Task TryUnlockAsync()
     {
         if (_verifying) return;
+        if (RestoreRetryCountdown()) return;
         _verifying = true;
         var password = PasswordInput.Password;
         PasswordInput.IsEnabled = false;
@@ -285,12 +292,8 @@ public sealed partial class UnlockWindow : Window
             if (result.RetryAfterSeconds > 0)
             {
                 PasswordInput.Password = string.Empty;
-                _retryUntilUtc = DateTimeOffset.UtcNow.AddSeconds(result.RetryAfterSeconds);
-                _retryMessage = string.IsNullOrWhiteSpace(result.Error)
-                    ? LocalizationService.T("Demasiados intentos.")
-                    : LocalizationService.T(result.Error.Trim());
-                UpdateRetryCountdown();
-                _retryTimer.Start();
+                UnlockRetryRegistry.Record(_retryScope, result, DateTimeOffset.UtcNow);
+                RestoreRetryCountdown();
             }
             else
             {
@@ -306,11 +309,23 @@ public sealed partial class UnlockWindow : Window
         }
         ErrorText.Text = string.Empty;
         ErrorText.Visibility = Visibility.Collapsed;
+        UnlockRetryRegistry.Record(_retryScope, result, DateTimeOffset.UtcNow);
         Complete(true);
         Close();
     }
 
     private void RetryTimer_Tick(object? sender, object e) => UpdateRetryCountdown();
+
+    private bool RestoreRetryCountdown()
+    {
+        var state = UnlockRetryRegistry.GetActive(_retryScope, DateTimeOffset.UtcNow);
+        if (state is null) return false;
+        _retryUntilUtc = state.RetryUntilUtc;
+        _retryMessage = LocalizationService.T(state.Message);
+        UpdateRetryCountdown();
+        _retryTimer.Start();
+        return true;
+    }
 
     private void UpdateRetryCountdown()
     {

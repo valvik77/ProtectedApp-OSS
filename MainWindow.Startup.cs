@@ -66,6 +66,9 @@ public sealed partial class MainWindow
             && VaultActivationRequest.TryGetVaultUnmountDrive(commandLine) is null;
         FitWindowToDisplay();
         _state = await _store.LoadAsync();
+        if (AppLaunchMode.ShouldOpenInitialSetup(commandLine,
+                !string.IsNullOrWhiteSpace(_state.MasterPasswordHash)))
+            interactiveLaunch = true;
         var installerLanguage = TryGetInstallerLanguage(commandLine);
         if (installerLanguage is not null)
         {
@@ -200,6 +203,13 @@ public sealed partial class MainWindow
         if (interactiveLaunch && _sessionUnlocked && !_skipAutomaticServiceInstall)
             await EnsureGuardianInstalledAutomaticallyAsync();
 
+        if (_postInstallRequestedWhileLoading)
+        {
+            _postInstallRequestedWhileLoading = false;
+            if (AppLaunchMode.ShouldOpenInitialSetup(["--post-install"],
+                    !string.IsNullOrWhiteSpace(_state.MasterPasswordHash)))
+                _showRequestedWhileLoading = true;
+        }
         if (_showRequestedWhileLoading)
         {
             _showRequestedWhileLoading = false;

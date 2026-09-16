@@ -3,7 +3,13 @@ namespace ProtectedApp.Services;
 public static class AppLaunchMode
 {
     private static readonly string[] SilentArguments =
-        ["--background", "--service-managed", "--recovered"];
+        ["--background", "--service-managed", "--recovered", "--post-install"];
+
+    public static bool IsPostInstall(IEnumerable<string> commandLine) =>
+        commandLine.Any(argument => argument.Equals("--post-install", StringComparison.OrdinalIgnoreCase));
+
+    public static bool ShouldOpenInitialSetup(IEnumerable<string> commandLine, bool hasMasterPassword) =>
+        IsPostInstall(commandLine) && !hasMasterPassword;
 
     public static bool IsSilent(IEnumerable<string> commandLine) =>
         commandLine.Any(argument =>
@@ -27,6 +33,13 @@ public static class AppLaunchMode
     internal static void RunRegressionProbe()
     {
         Assert(IsSilent(["--background"]), "El inicio en segundo plano debe permanecer silencioso.");
+        Assert(IsSilent(["--post-install"]), "El inicio tras instalar no debe mostrar un panel ya configurado.");
+        Assert(ShouldOpenInitialSetup(["--post-install"], false),
+            "Una instalación nueva debe solicitar la contraseña maestra.");
+        Assert(!ShouldOpenInitialSetup(["--post-install"], true),
+            "Una actualización no debe solicitar el desbloqueo del panel.");
+        Assert(!ShouldOpenInitialSetup(["--background"], false),
+            "El arranque de Windows no debe abrir el asistente inicial.");
         Assert(IsSilent(["--service-managed"]), "El inicio gestionado por Guardian debe permanecer silencioso.");
         Assert(IsSilent(["--open-folder", "C:\\Temporal"]), "Una activación contextual no debe abrir el panel.");
         Assert(IsSilent(["--unmount-vault-drive", "V:\\"]), "El desmontaje contextual debe permanecer silencioso.");

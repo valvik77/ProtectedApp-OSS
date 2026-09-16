@@ -60,6 +60,7 @@ public sealed partial class MainWindow : Window
     private bool _guardianSyncPromptDeferred;
     private bool _handlingTamper;
     private bool _showRequestedWhileLoading;
+    private bool _postInstallRequestedWhileLoading;
     private bool _showRequestedWhileBusy;
     private bool _refreshingVaultBackupState;
     private int _vaultBackupRunning;

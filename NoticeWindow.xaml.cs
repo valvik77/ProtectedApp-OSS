@@ -35,7 +35,7 @@ public sealed partial class NoticeWindow : Window
         {
             ActionButton.Content = LocalizationService.T(ActionButton, "Content", actionLabel);
             ActionButton.Visibility = Visibility.Visible;
-            AcceptButton.Content = LocalizationService.T(AcceptButton, "Content", "Ahora no");
+            AcceptButton.Content = LocalizationService.T(AcceptButton, "Content", "No ampliar");
         }
 
         _hwnd = WindowNative.GetWindowHandle(this);

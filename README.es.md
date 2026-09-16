@@ -180,9 +180,9 @@ su firma digital y lo prepara en `.tools`.
 Setup instala por máquina en `Program Files`, crea el acceso del menú Inicio y
 puede crear uno en el escritorio. En una actualización detiene temporalmente
 Guardian, reemplaza los binarios y vuelve a iniciar el servicio conservando la
-política cifrada. La opción final **Iniciar la protección en segundo plano** usa
-el modo silencioso: no abre el panel ni solicita la contraseña maestra después
-de instalar o actualizar.
+política cifrada. La opción final **Iniciar ProtectedApp** abre la creación de
+la contraseña maestra si aún no existe. Si ya hay una configuración, como en
+una actualización, mantiene el panel oculto y la protección en segundo plano.
 
 La actualización entra en mantenimiento antes de cerrar cualquier proceso. El
 instalador no usa el cierre forzado automático de Restart Manager, elimina la

@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using ProtectedApp.Models;
+using System.Runtime.InteropServices;
 
 namespace ProtectedApp.Services;
 
@@ -11,18 +12,105 @@ public static class InstalledAppsService
         @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
     ];
 
+    private const string AppPathsKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
+
     public static Task<IReadOnlyList<InstalledApplication>> GetInstalledApplicationsAsync() =>
-        Task.Run<IReadOnlyList<InstalledApplication>>(Enumerate);
+        Task.Run<IReadOnlyList<InstalledApplication>>(() =>
+        {
+            // Discovery is a convenience feature. A stale Start Menu link or
+            // a directory ACL must never be able to terminate the UI.
+            try { return Enumerate(); }
+            catch { return []; }
+        });
 
     private static IReadOnlyList<InstalledApplication> Enumerate()
     {
         var applications = new Dictionary<string, InstalledApplication>(StringComparer.OrdinalIgnoreCase);
         AddRegistryApplications(Registry.CurrentUser, applications);
         AddRegistryApplications(Registry.LocalMachine, applications);
+        AddAppPathApplications(Registry.CurrentUser, applications);
+        AddAppPathApplications(Registry.LocalMachine, applications);
+        AddStartMenuApplications(applications);
         return applications.Values
             .Where(a => !PathsEqual(a.Path, Environment.ProcessPath))
             .OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
+    }
+
+    private static void AddAppPathApplications(RegistryKey hive,
+        Dictionary<string, InstalledApplication> applications)
+    {
+        try
+        {
+            using var appPaths = hive.OpenSubKey(AppPathsKey, false);
+            if (appPaths is null) return;
+            foreach (var subKeyName in appPaths.GetSubKeyNames())
+            {
+                using var entry = appPaths.OpenSubKey(subKeyName, false);
+                var executable = entry?.GetValue(null) as string;
+                if (!IsUsableExecutable(executable) || applications.ContainsKey(executable!)) continue;
+                applications[executable!] = CreateApplication(
+                    Path.GetFileNameWithoutExtension(executable!), executable!, "Registro de aplicaciones");
+            }
+        }
+        catch { }
+    }
+
+    private static void AddStartMenuApplications(Dictionary<string, InstalledApplication> applications)
+    {
+        var folders = new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu)
+        }.Where(path => !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+         .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var folder in folders)
+        {
+            try
+            {
+                // Enumeration is lazy: UnauthorizedAccessException can occur
+                // while advancing to a child directory rather than when the
+                // IEnumerable is created. Keep the entire iteration inside
+                // the guarded block.
+                foreach (var shortcut in Directory.EnumerateFiles(folder, "*.lnk", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        var executable = ResolveShortcutTarget(shortcut);
+                        if (!IsUsableExecutable(executable) || applications.ContainsKey(executable!)) continue;
+                        applications[executable!] = CreateApplication(
+                            Path.GetFileNameWithoutExtension(shortcut), executable!, "Menú Inicio");
+                    }
+                    catch { }
+                }
+            }
+            catch (UnauthorizedAccessException) { }
+            catch (IOException) { }
+        }
+    }
+
+    private static string? ResolveShortcutTarget(string shortcutPath)
+    {
+        object? shell = null;
+        object? shortcut = null;
+        try
+        {
+            var shellType = Type.GetTypeFromProgID("WScript.Shell");
+            if (shellType is null) return null;
+            shell = Activator.CreateInstance(shellType);
+            if (shell is null) return null;
+            shortcut = shell.GetType().InvokeMember("CreateShortcut",
+                System.Reflection.BindingFlags.InvokeMethod, null, shell, [shortcutPath]);
+            return shortcut?.GetType().InvokeMember("TargetPath",
+                System.Reflection.BindingFlags.GetProperty, null, shortcut, null) as string;
+        }
+        catch { return null; }
+        finally
+        {
+            if (shortcut is not null && Marshal.IsComObject(shortcut)) Marshal.FinalReleaseComObject(shortcut);
+            if (shell is not null && Marshal.IsComObject(shell)) Marshal.FinalReleaseComObject(shell);
+        }
     }
 
     private static void AddRegistryApplications(RegistryKey hive, Dictionary<string, InstalledApplication> applications)
@@ -52,11 +140,8 @@ public static class InstalledAppsService
                         iconPng ??= ApplicationIconService.GetIconPng(executable!);
                         applications[executable!] = new InstalledApplication
                         {
-                            Name = name.Trim(),
-                            Path = executable!,
-                            Publisher = publisher.Trim(),
-                            Source = "Programas instalados",
-                            IconPng = iconPng
+                            Name = name.Trim(), Path = executable!, Publisher = publisher.Trim(),
+                            Source = "Programas instalados", IconPng = iconPng
                         };
                     }
                 }
@@ -130,8 +215,20 @@ public static class InstalledAppsService
             || name.Contains("unins", StringComparison.OrdinalIgnoreCase)
             || name.Equals("setup", StringComparison.OrdinalIgnoreCase)
             || name.Equals("update", StringComparison.OrdinalIgnoreCase)
-            || name.EndsWith("service", StringComparison.OrdinalIgnoreCase);
+            || name.EndsWith("service", StringComparison.OrdinalIgnoreCase)
+            // Dokan is ProtectedApp's virtual-vault runtime. Its command-line
+            // tools are not user applications and protecting them could stop
+            // vault mounting altogether.
+            || name.StartsWith("dokan", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32"),
+                StringComparison.OrdinalIgnoreCase);
     }
+
+    private static InstalledApplication CreateApplication(string name, string executable, string source) => new()
+    {
+        Name = name.Trim(), Path = executable, Source = source,
+        IconPng = ApplicationIconService.GetIconPng(executable)
+    };
 
     private static bool PathsEqual(string? left, string? right) =>
         !string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right)
