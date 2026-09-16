@@ -47,7 +47,9 @@ public sealed partial class MainWindow
                     StatusDot.Fill = ThemeBrush(
                         Windows.UI.Color.FromArgb(255, 255, 153, 164),
                         Windows.UI.Color.FromArgb(255, 209, 52, 56));
-                    if (!_guardianUnavailableAlerted)
+                    if (!_guardianUnavailableAlerted && _guardianInitialSetupComplete
+                        && !_guardianInteractiveActivationInProgress
+                        && !string.IsNullOrWhiteSpace(_state.MasterPasswordHash))
                     {
                         _guardianUnavailableAlerted = true;
                         AddActivity("Guardian", "Alerta: Guardian no está disponible; la protección administrada necesita reparación");
@@ -584,6 +586,14 @@ public sealed partial class MainWindow
             if (process is null) return false;
             await process.WaitForExitAsync();
             var installerExitCode = process.ExitCode;
+            if (install && installerExitCode != 0)
+            {
+                RefreshGuardianStatus();
+                await ShowMessageAsync("No se pudo cambiar el servicio",
+                    ReadGuardianInstallationError() ??
+                    $"El instalador de Guardian terminó con el código {installerExitCode}. Vuelve a intentarlo; el próximo intento mostrará el detalle si Windows rechaza algún paso.");
+                return false;
+            }
             await Task.Delay(800);
 
             var running = GuardianServiceDetector.IsRunning();

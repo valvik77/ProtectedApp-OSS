@@ -47,12 +47,19 @@ public sealed partial class MainWindow
                 catch { }
             }
         }
+        finally
+        {
+            // The first interactive launch can install Guardian only after the
+            // master password is created or verified. Do not report an outage
+            // while that initial setup is still in progress.
+            _guardianInitialSetupComplete = true;
+        }
     }
 
     private async Task Root_LoadedAsync()
     {
         var commandLine = Environment.GetCommandLineArgs();
-        var skipAutomaticServiceInstall = commandLine.Any(argument =>
+        _skipAutomaticServiceInstall = commandLine.Any(argument =>
             argument.Equals("--no-service-install", StringComparison.OrdinalIgnoreCase));
         var interactiveLaunch = !AppLaunchMode.IsSilent(commandLine)
             && VaultActivationRequest.TryGetVaultPath(commandLine) is null
@@ -190,7 +197,7 @@ public sealed partial class MainWindow
                 break;
         }
 
-        if (interactiveLaunch && _sessionUnlocked && !skipAutomaticServiceInstall)
+        if (interactiveLaunch && _sessionUnlocked && !_skipAutomaticServiceInstall)
             await EnsureGuardianInstalledAutomaticallyAsync();
 
         if (_showRequestedWhileLoading)

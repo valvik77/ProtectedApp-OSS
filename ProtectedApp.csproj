@@ -90,6 +90,7 @@
     <ItemGroup>
       <GuardianServiceScript Include="ProtectedApp.Service\Install-Service.ps1" />
       <GuardianServiceScript Include="ProtectedApp.Service\Integrity-Transaction.ps1" />
+      <GuardianServiceScript Include="ProtectedApp.Service\Guardian-ScheduledTask.ps1" />
       <GuardianServiceScript Include="ProtectedApp.Service\Remove-Service.ps1" />
       <GuardianServiceScript Include="ProtectedApp.Service\Update-Installed-Service.ps1" />
     </ItemGroup>

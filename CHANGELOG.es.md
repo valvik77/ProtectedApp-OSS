@@ -61,6 +61,11 @@ firma.
 
 ### Corregido
 
+- La instalación, actualización y desinstalación de Guardian gestionan ahora su tarea de vigilancia SYSTEM mediante la API local del Programador de tareas en lugar de CIM, que puede denegar el acceso en Windows Sandbox.
+- Se muestra el error real del instalador de Guardian antes de intentar crear la política contra un servicio que siguió en ejecución, evitando el aviso engañoso de autorización inválida.
+- La reparación omite la reconfiguración innecesaria del servicio si su ejecutable y arranque automático ya son correctos; cuando Windows rechaza un cambio necesario se conserva el error concreto.
+- Se evita la alerta prematura «Guardian no disponible» mientras siguen en curso la contraseña maestra del primer inicio y la instalación automática de Guardian.
+- Se instala Guardian al abrir interactivamente por primera vez una instancia que inició el setup en segundo plano; esa apertura no vuelve a ejecutar el flujo de instalación del arranque.
 - Bloqueos de la interfaz al convertir una bóveda a protección TPM y al ejecutar
   la comprobación de copias de bóveda del instalador.
 - La versión automática del instalador local tiene en cuenta la versión del

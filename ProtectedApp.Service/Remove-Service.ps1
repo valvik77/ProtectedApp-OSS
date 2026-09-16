@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Guardian-ScheduledTask.ps1')
 $serviceName = 'ProtectedAppGuardian'
 $taskName = 'ProtectedApp Guardian Health Check'
 $eventSource = 'ProtectedAppGuardian'
@@ -23,8 +24,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'No se pudieron restaurar los permisos originales de las carpetas protegidas.' }
     }
 
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    Stop-GuardianHealthTask $taskName
+    Remove-GuardianHealthTask $taskName
     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     if ($service) {
         if ($service.Status -ne 'Stopped') { Stop-Service -Name $serviceName -Force; $service.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(15)) }

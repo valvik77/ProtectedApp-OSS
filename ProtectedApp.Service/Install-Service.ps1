@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Integrity-Transaction.ps1')
+. (Join-Path $PSScriptRoot 'Guardian-ScheduledTask.ps1')
 $serviceName = 'ProtectedAppGuardian'
 $taskName = 'ProtectedApp Guardian Health Check'
 $eventSource = 'ProtectedAppGuardian'
@@ -73,7 +74,7 @@ foreach ($staleGuardianFile in $staleGuardianFiles) {
 
 Set-Content -LiteralPath $maintenanceFile -Value ([DateTimeOffset]::UtcNow.ToString('O')) -Encoding ASCII
 try {
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    Stop-GuardianHealthTask $taskName
 
     $existing = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     if ($existing) {
@@ -157,8 +158,23 @@ try {
     Set-Content -LiteralPath $agentIdentityFile -Value $agentIdentity -Encoding UTF8
     $binaryPath = '"{0}" --app "{1}"' -f $installedServiceExe, $resolvedAppPath
     if ($existing) {
-        sc.exe config $serviceName binPath= $binaryPath start= auto | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'No se pudo configurar Guardian.' }
+        $serviceConfiguration = Get-ItemProperty -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
+        if (-not [string]::Equals([string]$serviceConfiguration.ImagePath, $binaryPath,
+                [StringComparison]::OrdinalIgnoreCase) -or [int]$serviceConfiguration.Start -ne 2) {
+            # A repair must not rewrite a correctly configured service. Apart
+            # from being unnecessary, some restricted Windows environments
+            # reject ChangeServiceConfig on an otherwise valid service.
+            $previousErrorActionPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $scOutput = & sc.exe config $serviceName binPath= $binaryPath start= auto 2>&1 | Out-String
+                $scExitCode = $LASTEXITCODE
+            }
+            finally { $ErrorActionPreference = $previousErrorActionPreference }
+            if ($scExitCode -ne 0) {
+                throw "No se pudo configurar Guardian (sc.exe: $scExitCode). $($scOutput.Trim())"
+            }
+        }
     }
     else {
         New-Service -Name $serviceName -BinaryPathName $binaryPath -DisplayName 'ProtectedApp Guardian' -Description 'Mantiene el agente ProtectedApp activo en la sesión interactiva.' -StartupType Automatic | Out-Null
@@ -166,13 +182,7 @@ try {
     sc.exe failure $serviceName reset= 86400 actions= restart/0/restart/1000/restart/5000 | Out-Null
     sc.exe failureflag $serviceName 1 | Out-Null
 
-    $healthArguments = '--health-watch --app "{0}"' -f $resolvedAppPath
-    $action = New-ScheduledTaskAction -Execute $installedServiceExe -Argument $healthArguments
-    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-    $recurringTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1)
-    $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
-    $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($startupTrigger, $recurringTrigger) -Principal $principal -Settings $settings -Description 'Rearma las puertas, bloquea la sesión y reinicia ProtectedApp Guardian si se detiene.' -Force | Out-Null
+    Register-GuardianHealthTask -TaskName $taskName -ExecutablePath $installedServiceExe -AppPath $resolvedAppPath
 
     Start-Service -Name $serviceName
     (Get-Service -Name $serviceName).WaitForStatus('Running', [TimeSpan]::FromSeconds(15))
@@ -181,7 +191,7 @@ catch {
     $operationError = $_
     if ($replacementStarted) {
         try {
-            Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+            Stop-GuardianHealthTask $taskName
             $current = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
             if ($current -and $current.Status -ne 'Stopped') {
                 Stop-Service -Name $serviceName -Force
@@ -201,12 +211,12 @@ finally {
     if (-not $rollbackFailed) { Remove-GuardianTransaction $stateFolder $transactionFolder }
     Remove-Item -LiteralPath $maintenanceFile -Force -ErrorAction SilentlyContinue
     if ($rollbackFailed) {
-        Disable-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
+        Set-GuardianHealthTaskEnabled -TaskName $taskName -Enabled $false
     }
     elseif ($existing) {
         Start-Service -Name $serviceName -ErrorAction SilentlyContinue
-        Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($null -ne (Get-GuardianHealthTask $taskName)) { Start-GuardianHealthTask $taskName }
     }
 }
-Start-ScheduledTask -TaskName $taskName
+Start-GuardianHealthTask $taskName
 Write-Host 'ProtectedApp Guardian y su supervisor SYSTEM de 250 ms están instalados y en ejecución.' -ForegroundColor Green
