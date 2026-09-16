@@ -2,7 +2,7 @@
 
 > **English** | [Español](RELEASING.md)
 
-Signed public releases are produced from a reviewed `main` commit and an
+Stable public releases are produced from a reviewed `main` commit and an
 immutable `vM.m.r` (or `vM.m.r.c`) tag. The tag starts the **Release candidate**
 workflow, which builds, tests, audits, and creates an unsigned candidate for
 review. It also generates an SPDX SBOM, a SHA-256 checksum file for that
@@ -10,11 +10,26 @@ unsigned candidate, and GitHub provenance attestations for the unsigned
 candidate.
 
 The workflow does not publish a GitHub Release automatically. Until SignPath is
-configured, there is no public binary release of ProtectedApp. Its unsigned
+configured, there is no stable public binary release of ProtectedApp. Its unsigned
 artifacts are internal review candidates only and must not be published or
 distributed. After SignPath Foundation approves the project, signing must be
 limited to `main` and version tags, use origin verification, and require the
 manual approval described in the [Code signing policy](CODE-SIGNING-POLICY.en.md).
+
+## Development/test prereleases
+
+Exceptionally, a `dev-vM.m.r` GitHub prerelease may be published after local
+signing with the self-signed development certificate whose **public part** is
+in [Signing/Public](Signing/Public/README.md). It is not an official release,
+is not publicly trusted, and does not inherit the unsigned candidate's GitHub
+Actions attestation. The author must build from the clean tagged commit, run
+tests and audits, verify the expected signature and thumbprint, and generate
+the SHA-256 **after** signing. The prerelease must state the exact commit and
+local-build origin, provide the hash, and link to the public certificate and its
+[instructions and risks](DEVELOPMENT-CERTIFICATE.en.md). Never attach a private
+key, PFX, or unsigned candidate. Downloaders must verify the hash and signature
+before running the installer and consciously decide whether to trust the
+certificate for their current user; Smart App Control/WDAC may still block it.
 
 ## Signed release sequence
 

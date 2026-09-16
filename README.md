@@ -116,11 +116,12 @@ not an official public release and Windows security policies may block it.
 
 ## Releases, signatures, and verification
 
-The release process, checksums, SBOM, provenance, and publication instructions
-are documented in [RELEASING.en.md](RELEASING.en.md). No public ProtectedApp
-binary release is available until its signing process has been configured and
-approved. Unsigned workflow artifacts are internal review candidates and must
-not be downloaded or distributed as releases.
+The release process, checksums, and publication instructions are documented in
+[RELEASING.en.md](RELEASING.en.md). Clearly marked development/test prereleases
+may be available, signed locally with the self-signed certificate described
+above. They are not official stable releases, are not publicly trusted, and
+must not be confused with the unsigned internal review candidates from GitHub
+Actions. No publicly trusted stable binary release is available yet.
 
 The [changelog](CHANGELOG.md) tracks user-visible changes, security hardening,
 and release-candidate status.

@@ -1,18 +1,34 @@
 # Publicar ProtectedApp
 
-Las versiones públicas solo se publican desde un commit revisado de `main` y
+Las versiones públicas estables solo se publican desde un commit revisado de `main` y
 una etiqueta inmutable `vM.m.r` (o `vM.m.r.c`). La etiqueta activa el flujo
 **Release candidate**, que compila, prueba, audita y crea un instalador sin
 firma para su revisión interna. También genera un SBOM SPDX, un archivo de
 hashes SHA-256 y atestaciones de procedencia de GitHub.
 
 El flujo no publica automáticamente una GitHub Release. Hasta que SignPath esté
-configurado, no existe una versión binaria pública de ProtectedApp. Sus
+configurado, no existe una versión binaria pública estable de ProtectedApp. Sus
 artefactos sin firma son únicamente candidatos internos de revisión y no deben
 publicarse ni distribuirse. Cuando SignPath Foundation haya aprobado el
 proyecto, el flujo de firma debe estar limitado a `main` y a etiquetas de
 versión, usar su verificación de origen y requerir la aprobación manual indicada
 en la [Code signing policy](CODE-SIGNING-POLICY.md).
+
+## Prereleases de desarrollo/pruebas
+
+Excepcionalmente se puede publicar una GitHub prerelease `dev-vM.m.r`, firmada
+localmente con el certificado autofirmado de desarrollo cuya **parte pública**
+está en [Signing/Public](Signing/Public/README.md). No es una versión oficial,
+no tiene confianza pública, ni procede de la atestación de GitHub Actions del
+candidato sin firma. El autor debe compilar desde el commit etiquetado limpio,
+ejecutar las pruebas y auditorías, verificar la firma y huella esperadas, y
+generar el SHA-256 **después** de firmar. La prerelease debe incluir el hash, el
+commit exacto, el origen de compilación local, el enlace al certificado público
+y las [instrucciones y riesgos](DEVELOPMENT-CERTIFICATE.md). No se adjuntan
+claves privadas, PFX ni candidatos sin firma. Quien descargue el instalador debe
+verificar el hash y la firma antes de ejecutarlo y decidir conscientemente si
+confía en el certificado para el usuario actual; Smart App Control/WDAC puede
+seguir bloqueándolo.
 
 ## Secuencia de lanzamiento firmada
 
