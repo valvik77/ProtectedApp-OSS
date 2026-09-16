@@ -11,6 +11,10 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Added
 
+- Published the public-key-only development/test certificate with pinned
+  identity and SHA-256 verification, explicit current-user trust instructions,
+  removal and compromise procedures, and repository checks that reject any
+  substituted certificate or private key material.
 - Optional TPM protection for the local ProtectedApp configuration and rules.
   It protects local rules, preferences, and activity history with a
   non-exportable key on the current computer.

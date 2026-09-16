@@ -18,8 +18,10 @@ Do not manually remove the protected thumbprint or accept any valid certificate
 as a replacement. Automatic SignPath integration remains pending until its
 public signing identity is known and approved.
 
-Development binaries may be signed with a local certificate for testing only.
-They must not be publicly distributed or added to the repository.
+Development binaries may be signed with a local certificate for testing only
+and must never be presented as stable releases. The repository contains only
+the provisional certificate's public part so testers can verify and trust it
+deliberately; read the [warnings and instructions](DEVELOPMENT-CERTIFICATE.en.md).
 
 For public releases, ProtectedApp applies for an Open Source signing subscription
 with SignPath Foundation after publishing the repository and meeting its project
@@ -28,8 +30,10 @@ permissions and a release branch/tag restriction.
 
 ## Security rules
 
-- Never store certificates, private keys, passwords, or signing tokens in Git,
-  Actions artifacts, or variables visible in logs.
+- Never store private keys, PFX/P12 files, passwords, or signing tokens in Git,
+  Actions artifacts, or variables visible in logs. The only permitted `.cer`
+  file is public, contains no private key, and has its hash pinned by the
+  repository audit.
 - Sign only CI artifacts generated from a protected release tag and reviewed
   revision.
 - Verify Authenticode, the signature chain, timestamp, and SHA-256 hash before

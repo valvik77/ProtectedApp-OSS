@@ -12,6 +12,10 @@ firma.
 
 ### Añadido
 
+- Publicada únicamente la parte pública del certificado de desarrollo/pruebas,
+  con identidad y SHA-256 fijados, instrucciones explícitas de confianza para el
+  usuario actual, retirada y respuesta a compromiso, y controles que rechazan
+  cualquier sustitución o material de clave privada.
 - Protección TPM opcional para la configuración y las reglas locales de
   ProtectedApp. Protege reglas, preferencias e historial de actividad mediante
   una clave no exportable del equipo actual.

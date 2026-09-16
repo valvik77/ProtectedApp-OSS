@@ -18,6 +18,12 @@ contraseñas, bóvedas reales, claves privadas, tokens ni datos de terceros.
 El objetivo es confirmar la recepción, evaluar el impacto, preparar una
 corrección y publicar una versión firmada antes de divulgar los detalles.
 
+Si sospechas que la clave del certificado de desarrollo se ha utilizado sin
+autorización, indícalo expresamente como **posible compromiso de firma**. Las
+personas que lo hayan instalado deberán retirarlo siguiendo
+[DEVELOPMENT-CERTIFICATE.md](DEVELOPMENT-CERTIFICATE.md) hasta que se publique
+una evaluación.
+
 ## Límites del modelo de seguridad
 
 ProtectedApp protege aplicaciones y bóvedas frente a uso accidental o no

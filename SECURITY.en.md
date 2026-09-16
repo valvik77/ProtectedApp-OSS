@@ -19,6 +19,12 @@ keys, tokens, or third-party data.
 The goal is to acknowledge the report, assess impact, prepare a fix, and publish
 a signed release before disclosing details.
 
+If you suspect unauthorized use of the development-certificate key, identify
+the report explicitly as a **possible signing compromise**. Anyone who installed
+that certificate should remove it according to
+[DEVELOPMENT-CERTIFICATE.en.md](DEVELOPMENT-CERTIFICATE.en.md) until an assessment
+is published.
+
 ## Security-model limits
 
 ProtectedApp protects applications and vaults from accidental or unauthorized use

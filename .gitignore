@@ -23,6 +23,9 @@ TestResults/
 *.snk
 *.cer
 *.crt
+# The sole public-key-only test certificate is deliberately tracked. The
+# repository audit validates its exact type, identity, purpose, and hash.
+!Signing/Public/ProtectedApp-Development-Test.cer
 
 # Configuración local y registros que nunca deben llegar a un repositorio público
 .env

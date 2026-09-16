@@ -8,7 +8,11 @@ oficiales llevarán esta declaración: **Free code signing provided by
 SignPath.io, certificate by SignPath Foundation.**
 
 Hasta que esa aprobación exista, ningún binario firmado con el certificado de
-desarrollo local es una versión oficial ni debe distribuirse como tal.
+desarrollo local es una versión pública estable ni debe presentarse como tal.
+La parte pública de la identidad y, excepcionalmente, compilaciones de prueba
+claramente etiquetadas pueden compartirse con personas que acepten expresamente
+el cambio de confianza descrito en
+[DEVELOPMENT-CERTIFICATE.md](DEVELOPMENT-CERTIFICATE.md).
 
 ## Responsabilidades
 
@@ -34,8 +38,9 @@ disponible, la comprobación Authenticode correspondiente.
 Las claves privadas de firma pública o de lanzamiento no se guardan en Git, en
 artefactos de CI ni en equipos de desarrollo. La firma local de desarrollo usa
 un certificado autofirmado con clave privada en el almacén del usuario solo para
-pruebas; ese certificado se excluye de Git y sus binarios no son versiones
-oficiales. La configuración de firma, el cambio de certificado y la validación
+pruebas. Git contiene exclusivamente su certificado X.509 público, sin clave
+privada, con identidad y SHA-256 fijados por la auditoría del repositorio. Sus
+binarios no son versiones públicas estables. La configuración de firma, el cambio de certificado y la validación
 de actualizaciones están documentados en [SIGNING.md](SIGNING.md).
 
 ## Privacidad y comunicaciones de red

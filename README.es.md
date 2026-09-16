@@ -267,7 +267,7 @@ Referencias oficiales: [despliegue de App Control for Business](https://learn.mi
 
 ## Distribución
 
-La aplicación se distribuye mediante `ProtectedApp-Setup-x64.exe`. El proyecto puede usar un certificado de desarrollo privado para pruebas y equipos de confianza; ese certificado debe instalarse previamente en los equipos destinatarios. Una identidad de firma pública para SmartScreen o publicación comercial no forma parte de este proyecto.
+La aplicación se distribuye mediante `ProtectedApp-Setup-x64.exe`. El proyecto puede usar un certificado de desarrollo privado para pruebas y equipos de confianza; únicamente su [parte pública, advertencias, verificación, instalación y retirada](DEVELOPMENT-CERTIFICATE.md) se publican en GitHub. Instalarla cambia deliberadamente la confianza del usuario y no garantiza la aceptación por Smart App Control o WDAC. Una identidad de firma pública para SmartScreen o publicación comercial no forma parte de este proyecto.
 
 ### Distribución y licencias
 

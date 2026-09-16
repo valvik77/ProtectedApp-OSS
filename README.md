@@ -91,6 +91,10 @@ To create a local development installer:
 ```
 
 The script assigns a new installer version automatically for each local build.
+Development/test builds can use the repository's strictly public certificate
+only after reading its [explicit trust, verification, and removal
+instructions](DEVELOPMENT-CERTIFICATE.en.md). It is self-signed and is not a
+stable-release or Smart App Control trust mechanism.
 Do not reuse an installer version: Explorer can retain a versioned shell-
 extension DLL and reject an otherwise valid replacement. The unsigned-build
 switch is intentionally explicit. An unsigned or development-signed build is

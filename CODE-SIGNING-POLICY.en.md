@@ -8,7 +8,10 @@ official releases will carry the following statement: **Free code signing
 provided by SignPath.io, certificate by SignPath Foundation.**
 
 Until that approval exists, no binary signed with a local development
-certificate is an official release or may be distributed as one.
+certificate is a stable public release or may be presented as one. The public
+identity and, exceptionally, clearly labelled test builds may be shared with
+people who explicitly accept the trust change described in
+[DEVELOPMENT-CERTIFICATE.en.md](DEVELOPMENT-CERTIFICATE.en.md).
 
 ## Responsibilities
 
@@ -34,9 +37,10 @@ corresponding Authenticode verification information.
 
 Private keys for public or release signing are not stored in Git, CI artifacts,
 or development machines. Local development signing uses a self-signed
-certificate with a private key in the user's certificate store only for testing;
-that certificate is excluded from Git and its binaries are not official
-releases. Signing configuration, certificate rotation, and update validation
+certificate with a private key in the user's certificate store only for testing.
+Git contains only its public X.509 certificate, without a private key, whose
+identity and SHA-256 are pinned by the repository audit. Its binaries are not
+stable public releases. Signing configuration, certificate rotation, and update validation
 are documented in [SIGNING.en.md](SIGNING.en.md).
 
 ## Privacy and network communications

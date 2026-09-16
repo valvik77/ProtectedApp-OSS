@@ -17,7 +17,10 @@ válido como sustituto. La integración automática con SignPath queda pendiente
 de conocer y aprobar su identidad pública.
 
 Los binarios de desarrollo se pueden firmar con un certificado local solo para
-pruebas. No se distribuyen públicamente ni se añaden al repositorio.
+pruebas. Nunca se presentan como versiones estables. El repositorio contiene
+exclusivamente la parte pública del certificado provisional para que una persona
+pueda verificarla y confiar en ella de forma consciente; consulta las
+[advertencias e instrucciones](DEVELOPMENT-CERTIFICATE.md).
 
 ## Compilación local firmada para pruebas
 
@@ -59,7 +62,7 @@ Get-FileHash -LiteralPath $setup.FullName -Algorithm SHA256
 El certificado local sirve únicamente para desarrollo y para equipos donde su
 parte pública se haya confiado explícitamente. No elimina los requisitos de
 Smart App Control, WDAC ni la reputación de Windows, y nunca debe usarse para
-una versión pública.
+presentar una compilación como versión pública estable.
 
 Para lanzamientos públicos, ProtectedApp debe solicitar una suscripción de
 firma a SignPath Foundation después de publicar el repositorio y cumplir sus
@@ -69,8 +72,10 @@ de release protegida.
 
 ## Reglas de seguridad
 
-- No guardar certificados, claves privadas, contraseñas o tokens de firma en
-  Git, artefactos de Actions ni variables visibles en registros.
+- No guardar claves privadas, PFX/P12, contraseñas o tokens de firma en Git,
+  artefactos de Actions ni variables visibles en registros. El único `.cer`
+  permitido es público, no contiene clave privada y su hash está fijado por la
+  auditoría del repositorio.
 - Firmar exclusivamente artefactos generados por CI desde una etiqueta
   protegida y una revisión revisada.
 - Verificar Authenticode, cadena de firma, sello de tiempo y hash SHA-256 antes
