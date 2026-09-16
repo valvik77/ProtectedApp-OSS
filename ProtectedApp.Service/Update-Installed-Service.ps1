@@ -36,6 +36,7 @@ trap {
 }
 
 . (Join-Path $PSScriptRoot 'Integrity-Transaction.ps1')
+. (Join-Path $PSScriptRoot 'Guardian-ScheduledTask.ps1')
 
 $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 if (-not $service) {
@@ -50,7 +51,7 @@ New-Item -ItemType Directory -Path $stateFolder -Force | Out-Null
 Set-Content -LiteralPath $maintenanceFile -Value ([DateTimeOffset]::UtcNow.ToString('O')) -Encoding ASCII
 Remove-Item -LiteralPath $agentLeaseFile -Force -ErrorAction SilentlyContinue
 try {
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    Stop-GuardianHealthTask $taskName
     $service = Get-Service -Name $serviceName
     if ($service.Status -ne 'Stopped') {
         Stop-Service -Name $serviceName -Force
@@ -118,7 +119,20 @@ try {
     } | ConvertTo-Json -Compress
     Set-Content -LiteralPath $agentIdentityFile -Value $agentIdentity -Encoding UTF8
     $binaryPath = '"{0}" --app "{1}"' -f $installedServiceExe, $resolvedAppPath
-    sc.exe config $serviceName binPath= $binaryPath start= auto | Out-Null
+    $serviceConfiguration = Get-ItemProperty -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
+    if (-not [string]::Equals([string]$serviceConfiguration.ImagePath, $binaryPath,
+            [StringComparison]::OrdinalIgnoreCase) -or [int]$serviceConfiguration.Start -ne 2) {
+        $previousErrorActionPreference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $scOutput = & sc.exe config $serviceName binPath= $binaryPath start= auto 2>&1 | Out-String
+            $scExitCode = $LASTEXITCODE
+        }
+        finally { $ErrorActionPreference = $previousErrorActionPreference }
+        if ($scExitCode -ne 0) {
+            throw "No se pudo configurar Guardian (sc.exe: $scExitCode). $($scOutput.Trim())"
+        }
+    }
     sc.exe failure $serviceName reset= 86400 actions= restart/0/restart/1000/restart/5000 | Out-Null
     sc.exe failureflag $serviceName 1 | Out-Null
     Start-Service -Name $serviceName
@@ -140,7 +154,7 @@ catch {
     $operationError = $_
     if ($replacementStarted) {
         try {
-            Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+            Stop-GuardianHealthTask $taskName
             $current = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
             if ($current -and $current.Status -ne 'Stopped') {
                 Stop-Service -Name $serviceName -Force
@@ -160,14 +174,14 @@ finally {
     if (-not $rollbackFailed) { Remove-GuardianTransaction $stateFolder $transactionFolder }
     Remove-Item -LiteralPath $maintenanceFile -Force -ErrorAction SilentlyContinue
     if ($rollbackFailed) {
-        Disable-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
+        Set-GuardianHealthTaskEnabled -TaskName $taskName -Enabled $false
     }
     else {
-        Enable-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
+        Set-GuardianHealthTaskEnabled -TaskName $taskName -Enabled $true
         $currentService = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
         if ($currentService -and $currentService.Status -ne 'Running') {
             Start-Service -Name $serviceName -ErrorAction SilentlyContinue
         }
-        Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($null -ne (Get-GuardianHealthTask $taskName)) { Start-GuardianHealthTask $taskName }
     }
 }

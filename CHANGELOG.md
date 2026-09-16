@@ -54,6 +54,11 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Fixed
 
+- Guardian service installation, update, and removal now manage the SYSTEM health task through the local Task Scheduler API instead of CIM, which can deny access in Windows Sandbox.
+- Report a failed Guardian installer before attempting policy bootstrap against a still-running service; this preserves the real installation error instead of misleadingly reporting an invalid authorization secret.
+- Skip redundant Guardian service reconfiguration during repair when its binary path and automatic start are already correct; retain the actual Windows error if reconfiguration is needed and fails.
+- Suppress the premature "Guardian unavailable" security alert while first-run master-password setup and automatic Guardian installation are still in progress.
+- Install Guardian after the first interactive activation of an instance started silently by the setup; that activation does not rerun the startup-only installation path.
 - Prevented UI deadlocks while converting a vault to TPM protection and while
   running the installer vault-backup verification probe.
 - Automatic local installer versions now consider the checked-in version,

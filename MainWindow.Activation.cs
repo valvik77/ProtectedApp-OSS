@@ -30,6 +30,7 @@ public sealed partial class MainWindow
             _showRequestedWhileBusy = true;
             return;
         }
+        _guardianInteractiveActivationInProgress = true;
         try
         {
             if (!_sessionUnlocked)
@@ -64,6 +65,12 @@ public sealed partial class MainWindow
                 }
             }
             ShowMainWindow();
+            // The setup starts ProtectedApp with --background. Opening that
+            // existing process later does not rerun Root_LoadedAsync, so the
+            // first interactive activation must install Guardian here too.
+            if (_sessionUnlocked && !string.IsNullOrWhiteSpace(_state.MasterPasswordHash)
+                && !_skipAutomaticServiceInstall)
+                await EnsureGuardianInstalledAutomaticallyAsync();
             await ShowPendingVaultRecoveryWarningAsync();
         }
         catch (Exception ex)
@@ -79,6 +86,7 @@ public sealed partial class MainWindow
         }
         finally
         {
+            _guardianInteractiveActivationInProgress = false;
             Interlocked.Exchange(ref _showRequestBusy, 0);
             if (discardQueuedShowRequest)
                 _showRequestedWhileBusy = false;

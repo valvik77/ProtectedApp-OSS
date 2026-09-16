@@ -51,6 +51,9 @@ public sealed partial class MainWindow : Window
     private bool _guardianManaged;
     private bool _guardianPolicyRecoveryRequired;
     private bool _guardianUnavailableAlerted;
+    private bool _guardianInitialSetupComplete;
+    private bool _guardianInteractiveActivationInProgress;
+    private bool _skipAutomaticServiceInstall;
     private int _windowVisibilityGeneration;
     private bool _guardianSyncPending;
     private bool _guardianSyncWarningRecorded;
