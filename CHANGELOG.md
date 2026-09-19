@@ -7,6 +7,13 @@ candidate** is not a public release and must not be distributed as one; see
 
 > [Español](CHANGELOG.es.md)
 
+## 1.4.206 — 2026-09-19 (development pre-release)
+
+### Fixed
+
+- The installer now keeps the ProtectedApp shield artwork in both light and
+  Windows dark mode instead of falling back to Inno Setup's generic artwork.
+
 ## 1.4.205 — 2026-09-19 (development pre-release)
 
 ### Fixed

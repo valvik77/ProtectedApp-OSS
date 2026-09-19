@@ -8,6 +8,13 @@ firma.
 
 > [English](CHANGELOG.md)
 
+## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
+
+### Corregido
+
+- El instalador mantiene el escudo de ProtectedApp tanto en el modo claro como
+  en el oscuro de Windows, sin recurrir a la ilustración genérica de Inno Setup.
+
 ## 1.4.205 — 2026-09-19 (pre-release de desarrollo)
 
 ### Corregido
