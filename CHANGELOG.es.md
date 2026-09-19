@@ -8,7 +8,7 @@ firma.
 
 > [English](CHANGELOG.md)
 
-## Pendiente de publicación
+## 1.4.205 — 2026-09-19 (pre-release de desarrollo)
 
 ### Corregido
 
