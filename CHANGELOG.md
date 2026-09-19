@@ -7,6 +7,14 @@ candidate** is not a public release and must not be distributed as one; see
 
 > [Español](CHANGELOG.es.md)
 
+## Unreleased
+
+### Fixed
+
+- Double-clicking a `.pavault` file now explicitly opens that vault without
+  first unlocking the ProtectedApp management panel. The separate contextual
+  mount/unmount command remains unchanged.
+
 ## 1.4.204 — 2026-09-19 (development pre-release)
 
 ### Added

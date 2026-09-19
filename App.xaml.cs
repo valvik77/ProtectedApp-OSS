@@ -53,7 +53,9 @@ public partial class App : Application
             var requestedFolderAction = FolderActivationRequest.TryGetFolderActionPath(commandLine);
             var requestedFolder = requestedFolderAction ?? FolderActivationRequest.TryGetFolderPath(commandLine);
             var requestedVaultAction = VaultActivationRequest.TryGetVaultActionPath(commandLine);
-            var requestedVault = requestedVaultAction ?? VaultActivationRequest.TryGetVaultPath(commandLine);
+            var requestedVaultOpen = VaultActivationRequest.TryGetVaultOpenPath(commandLine);
+            var requestedVault = requestedVaultAction ?? requestedVaultOpen
+                ?? VaultActivationRequest.TryGetVaultPath(commandLine);
             var requestedVaultUnmountDrive = VaultActivationRequest.TryGetVaultUnmountDrive(commandLine);
             var updateShutdownRequested = commandLine.Any(argument =>
                 argument.Equals("--shutdown-for-update", StringComparison.OrdinalIgnoreCase));
@@ -223,7 +225,8 @@ public partial class App : Application
                 var folderActionPath = FolderActivationRequest.TryGetFolderActionPath(launchArgs);
                 var folderPath = folderActionPath ?? FolderActivationRequest.TryGetFolderPath(launchArgs);
                 var vaultActionPath = VaultActivationRequest.TryGetVaultActionPath(launchArgs);
-                var vaultPath = vaultActionPath ?? VaultActivationRequest.TryGetVaultPath(launchArgs);
+                var vaultOpenPath = VaultActivationRequest.TryGetVaultOpenPath(launchArgs);
+                var vaultPath = vaultActionPath ?? vaultOpenPath ?? VaultActivationRequest.TryGetVaultPath(launchArgs);
                 var vaultUnmountDrive = VaultActivationRequest.TryGetVaultUnmountDrive(launchArgs);
                 var updateShutdownRequested = launchArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                     .Any(argument => argument.Equals("--shutdown-for-update", StringComparison.OrdinalIgnoreCase));

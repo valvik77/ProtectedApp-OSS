@@ -8,6 +8,14 @@ firma.
 
 > [English](CHANGELOG.md)
 
+## Pendiente de publicación
+
+### Corregido
+
+- El doble clic sobre un archivo `.pavault` abre ahora explícitamente esa
+  bóveda sin desbloquear antes el panel de gestión de ProtectedApp. La acción
+  contextual independiente de montar o desmontar se mantiene sin cambios.
+
 ## 1.4.204 — 2026-09-19 (pre-release de desarrollo)
 
 ### Añadido

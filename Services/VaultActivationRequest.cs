@@ -19,18 +19,24 @@ public static class VaultActivationRequest
             using var shell = Registry.CurrentUser.CreateSubKey(@"Software\Classes\ProtectedApp.Vault\shell");
             shell?.SetValue(string.Empty, "open");
             using var command = Registry.CurrentUser.CreateSubKey(@"Software\Classes\ProtectedApp.Vault\shell\open\command");
-            command?.SetValue(string.Empty, $"\"{appPath}\" \"%1\"");
+            command?.SetValue(string.Empty, $"\"{appPath}\" --open-vault \"%1\"");
         }
         catch (UnauthorizedAccessException) { }
         catch (System.Security.SecurityException) { }
     }
 
     public static string? TryGetVaultActionPath(IEnumerable<string> arguments)
+        => TryGetPathAfterArgument(arguments, "--vault-action");
+
+    public static string? TryGetVaultOpenPath(IEnumerable<string> arguments)
+        => TryGetPathAfterArgument(arguments, "--open-vault");
+
+    private static string? TryGetPathAfterArgument(IEnumerable<string> arguments, string marker)
     {
         var values = arguments.ToArray();
         for (var index = 0; index < values.Length - 1; index++)
         {
-            if (!values[index].Equals("--vault-action", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!values[index].Equals(marker, StringComparison.OrdinalIgnoreCase)) continue;
             var path = Normalize(values[index + 1]);
             return path is not null && path.EndsWith(".pavault", StringComparison.OrdinalIgnoreCase) ? path : null;
         }
@@ -76,6 +82,13 @@ public static class VaultActivationRequest
     }
 
     public static string? TryGetVaultActionPath(string? commandLineArguments)
+        => TryGetPathAfterArgument(commandLineArguments, TryGetVaultActionPath);
+
+    public static string? TryGetVaultOpenPath(string? commandLineArguments)
+        => TryGetPathAfterArgument(commandLineArguments, TryGetVaultOpenPath);
+
+    private static string? TryGetPathAfterArgument(string? commandLineArguments,
+        Func<IEnumerable<string>, string?> parser)
     {
         if (string.IsNullOrWhiteSpace(commandLineArguments)) return null;
         var commandLine = $"ProtectedApp.exe {commandLineArguments}";
@@ -86,7 +99,7 @@ public static class VaultActivationRequest
             var arguments = new string[argumentCount];
             for (var index = 0; index < argumentCount; index++)
                 arguments[index] = Marshal.PtrToStringUni(Marshal.ReadIntPtr(argv, index * IntPtr.Size)) ?? string.Empty;
-            return TryGetVaultActionPath(arguments);
+            return parser(arguments);
         }
         finally { LocalFree(argv); }
     }

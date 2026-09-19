@@ -16,6 +16,7 @@ public static class AppLaunchMode
             SilentArguments.Contains(argument, StringComparer.OrdinalIgnoreCase)
             || argument.Equals("--open-folder", StringComparison.OrdinalIgnoreCase)
             || argument.Equals("--folder-action", StringComparison.OrdinalIgnoreCase)
+            || argument.Equals("--open-vault", StringComparison.OrdinalIgnoreCase)
             || argument.Equals("--vault-action", StringComparison.OrdinalIgnoreCase)
             || argument.Equals("--unmount-vault-drive", StringComparison.OrdinalIgnoreCase));
 
@@ -42,6 +43,7 @@ public static class AppLaunchMode
             "El arranque de Windows no debe abrir el asistente inicial.");
         Assert(IsSilent(["--service-managed"]), "El inicio gestionado por Guardian debe permanecer silencioso.");
         Assert(IsSilent(["--open-folder", "C:\\Temporal"]), "Una activación contextual no debe abrir el panel.");
+        Assert(IsSilent(["--open-vault", "C:\\Temporal.pavault"]), "Un doble clic en bóveda no debe solicitar el panel.");
         Assert(IsSilent(["--unmount-vault-drive", "V:\\"]), "El desmontaje contextual debe permanecer silencioso.");
         Assert(!IsSilent(["ProtectedApp.exe"]), "Un inicio manual no debe clasificarse como silencioso.");
         Assert(ResolveStartupUiAction(true, true, true) == StartupUiAction.KeepHidden,

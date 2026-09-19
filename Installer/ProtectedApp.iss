@@ -102,7 +102,7 @@ Root: HKLM; Subkey: "Software\Classes\.pavault"; ValueType: string; ValueName: "
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault"; ValueType: string; ValueName: ""; ValueData: "{cm:VaultFile}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Assets\VaultFile.ico,0"
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell"; ValueType: string; ValueName: ""; ValueData: "open"
-Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" --open-vault ""%1"""
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell\ProtectedApp.Mount"; ValueType: string; ValueName: ""; ValueData: "{cm:MountUnmountVault}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell\ProtectedApp.Mount"; ValueType: string; ValueName: "Icon"; ValueData: "{app}\Assets\ProtectedApp.ico,0"
 Root: HKLM; Subkey: "Software\Classes\ProtectedApp.Vault\shell\ProtectedApp.Mount\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" --vault-action ""%1"""
