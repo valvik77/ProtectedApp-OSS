@@ -30,6 +30,9 @@ firma.
   acotado de argumentos de Windows para abrir, actuar contextualmente y
   desmontar unidades.
 - Actualizado el SDK de pruebas a 18.10.1 para las suites de Guardian y bóvedas.
+- Actualizado Microsoft Windows App SDK a 2.5.1 tras superar la compilación
+  x64, las pruebas de Guardian y bóvedas, y la validación visual de
+  compatibilidad.
 
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 

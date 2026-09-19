@@ -26,6 +26,8 @@ candidate** is not a public release and must not be distributed as one; see
 - Vault command-line activation now uses one bounded Windows argument parser
   for open, contextual action, and drive-unmount requests.
 - Updated the test SDK to 18.10.1 for the Guardian and vault test suites.
+- Updated Microsoft Windows App SDK to 2.5.1 after successful x64 build,
+  Guardian/vault test, and visual compatibility validation.
 
 ## 1.4.206 — 2026-09-19 (development pre-release)
 
