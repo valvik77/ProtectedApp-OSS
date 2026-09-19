@@ -33,6 +33,11 @@ OutputBaseFilename={#MyOutputBaseFilename}
 SetupIconFile=..\Assets\ProtectedApp.ico
 WizardImageFile=..\Assets\WizardImage.bmp
 WizardSmallImageFile=..\Assets\WizardSmallImage.bmp
+; In `dynamic` mode Inno Setup deliberately uses separate dark-mode image
+; directives. Without these it falls back to its generic box/disc artwork when
+; Windows is dark, even though the branded light-mode artwork is configured.
+WizardImageFileDynamicDark=..\Assets\WizardImage.bmp
+WizardSmallImageFileDynamicDark=..\Assets\WizardSmallImage.bmp
 UninstallDisplayIcon={app}\Assets\ProtectedApp.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
