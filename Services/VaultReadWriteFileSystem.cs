@@ -16,6 +16,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     private readonly VaultFormatV3.OpenedVault _opened;
     private readonly Dictionary<string, Node> _nodes = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<Node>> _children = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, FileInformation[]> _unfilteredDirectoryEntries =
+        new(StringComparer.OrdinalIgnoreCase);
     private readonly object _sync = new();
     private readonly SemaphoreSlim _journalGate = new(1, 1);
     private readonly Action? _activityObserved;
@@ -86,13 +88,24 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     // the final unmount already created one and will commit the vault itself.
     public void SuspendJournalCallbacks() => JournalWriter = null;
 
-    public IReadOnlyList<VaultFormatV3.VirtualEntrySource> CreateSnapshot()
+    public IReadOnlyList<VaultFormatV3.VirtualEntrySource> CreateSnapshot() =>
+        CreateSnapshot(copyModifiedBlocks: true);
+
+    /// <summary>
+    /// Produces the final commit view after Dokany has stopped dispatching
+    /// file-system calls. The caller must not mutate this instance until the
+    /// resulting streams have been consumed.
+    /// </summary>
+    internal IReadOnlyList<VaultFormatV3.VirtualEntrySource> CreateCommitSnapshot() =>
+        CreateSnapshot(copyModifiedBlocks: false);
+
+    private IReadOnlyList<VaultFormatV3.VirtualEntrySource> CreateSnapshot(bool copyModifiedBlocks)
     {
         lock (_sync)
         {
             return _nodes.Values.Where(node => node.Path.Length > 0)
                 .OrderBy(node => node.Path, StringComparer.OrdinalIgnoreCase)
-                .Select(node => SnapshotNode.From(node))
+                .Select(node => SnapshotNode.From(node, copyModifiedBlocks))
                 .Select(node => new VaultFormatV3.VirtualEntrySource(node.Path, node.IsDirectory,
                     node.IsDirectory ? 0 : node.Length, node.CreationUtc, node.LastWriteUtc,
                     node.IsDirectory
@@ -375,9 +388,20 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             var path = NormalizePath(fileName);
             if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory)
             { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
-            files = (_children.TryGetValue(path, out var children) ? children : [])
-                .Where(child => string.IsNullOrWhiteSpace(pattern) || FileSystemName.MatchesWin32Expression(pattern,
-                    GetName(child.Path), true))
+            var children = _children.TryGetValue(path, out var existingChildren) ? existingChildren : [];
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                if (!_unfilteredDirectoryEntries.TryGetValue(path, out var entries))
+                {
+                    entries = children.Select(ToInfo).ToArray();
+                    _unfilteredDirectoryEntries[path] = entries;
+                }
+                files = entries;
+                return NtStatus.Success;
+            }
+
+            files = children
+                .Where(child => FileSystemName.MatchesWin32Expression(pattern, GetName(child.Path), true))
                 .Select(ToInfo).ToArray();
             return NtStatus.Success;
         }
@@ -398,6 +422,9 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         HasChanges = true;
         NeedsJournal = true;
         _changeVersion++;
+        // Sizes and timestamps may have changed. Recreate the lazily cached
+        // directory views only when Explorer asks for them again.
+        _unfilteredDirectoryEntries.Clear();
     }
 
     internal VaultJournalSnapshot CreateJournalSnapshot()
@@ -523,6 +550,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     private void RebuildChildren()
     {
         _children.Clear();
+        _unfilteredDirectoryEntries.Clear();
         foreach (var node in _nodes.Values.Where(node => node.Path.Length > 0)) AddChild(node);
         foreach (var children in _children.Values)
             children.Sort((left, right) => StringComparer.OrdinalIgnoreCase.Compare(GetName(left.Path), GetName(right.Path)));
@@ -541,7 +569,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     private static int ReadNodeRange(VaultFormatV3.OpenedVault opened, string? sourcePath, bool fromOriginal,
         long originalReadableLength, IReadOnlyDictionary<long, byte[]>? blocks, byte[] buffer, int bufferOffset,
-        long offset, int count)
+        long offset, int count, bool cacheOriginalChunks = true)
     {
         var remaining = count;
         var position = offset;
@@ -556,12 +584,16 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             }
             else if (fromOriginal && sourcePath is not null && position < originalReadableLength)
             {
-                var originalTake = (int)Math.Min(take, originalReadableLength - position);
-                var data = VaultFormatV3.ReadFileRangeAsync(opened, sourcePath, position, originalTake)
-                    .GetAwaiter().GetResult();
-                try { Buffer.BlockCopy(data, 0, buffer, bufferOffset, data.Length); }
-                finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(data); }
-                if (data.Length < take) Array.Clear(buffer, bufferOffset + data.Length, take - data.Length);
+                // Read all consecutive unmodified overlay blocks in one pass.
+                // Previously every 64 KiB block created an intermediate range
+                // array, even though Explorer had already supplied the final
+                // destination buffer.
+                var originalTake = GetContiguousOriginalLength(blocks, position,
+                    (int)Math.Min(remaining, originalReadableLength - position));
+                var read = VaultFormatV3.ReadFileRangeIntoAsync(opened, sourcePath, position,
+                    buffer.AsMemory(bufferOffset, originalTake), cacheOriginalChunks).GetAwaiter().GetResult();
+                if (read < originalTake) Array.Clear(buffer, bufferOffset + read, originalTake - read);
+                take = originalTake;
             }
             else
             {
@@ -572,6 +604,25 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             remaining -= take;
         }
         return count;
+    }
+
+    private static int GetContiguousOriginalLength(IReadOnlyDictionary<long, byte[]>? blocks, long position,
+        int maximumLength)
+    {
+        if (blocks is null || blocks.Count == 0) return maximumLength;
+        var length = maximumLength;
+        var end = position + maximumLength;
+        var nextBlock = position / BlockSize + 1;
+        while (nextBlock * (long)BlockSize < end)
+        {
+            if (blocks.ContainsKey(nextBlock))
+            {
+                length = checked((int)(nextBlock * (long)BlockSize - position));
+                break;
+            }
+            nextBlock++;
+        }
+        return length;
     }
 
     private void WriteNodeRange(Node node, byte[] buffer, int bufferOffset, long offset, int count)
@@ -600,10 +651,11 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (node.FromOriginal && node.SourcePath is not null && offset < node.OriginalReadableLength)
         {
             var bytes = (int)Math.Min(BlockSize, node.OriginalReadableLength - offset);
-            var data = VaultFormatV3.ReadFileRangeAsync(_opened, node.SourcePath, offset, bytes)
-                .GetAwaiter().GetResult();
-            try { Buffer.BlockCopy(data, 0, block, 0, data.Length); }
-            finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(data); }
+            // Preserve the unchanged part of the original file directly in
+            // the editable block.  A first small edit must not allocate a
+            // second 64 KiB plaintext buffer just to copy it here.
+            _ = VaultFormatV3.ReadFileRangeIntoAsync(_opened, node.SourcePath, offset,
+                block.AsMemory(0, bytes)).GetAwaiter().GetResult();
         }
         node.Blocks[blockIndex] = block;
         return block;
@@ -658,6 +710,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             foreach (var node in _nodes.Values) ClearBlocks(node);
             _nodes.Clear();
             _children.Clear();
+            _unfilteredDirectoryEntries.Clear();
         }
     }
 
@@ -689,13 +742,14 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         public long OriginalReadableLength { get; } = originalReadableLength;
         public IReadOnlyDictionary<long, byte[]>? Blocks { get; } = blocks;
 
-        public static SnapshotNode From(Node node)
+        public static SnapshotNode From(Node node, bool copyBlocks)
         {
             Dictionary<long, byte[]>? blocks = null;
-            if (node.Blocks is { Count: > 0 })
+            if (copyBlocks && node.Blocks is { Count: > 0 })
                 blocks = node.Blocks.ToDictionary(item => item.Key, item => item.Value.ToArray());
             return new SnapshotNode(node.Path, node.IsDirectory, node.Length, node.CreationUtc,
-                node.LastWriteUtc, node.FromOriginal, node.SourcePath, node.OriginalReadableLength, blocks);
+                node.LastWriteUtc, node.FromOriginal, node.SourcePath, node.OriginalReadableLength,
+                blocks ?? node.Blocks);
         }
     }
 
@@ -710,18 +764,31 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             var read = (int)Math.Min(count, node.Length - _position);
             if (read <= 0) return 0;
             ReadNodeRange(opened, node.SourcePath, node.FromOriginal, node.OriginalReadableLength, node.Blocks,
-                buffer, offset, _position, read);
+                buffer, offset, _position, read, cacheOriginalChunks: false);
             _position += read;
             return read;
         }
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
-            await Task.Yield();
+            if (cancellationToken.IsCancellationRequested)
+                return ValueTask.FromCanceled<int>(cancellationToken);
+            // Vault consolidation supplies an array-backed buffer here. Read
+            // straight into it instead of allocating another chunk-sized
+            // temporary array for every encrypted block written to disk.
+            if (System.Runtime.InteropServices.MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> segment)
+                && segment.Array is not null)
+            {
+                return ValueTask.FromResult(Read(segment.Array, segment.Offset, segment.Count));
+            }
+
             var temporary = new byte[buffer.Length];
-            var read = Read(temporary, 0, temporary.Length);
-            temporary.AsMemory(0, read).CopyTo(buffer);
-            System.Security.Cryptography.CryptographicOperations.ZeroMemory(temporary);
-            return read;
+            try
+            {
+                var read = Read(temporary, 0, temporary.Length);
+                temporary.AsMemory(0, read).CopyTo(buffer);
+                return ValueTask.FromResult(read);
+            }
+            finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(temporary); }
         }
         public override long Seek(long offset, SeekOrigin origin) { Position = origin switch { SeekOrigin.Begin => offset, SeekOrigin.Current => _position + offset, _ => node.Length + offset }; return _position; }
         public override void Flush() { }

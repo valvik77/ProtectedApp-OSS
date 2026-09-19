@@ -37,6 +37,19 @@ firma.
   una caché autenticada en memoria y el descriptor de la sesión, las búsquedas
   de archivos y bloques se indexan y los bloques claramente no comprimibles no
   consumen CPU intentando comprimirse.
+- Reducidas aún más las asignaciones y copias de las bóvedas virtuales: las
+  lecturas de Explorer y de la capa editable descifran directamente en el
+  búfer de destino, los bloques en caché se copian sin un clon temporal
+  completo y la primera edición de un bloque existente evita un segundo búfer
+  de texto plano de 64 KiB.
+- Mejorada la respuesta de carpetas virtuales grandes y del cierre de una
+  bóveda. Los listados estables se reutilizan hasta que un cambio los invalida;
+  la consolidación final reutiliza bloques modificados solo cuando la unidad
+  virtual ya se ha detenido por completo, mientras los diarios de recuperación
+  mantienen instantáneas independientes.
+- La consolidación final secuencial ya no llena la caché interactiva de texto
+  plano con bloques que no se volverán a leer, reduciendo la presión de memoria
+  y conservando la caché autenticada para el uso normal de Explorer.
 - La sesión validada de una bóveda se reutiliza al montar inmediatamente la
   unidad virtual, evitando una segunda derivación de contraseña y operación TPM
   en aperturas normales.

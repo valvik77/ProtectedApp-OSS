@@ -362,29 +362,63 @@ internal static class VaultFormatV3
             throw new FileNotFoundException("El archivo no existe dentro de la bóveda.", relativePath);
         var entry = opened.Index.Entries[entryIndex];
         if (offset > entry.Length) throw new ArgumentOutOfRangeException(nameof(offset));
-        var resultLength = (int)Math.Min(count, entry.Length - offset);
-        var result = new byte[resultLength];
-        if (resultLength == 0) return result;
-        var requestedEnd = offset + resultLength;
+        var result = new byte[(int)Math.Min(count, entry.Length - offset)];
+        _ = await ReadFileRangeIntoAsync(opened, entryIndex, offset, result).ConfigureAwait(false);
+        return result;
+    }
+
+    /// <summary>
+    /// Reconstructs an encrypted file range directly into a caller-owned
+    /// buffer. Dokany already provides that buffer for normal Explorer reads;
+    /// avoiding an intermediate array is particularly important for repeated
+    /// 64 KiB reads while a vault is open for editing.
+    /// </summary>
+    internal static async Task<int> ReadFileRangeIntoAsync(OpenedVault opened, string relativePath, long offset,
+        Memory<byte> destination, bool cacheChunks = true)
+    {
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset));
+        var normalized = NormalizeRelativePath(relativePath);
+        if (!opened.TryGetEntryIndex(normalized, out var entryIndex)
+            || opened.Index.Entries[entryIndex].IsDirectory)
+            throw new FileNotFoundException("El archivo no existe dentro de la bóveda.", relativePath);
+        var entry = opened.Index.Entries[entryIndex];
+        if (offset > entry.Length) throw new ArgumentOutOfRangeException(nameof(offset));
+        return await ReadFileRangeIntoAsync(opened, entryIndex, offset,
+            destination[..(int)Math.Min(destination.Length, entry.Length - offset)], cacheChunks).ConfigureAwait(false);
+    }
+
+    private static async Task<int> ReadFileRangeIntoAsync(OpenedVault opened, int entryIndex, long offset,
+        Memory<byte> destination, bool cacheChunks = true)
+    {
+        var entry = opened.Index.Entries[entryIndex];
+        if (destination.Length == 0) return 0;
+        var requestedEnd = offset + destination.Length;
         var written = 0;
         for (var chunkIndex = FindFirstIntersectingChunk(entry.Chunks, offset);
              chunkIndex < entry.Chunks.Count; chunkIndex++)
         {
             var chunk = entry.Chunks[chunkIndex];
             if (chunk.PlainOffset >= requestedEnd) break;
-            var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex).ConfigureAwait(false);
+            var from = (int)Math.Max(0, offset - chunk.PlainOffset);
+            var to = (int)Math.Min(chunk.PlainLength, requestedEnd - chunk.PlainOffset);
+            var length = to - from;
+            if (opened.TryCopyCachedChunkRange(entryIndex, chunkIndex, from,
+                    destination.Slice(written, length)))
+            {
+                written += length;
+                continue;
+            }
+
+            var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex, cacheChunks).ConfigureAwait(false);
             try
             {
-                var from = (int)Math.Max(0, offset - chunk.PlainOffset);
-                var to = (int)Math.Min(chunk.PlainLength, requestedEnd - chunk.PlainOffset);
-                var length = to - from;
-                Buffer.BlockCopy(plaintext, from, result, written, length);
+                plaintext.AsMemory(from, length).CopyTo(destination.Slice(written, length));
                 written += length;
             }
             finally { CryptographicOperations.ZeroMemory(plaintext); }
         }
-        if (written != result.Length) throw new InvalidDataException("No se pudo reconstruir el intervalo solicitado.");
-        return result;
+        if (written != destination.Length) throw new InvalidDataException("No se pudo reconstruir el intervalo solicitado.");
+        return written;
     }
 
     internal static async Task<(int FileCount, int ChunkCount, long VerifiedBytes)> VerifyIntegrityAsync(
@@ -595,7 +629,8 @@ internal static class VaultFormatV3
         finally { CryptographicOperations.ZeroMemory(buffer); }
     }
 
-    private static async Task<byte[]> ReadChunkAsync(OpenedVault opened, int entryIndex, int chunkIndex)
+    private static async Task<byte[]> ReadChunkAsync(OpenedVault opened, int entryIndex, int chunkIndex,
+        bool cachePlaintext = true)
     {
         if (opened.TryGetCachedChunk(entryIndex, chunkIndex, out var cached)) return cached;
         var entry = opened.Index.Entries[entryIndex];
@@ -616,11 +651,11 @@ internal static class VaultFormatV3
                     throw new InvalidDataException("La longitud del bloque no es válida.");
                 var result = prepared;
                 prepared = Array.Empty<byte>();
-                opened.CacheChunk(entryIndex, chunkIndex, result);
+                if (cachePlaintext) opened.CacheChunk(entryIndex, chunkIndex, result);
                 return result;
             }
             var decompressed = DecompressExact(prepared, chunk.PlainLength);
-            opened.CacheChunk(entryIndex, chunkIndex, decompressed);
+            if (cachePlaintext) opened.CacheChunk(entryIndex, chunkIndex, decompressed);
             return decompressed;
         }
         catch (AuthenticationTagMismatchException)
@@ -1164,6 +1199,24 @@ internal static class VaultFormatV3
                 _cacheLru.Remove(node);
                 _cacheLru.AddFirst(node);
                 plaintext = node.Value.Plaintext.ToArray();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Copies a portion of a cached plaintext chunk while it remains owned
+        /// by the cache.  This avoids making a complete temporary copy for a
+        /// normal Explorer read, and never exposes the cache buffer itself.
+        /// </summary>
+        internal bool TryCopyCachedChunkRange(int entryIndex, int chunkIndex, int sourceOffset,
+            Memory<byte> destination)
+        {
+            lock (_cacheSync)
+            {
+                if (!_cachedChunks.TryGetValue((entryIndex, chunkIndex), out var node)) return false;
+                _cacheLru.Remove(node);
+                _cacheLru.AddFirst(node);
+                node.Value.Plaintext.AsMemory(sourceOffset, destination.Length).CopyTo(destination);
                 return true;
             }
         }

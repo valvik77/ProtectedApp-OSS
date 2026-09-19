@@ -2264,7 +2264,7 @@ public sealed class VaultService : IDisposable
                     try { instance.Dispose(); } catch { }
                     try { dokan.RemoveMountPoint(MountPoint); } catch { }
                 });
-                var sources = writableOperations.CreateSnapshot();
+                var sources = writableOperations.CreateCommitSnapshot();
                 await Task.Run(() => VaultFormatV3.WriteFromVirtualEntriesAsync(vault, sources,
                     destinationPath ?? opened.Path, opened.PasswordKey, opened.Salt, opened.DataKey,
                     opened.TpmBinding, createRecoveryBackup: true));

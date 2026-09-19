@@ -22,6 +22,8 @@ internal sealed class VaultReadOnlyFileSystem : IDokanOperations
     private readonly VaultFormatV3.OpenedVault _opened;
     private readonly Dictionary<string, Node> _nodes = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<Node>> _children = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, FileInformation[]> _unfilteredDirectoryEntries =
+        new(StringComparer.OrdinalIgnoreCase);
     private readonly DateTime _defaultCreatedUtc;
     private readonly DateTime _defaultModifiedUtc;
     private readonly Action? _activityObserved;
@@ -53,6 +55,8 @@ internal sealed class VaultReadOnlyFileSystem : IDokanOperations
         }
         foreach (var children in _children.Values)
             children.Sort((left, right) => StringComparer.OrdinalIgnoreCase.Compare(left.Name, right.Name));
+        foreach (var (path, children) in _children)
+            _unfilteredDirectoryEntries[path] = children.Select(ToFileInformation).ToArray();
     }
 
     internal bool TryGetNode(string path, out Node node) =>
@@ -96,14 +100,9 @@ internal sealed class VaultReadOnlyFileSystem : IDokanOperations
         {
             ReportActivity();
             var requested = (int)Math.Min(buffer.Length, node.Length - offset);
-            var plaintext = ReadAsync(node.Path, offset, requested).GetAwaiter().GetResult();
-            try
-            {
-                Buffer.BlockCopy(plaintext, 0, buffer, 0, plaintext.Length);
-                bytesRead = plaintext.Length;
-                return NtStatus.Success;
-            }
-            finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(plaintext); }
+            bytesRead = VaultFormatV3.ReadFileRangeIntoAsync(_opened, node.Path, offset,
+                buffer.AsMemory(0, requested)).GetAwaiter().GetResult();
+            return NtStatus.Success;
         }
         catch (FileNotFoundException) { return NtStatus.ObjectNameNotFound; }
         catch (InvalidDataException) { return NtStatus.DataError; }
@@ -196,10 +195,17 @@ internal sealed class VaultReadOnlyFileSystem : IDokanOperations
         files = Array.Empty<FileInformation>();
         if (!TryGetNode(fileName, out var directory)) return NtStatus.ObjectPathNotFound;
         if (!directory.IsDirectory) return NtStatus.NotADirectory;
+        if (string.IsNullOrWhiteSpace(searchPattern))
+        {
+            files = _unfilteredDirectoryEntries.TryGetValue(directory.Path, out var entries)
+                ? entries
+                : Array.Empty<FileInformation>();
+            return NtStatus.Success;
+        }
+
         var children = GetChildren(directory.Path);
         files = children
-            .Where(node => string.IsNullOrWhiteSpace(searchPattern)
-                || FileSystemName.MatchesWin32Expression(searchPattern, node.Name, ignoreCase: true))
+            .Where(node => FileSystemName.MatchesWin32Expression(searchPattern, node.Name, ignoreCase: true))
             .Select(ToFileInformation)
             .ToArray();
         return NtStatus.Success;

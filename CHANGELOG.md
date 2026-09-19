@@ -35,6 +35,17 @@ candidate** is not a public release and must not be distributed as one; see
 - Accelerated virtual-vault work: repeated reads reuse an authenticated
   in-memory block cache and a session file handle, file and chunk lookups are
   indexed, and clearly incompressible blocks skip unnecessary compression.
+- Further reduced virtual-vault allocation and copy overhead: Explorer and
+  editable-overlay reads now decrypt directly into their destination buffers,
+  cached chunks are copied directly without a full temporary clone, and the
+  first edit of an existing block avoids a second 64 KiB plaintext buffer.
+- Improved responsiveness of large virtual folders and final vault commits.
+  Stable directory listings are reused until a change invalidates them; final
+  consolidation reuses modified blocks only after the virtual drive has fully
+  stopped, while recovery journals retain independent snapshots.
+- Sequential final consolidation no longer fills the interactive plaintext
+  cache with blocks that will not be read again, reducing memory pressure
+  while preserving authenticated caching for normal Explorer use.
 - Reused the authenticated vault session for its immediate virtual mount,
   avoiding a second password derivation and TPM operation for normal opens.
 - Coalesced ordinary Explorer handle-close journal requests. Explicit file
