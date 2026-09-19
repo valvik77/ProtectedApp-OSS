@@ -13,6 +13,8 @@ candidate** is not a public release and must not be distributed as one; see
 
 - The installer now keeps the ProtectedApp shield artwork in both light and
   Windows dark mode instead of falling back to Inno Setup's generic artwork.
+- Local installer version selection now also considers development pre-release
+  tags, preventing a new installer from receiving an older version number.
 
 ## 1.4.205 — 2026-09-19 (development pre-release)
 

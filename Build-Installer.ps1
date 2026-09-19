@@ -224,10 +224,13 @@ function Get-NextInstallerVersion
     }
     if (Get-Command git -ErrorAction SilentlyContinue)
     {
-        $releaseTags = @(& git -C $projectRoot tag --list 'v1.4.*' 2>$null)
+        # Development pre-releases are intentionally tagged as dev-v1.4.*.
+        # They are installable builds too, so omitting them could make the next
+        # local build reuse an older Explorer shell-extension version.
+        $releaseTags = @(& git -C $projectRoot tag --list 'v1.4.*' 'dev-v1.4.*' 2>$null)
         foreach ($tag in $releaseTags)
         {
-            if ($tag -match '^v1\.4\.(\d+)(?:\.\d+)?$')
+            if ($tag -match '^(?:dev-)?v1\.4\.(\d+)(?:\.\d+)?$')
             {
                 $highestBuild = [Math]::Max($highestBuild, [int]$Matches[1])
             }

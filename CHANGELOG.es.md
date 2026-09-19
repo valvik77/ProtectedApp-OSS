@@ -14,6 +14,8 @@ firma.
 
 - El instalador mantiene el escudo de ProtectedApp tanto en el modo claro como
   en el oscuro de Windows, sin recurrir a la ilustración genérica de Inno Setup.
+- La selección local de versión del instalador considera ahora también las
+  etiquetas de pre-release de desarrollo, evitando asignar una versión anterior.
 
 ## 1.4.205 — 2026-09-19 (pre-release de desarrollo)
 
