@@ -18,6 +18,9 @@ firma.
 - La versión fuente coincide ahora con la pre-release de desarrollo actual, de
   modo que una compilación local independiente no parte de una referencia
   obsoleta.
+- El cliente IPC y las consultas de sesión de Guardian liberan ahora sus
+  identificadores de proceso de inmediato, y las respuestas IPC malformadas se
+  tratan como errores controlados de disponibilidad.
 
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 

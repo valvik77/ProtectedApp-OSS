@@ -1227,11 +1227,17 @@ internal sealed class GuardianEnforcer(
     private string? GetSessionSid(int sessionId, DateTimeOffset now)
     {
         if (_sessionIdentities.TryGetValue(sessionId, out var cached) && cached.ExpiresUtc > now) return cached.Sid;
-        var sid = options.DiagnosticMode && sessionId == Process.GetCurrentProcess().SessionId
+        var sid = options.DiagnosticMode && sessionId == GetCurrentSessionId()
             ? WindowsIdentity.GetCurrent().User?.Value
             : InteractiveProcessLauncher.GetSessionUserSid((uint)sessionId);
         if (sid is not null) _sessionIdentities[sessionId] = new SessionIdentity(sid, now.AddSeconds(10));
         return sid;
+    }
+
+    private static int GetCurrentSessionId()
+    {
+        using var currentProcess = Process.GetCurrentProcess();
+        return currentProcess.SessionId;
     }
 
     private bool TryGetProcessCommandLine(Process process, DateTimeOffset now, out string? commandLine)

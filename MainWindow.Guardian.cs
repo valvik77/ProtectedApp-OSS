@@ -180,6 +180,7 @@ public sealed partial class MainWindow
     {
         var candidateIds = ExpandProcessTree(processIds);
         if (candidateIds.Count == 0) return;
+        var currentSession = GetCurrentSessionId();
 
         var visibleWindows = new List<(IntPtr Handle, int ProcessId)>();
         EnumWindows((window, _) =>
@@ -209,7 +210,7 @@ public sealed partial class MainWindow
                 try
                 {
                     using var process = Process.GetProcessById(processId);
-                    if (!process.HasExited && process.SessionId == Process.GetCurrentProcess().SessionId)
+                    if (!process.HasExited && process.SessionId == currentSession)
                         process.CloseMainWindow();
                 }
                 catch { }
@@ -295,7 +296,7 @@ public sealed partial class MainWindow
         {
             using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId, SessionId FROM Win32_Process");
             using var processes = searcher.Get();
-            var currentSession = Process.GetCurrentProcess().SessionId;
+            var currentSession = GetCurrentSessionId();
             foreach (ManagementObject process in processes)
             {
                 if (Convert.ToInt32(process["SessionId"]) != currentSession) continue;
@@ -427,7 +428,7 @@ public sealed partial class MainWindow
         try
         {
             using var process = Process.GetProcessById(checked((int)processId));
-            if (process.HasExited || process.SessionId != Process.GetCurrentProcess().SessionId) return;
+            if (process.HasExited || process.SessionId != GetCurrentSessionId()) return;
             var path = process.MainModule?.FileName;
             if (string.IsNullOrWhiteSpace(path)) return;
             var app = Applications.FirstOrDefault(candidate => candidate.IsEnabled
@@ -446,6 +447,12 @@ public sealed partial class MainWindow
             _nextApplicationActivityReportUtc = now.AddSeconds(1);
         }
         catch { }
+    }
+
+    private static int GetCurrentSessionId()
+    {
+        using var currentProcess = Process.GetCurrentProcess();
+        return currentProcess.SessionId;
     }
 
     private static bool ForegroundProcessMatches(ProtectedApplication app, Process process, string processPath)

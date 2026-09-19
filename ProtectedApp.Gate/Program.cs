@@ -33,11 +33,14 @@ try
     using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
     await pipe.ConnectAsync(timeout.Token);
 
+    int currentSessionId;
+    using (var currentProcess = Process.GetCurrentProcess())
+        currentSessionId = currentProcess.SessionId;
     var request = new GuardianRequest
     {
         Type = hostMarker >= 0 ? GuardianProtocol.RegisterHostAttempt : GuardianProtocol.RegisterBlockedAttempt,
         UserSid = WindowsIdentity.GetCurrent().User?.Value ?? string.Empty,
-        SessionId = Process.GetCurrentProcess().SessionId,
+        SessionId = currentSessionId,
         TargetPath = targetMarker >= 0 ? interceptedPath : null,
         HostPath = hostMarker >= 0 ? interceptedPath : null,
         HostArguments = hostMarker >= 0 ? hostArguments : null,

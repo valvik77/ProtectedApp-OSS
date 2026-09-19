@@ -203,7 +203,8 @@ public sealed class GuardianClient
     private async Task<GuardianResponse> SendAsync(GuardianRequest request, TimeSpan? timeoutOverride = null)
     {
         request.UserSid = _userSid;
-        request.SessionId = Process.GetCurrentProcess().SessionId;
+        using (var currentProcess = Process.GetCurrentProcess())
+            request.SessionId = currentProcess.SessionId;
         try
         {
             // Immediate lock deliberately grants applications five seconds to close
@@ -219,8 +220,15 @@ public sealed class GuardianClient
             var line = await reader.ReadLineAsync(timeout.Token);
             if (line is null || line.Length > GuardianProtocol.MaxMessageCharacters)
                 return new GuardianResponse { Error = "Guardian no devolvió una respuesta válida." };
-            return JsonSerializer.Deserialize<GuardianResponse>(line, JsonOptions)
-                ?? new GuardianResponse { Error = "Respuesta de Guardian no válida." };
+            try
+            {
+                return JsonSerializer.Deserialize<GuardianResponse>(line, JsonOptions)
+                    ?? new GuardianResponse { Error = "Respuesta de Guardian no válida." };
+            }
+            catch (JsonException)
+            {
+                return new GuardianResponse { Error = "Guardian devolvió una respuesta no válida." };
+            }
         }
         catch (Exception ex) when (ex is IOException or TimeoutException or OperationCanceledException)
         {

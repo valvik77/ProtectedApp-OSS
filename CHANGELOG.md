@@ -16,6 +16,8 @@ candidate** is not a public release and must not be distributed as one; see
   writes from corrupting the encrypted local configuration.
 - The source version now matches the current development pre-release, so
   standalone local builds do not begin from an obsolete version reference.
+- IPC client and Guardian session lookups now release process handles promptly,
+  and malformed IPC responses are handled as controlled availability errors.
 
 ## 1.4.206 — 2026-09-19 (development pre-release)
 
