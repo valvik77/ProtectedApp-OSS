@@ -313,7 +313,9 @@ public sealed class GuardianPolicyStoreTests
         var store = new GuardianPolicyStore();
         store.SetPolicy(new GuardianPolicy
         {
-            UserSid = "S-1-5-21-101-202-303-2001", MasterPasswordHash = "hash", MasterPasswordSalt = "salt"
+            UserSid = "S-1-5-21-101-202-303-2001",
+            MasterPasswordHash = "hash",
+            MasterPasswordSalt = "salt"
         });
         using var locked = new FileStream(GuardianConstants.PolicyPath, FileMode.Open, FileAccess.Read, FileShare.None);
 

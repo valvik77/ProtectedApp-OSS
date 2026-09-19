@@ -657,631 +657,1256 @@ public static class LocalizationService
         ["No ampliar"] = "Do not extend",
         ["Autoriza el desbloqueo de"] = "Authorize unlocking",
         ["Autorización no concedida."] = "Authorization was not granted."
-        ,["Aceptar"] = "OK"
-        ,["Guardian no disponible"] = "Guardian unavailable"
-        ,["Servicio no disponible"] = "Service unavailable"
-        ,["No se pudo abrir"] = "Could not open"
-        ,["No se pudo guardar"] = "Could not save"
-        ,["No se pudo bloquear"] = "Could not lock"
-        ,["No se pudo recuperar"] = "Could not recover"
-        ,["No se pudo restaurar"] = "Could not restore"
-        ,["No se pudo eliminar"] = "Could not delete"
-        ,["No se pudo cambiar la protección"] = "Could not change protection"
-        ,["No se pudo cambiar la contraseña"] = "Could not change password"
-        ,["No se pudo crear"] = "Could not create"
-        ,["No se pudo convertir"] = "Could not convert"
-        ,["No se pudo abrir la carpeta"] = "Could not open folder"
-        ,["No se pudo abrir el Explorador"] = "Could not open File Explorer"
-        ,["No se pudo abrir la copia"] = "Could not open backup"
-        ,["No se pudo crear la copia"] = "Could not create backup"
-        ,["Copia creada"] = "Backup created"
-        ,["Copia restaurada"] = "Backup restored"
-        ,["Bóveda creada; carpeta original conservada"] = "Vault created; original folder kept"
-        ,["Bóveda duplicada"] = "Duplicate vault"
-        ,["Bóveda abierta"] = "Vault is open"
-        ,["Bóveda recuperada"] = "Vault recovered"
-        ,["Bóveda no encontrada"] = "Vault not found"
-        ,["Bóveda no disponible"] = "Vault unavailable"
-        ,["Integridad correcta"] = "Integrity verified"
-        ,["Integridad no confirmada"] = "Integrity not confirmed"
-        ,["Recuperación completada"] = "Recovery completed"
-        ,["Recuperación pendiente"] = "Recovery pending"
-        ,["Actualización rechazada"] = "Update rejected"
-        ,["No se pudo actualizar"] = "Could not update"
-        ,["No se pudo seleccionar el instalador"] = "Could not select installer"
-        ,["No hay eventos"] = "No events"
-        ,["No hay referencias ausentes"] = "No missing references"
-        ,["Sin destino configurado"] = "No destination configured"
-        ,["Sin cambios"] = "No changes"
-        ,["Sin aplicaciones"] = "No applications"
-        ,["Ya está protegido"] = "Already protected"
-        ,["Archivo no compatible"] = "Unsupported file"
-        ,["Aplicación no permitida"] = "Application not allowed"
-        ,["Acción no disponible"] = "Action unavailable"
-        ,["Documento no disponible"] = "Document unavailable"
-        ,["No se pudo abrir el documento"] = "Could not open document"
-        ,["Activo · reglas aplicadas por Guardian como SYSTEM"] = "Active · rules applied by Guardian as SYSTEM"
-        ,["Activo · pendiente de actualizar el motor de protección"] = "Active · protection engine update pending"
-        ,["Instalado pero detenido · pendiente de recuperación"] = "Installed but stopped · recovery pending"
-        ,["No instalado · protección no disponible"] = "Not installed · protection unavailable"
-        ,["Servicio activo"] = "Service active"
-        ,["Reparar servicio"] = "Repair service"
-        ,["Instalar servicio"] = "Install service"
-        ,["ProtectedApp — protección activa"] = "ProtectedApp — protection active"
-        ,["Bóveda sin nombre"] = "Unnamed vault"
-        ,["Abrir ProtectedApp"] = "Open ProtectedApp"
-        ,["Desmontar:"] = "Unmount:"
-        ,["Abrir bóveda:"] = "Open vault:"
-        ,["Bloquear y ocultar"] = "Lock and hide"
-        ,["Correcto"] = "Healthy"
-        ,["Revisar"] = "Review"
-        ,["Bloqueo"] = "Lock"
-        ,["Acceso"] = "Access"
-        ,["Aviso"] = "Warning"
-        ,["Sistema"] = "System"
-        ,["Protegiendo…"] = "Securing…"
-        ,["Consulta segura"] = "Read-only view"
-        ,["Cambios pendientes"] = "Pending changes"
-        ,["Recuperación disponible"] = "Recovery available"
-        ,["Copia dañada"] = "Backup damaged"
-        ,["Cambios recuperables"] = "Recoverable changes"
-        ,["Cerrada"] = "Locked"
-        ,["Vacía"] = "Empty"
-        ,["Copias programadas sin configurar"] = "Scheduled backups not configured"
-        ,["⚠ Copia programada pendiente"] = "⚠ Scheduled backup pending"
-        ,["⚠ Copia programada vencida"] = "⚠ Scheduled backup overdue"
-        ,["⚠ Error al crear la copia programada"] = "⚠ Scheduled backup failed"
-        ,["Revisión manual necesaria"] = "Manual review required"
-        ,["Apertura incompleta"] = "Incomplete opening"
-        ,["No asociada"] = "Not linked"
-        ,["Falta el contenedor"] = "Container missing"
-        ,["Lista para recuperar"] = "Ready to recover"
-        ,["No se indicó la contraseña de la bóveda."] = "No vault password was provided."
-        ,["La bóveda contiene demasiados elementos."] = "The vault contains too many items."
-        ,["El contenido de la bóveda supera 1 GB."] = "Vault contents exceed 1 GB."
-        ,["Los bloques cifrados superan el límite admitido."] = "Encrypted blocks exceed the supported limit."
-        ,["El índice de la bóveda es demasiado grande."] = "The vault index is too large."
-        ,["La verificación del contenedor nuevo devolvió otra bóveda."] = "New container verification returned a different vault."
-        ,["La clave de datos no es válida."] = "The data key is invalid."
-        ,["La ruta de la bóveda no es válida."] = "The vault path is invalid."
-        ,["La longitud de un archivo no es válida."] = "A file length is invalid."
-        ,["El archivo no existe dentro de la bóveda."] = "The file does not exist inside the vault."
-        ,["La prueba de escritura virtual devolvió datos distintos."] = "The virtual write test returned different data."
-        ,["La comprobación de integridad no validó el contenido esperado."] = "Integrity checking did not validate the expected content."
-        ,["La nueva contraseña no superó la verificación final."] = "The new password did not pass final verification."
-        ,["No se pudo leer el índice PAVLT003."] = "Could not read the PAVLT003 index."
-        ,["La contraseña es incorrecta o la bóveda ha sido modificada."] = "The password is incorrect or the vault has been modified."
-        ,["La bóveda contiene demasiados bloques."] = "The vault contains too many blocks."
-        ,["El archivo cambió mientras se estaba cifrando."] = "The file changed while it was being encrypted."
-        ,["La longitud del bloque no es válida."] = "The block length is invalid."
-        ,["Un bloque de la bóveda ha sido modificado."] = "A vault block has been modified."
-        ,["La actualización del índice no superó la verificación."] = "The index update did not pass verification."
-        ,["La derivación de clave PAVLT003 no es compatible."] = "PAVLT003 key derivation is not supported."
-        ,["La cabecera PAVLT003 no es válida."] = "The PAVLT003 header is invalid."
-        ,["La cabecera PAVLT003 tiene un tamaño inesperado."] = "The PAVLT003 header has an unexpected size."
-        ,["El índice no contiene metadatos de bóveda válidos."] = "The index contains no valid vault metadata."
-        ,["El índice contiene demasiados elementos."] = "The index contains too many items."
-        ,["El índice contiene rutas duplicadas."] = "The index contains duplicate paths."
-        ,["Una entrada del índice no es válida."] = "An index entry is invalid."
-        ,["Un bloque del índice no es válido."] = "An index block is invalid."
-        ,["La longitud de un bloque sin compresión no es válida."] = "An uncompressed block length is invalid."
-        ,["La zona de datos cifrados no coincide con el índice."] = "The encrypted data area does not match the index."
-        ,["Las bóvedas no admiten enlaces ni puntos de montaje."] = "Vaults do not support links or mount points."
-        ,["El índice contiene una ruta no válida."] = "The index contains an invalid path."
-        ,["El índice contiene una ruta no segura."] = "The index contains an unsafe path."
-        ,["Una ruta de la bóveda es demasiado larga."] = "A vault path is too long."
-        ,["El índice intenta salir de la carpeta de trabajo."] = "The index attempts to leave the working folder."
-        ,["El material de clave PAVLT003 no es válido."] = "PAVLT003 key material is invalid."
-        ,["El contenedor está truncado."] = "The container is truncated."
-        ,["La necesitarás para abrir ProtectedApp y cambiar ajustes."] = "You will need it to open ProtectedApp and change settings."
-        ,["Autorizar restauración"] = "Authorize restoration"
-        ,["Intento de restauración rechazado: contraseña incorrecta o copia no válida"] = "Restore attempt rejected: incorrect password or invalid backup"
-        ,["Contraseña incorrecta al intentar desbloquear la aplicación"] = "Incorrect password while trying to unlock the application"
-        ,["Acceso autorizado; aplicación iniciada"] = "Access authorized; application started"
-        ,["Protección administrada"] = "Managed protection"
-        ,["ProtectedApp aplica la protección exclusivamente mediante Guardian. No se puede pausar desde la interfaz."] = "ProtectedApp applies protection exclusively through Guardian. It cannot be paused from the interface."
-        ,["Reinstala ProtectedApp para recuperar la documentación legal."] = "Reinstall ProtectedApp to recover the legal documentation."
-        ,["Doble clic en bóvedas configurado para consulta segura"] = "Double-click vaults set to safe viewing"
-        ,["Doble clic en bóvedas configurado para editar"] = "Double-click vaults set to editing"
-        ,["Letra de unidad de bóvedas configurada automáticamente"] = "Vault drive letter set automatically"
-        ,["Avisos de copias de bóvedas activados"] = "Vault backup notifications enabled"
-        ,["Avisos de copias de bóvedas silenciados"] = "Vault backup notifications muted"
-        ,["Avisos previos de cierre automático activados"] = "Automatic closing warnings enabled"
-        ,["Avisos previos de cierre automático desactivados"] = "Automatic closing warnings disabled"
-        ,["Guardian rechazó la solicitud."] = "Guardian rejected the request."
-        ,["Copia programada pendiente: todavía no existe ninguna versión"] = "Scheduled backup pending: no version exists yet"
-        ,["Copia programada vencida: la última versión superó la frecuencia configurada"] = "Scheduled backup overdue: the latest version exceeded the configured frequency"
-        ,["Protección de bóvedas"] = "Vault protection"
-        ,["Mayús"] = "Shift"
-        ,["Atajo de bloqueo inmediato ignorado: Guardian no está disponible"] = "Immediate lock shortcut ignored: Guardian is unavailable"
-        ,["No se pudieron cerrar todas las bóvedas durante la respuesta antimanipulación; se conservó su carpeta de trabajo"] = "Not all vaults could be closed during the anti-tamper response; their working folder was preserved"
-        ,["Protección desactivada: Guardian no admite carpetas sincronizadas o redirigidas"] = "Protection disabled: Guardian does not support synchronized or redirected folders"
-        ,["Cierre automático ampliado"] = "Automatic closing extended"
-        ,["Ejecución interceptada por Guardian (SYSTEM)"] = "Launch intercepted by Guardian (SYSTEM)"
-        ,["Manipulación detectada"] = "Tampering detected"
-        ,["Copia programada de bóveda creada"] = "Scheduled vault backup created"
-        ,["Bóveda restaurada desde la copia anterior durante la importación"] = "Vault restored from the previous backup during import"
-        ,["Bóveda cifrada importada"] = "Encrypted vault imported"
-        ,["No se pudo desmontar automáticamente la unidad virtual"] = "Could not automatically unmount the virtual drive"
-        ,["No se pudo aplicar el bloqueo automático"] = "Could not apply automatic lock"
-        ,["Consulta segura cerrada y bóveda protegida"] = "Safe viewing closed and vault protected"
-        ,["Cambios guardados y bóveda protegida"] = "Changes saved and vault protected"
-        ,["No se pudo cerrar la sesión de consulta segura."] = "Could not close the safe viewing session."
-        ,["La bóveda sigue abierta para editar para evitar perder cambios."] = "The vault remains open for editing to avoid losing changes."
-        ,["Bóveda retirada de la lista; el contenedor cifrado se conservó"] = "Vault removed from the list; the encrypted container was kept"
-        ,["Comprobar versión"] = "Check version"
-        ,["Eliminar versión"] = "Delete version"
-        ,["Versión de copia programada eliminada"] = "Scheduled backup version deleted"
-        ,["Contraseña incorrecta o versión no válida."] = "Incorrect password or invalid version."
-        ,["Versión comprobada"] = "Version checked"
-        ,["Versión restaurada"] = "Version restored"
-        ,["La versión se conservó sin cambios."] = "The version was kept unchanged."
-        ,["La versión se verificó y se restauró correctamente."] = "The version was verified and restored successfully."
-        ,["Los datos de la bóveda o la contraseña no son válidos."] = "Vault data or password is invalid."
-        ,["Los datos de la bóveda, la carpeta o la contraseña no son válidos."] = "Vault data, folder, or password is invalid."
-        ,["La carpeta de origen ya no existe."] = "The source folder no longer exists."
-        ,["Ya existe un archivo en la ubicación elegida para la bóveda."] = "A file already exists at the selected vault location."
-        ,["La bóveda no puede guardarse dentro de la carpeta que se va a cifrar."] = "The vault cannot be saved inside the folder being encrypted."
-        ,["La verificación final devolvió una bóveda distinta."] = "Final verification returned a different vault."
-        ,["No se pudo crear la primera copia programada."] = "Could not create the first scheduled backup."
-        ,["No se pudo crear la segunda copia programada."] = "Could not create the second scheduled backup."
-        ,["Las copias programadas no conservaron las dos versiones esperadas."] = "Scheduled backups did not retain the expected two versions."
-        ,["No se pudo enumerar el historial de copias programadas."] = "Could not enumerate scheduled backup history."
-        ,["La versión programada no superó la comprobación estructural."] = "The scheduled version did not pass structural verification."
-        ,["La versión programada no superó la validación autenticada."] = "The scheduled version did not pass authenticated validation."
-        ,["La limpieza de versiones programadas no conservó solo la versión reciente."] = "Scheduled version cleanup did not retain only the latest version."
-        ,["No quedó una versión recuperable tras la limpieza."] = "No recoverable version remained after cleanup."
-        ,["La restauración de una versión programada no preservó el contenedor actual."] = "Restoring a scheduled version did not preserve the current container."
-        ,["La bóveda debe estar cerrada y tener un contenedor disponible."] = "The vault must be closed and have an available container."
-        ,["La carpeta de copias no puede ser la misma bóveda ni contenerla."] = "The backup folder cannot be the vault itself or contain it."
-        ,["La copia creada no superó la verificación estructural."] = "The created backup did not pass structural verification."
-        ,["La copia temporal pertenece a otra bóveda."] = "The temporary backup belongs to a different vault."
-        ,["El contenedor restaurado no superó la verificación final."] = "The restored container did not pass final verification."
-        ,["La bóveda no tiene un contenedor cifrado asociado."] = "The vault has no associated encrypted container."
-        ,["La bóveda ya tiene una sesión abierta."] = "The vault already has an open session."
-        ,["El montaje virtual necesita PAVLT003. Abre esta bóveda para editar y bloquéala una vez para migrarla."] = "Virtual mounting requires PAVLT003. Open this vault for editing and lock it once to migrate it."
-        ,["La edición virtual necesita PAVLT003. Abre y bloquea esta bóveda una vez para migrarla."] = "Virtual editing requires PAVLT003. Open and lock this vault once to migrate it."
-        ,["No hay ninguna letra de unidad disponible para montar la bóveda."] = "No drive letter is available to mount the vault."
-        ,["Dokany no pudo iniciar la unidad virtual."] = "Dokany could not start the virtual drive."
-        ,["Dokany no pudo iniciar la unidad virtual editable."] = "Dokany could not start the editable virtual drive."
-        ,["Ya existe un montaje virtual para esta bóveda."] = "A virtual mount already exists for this vault."
-        ,["Ya existe una operación abierta para esta bóveda."] = "An operation is already in progress for this vault."
-        ,["No existe una sesión abierta para esta bóveda."] = "There is no open session for this vault."
-        ,["La carpeta de trabajo ya no existe."] = "The working folder no longer exists."
-        ,["El contenedor pertenece a otra bóveda."] = "The container belongs to a different vault."
-        ,["La copia verificada pertenece a otra bóveda."] = "The verified backup belongs to a different vault."
-        ,["La copia es un enlace o punto de análisis y no se eliminará automáticamente."] = "The backup is a link or reparse point and will not be removed automatically."
-        ,["La ruta no pertenece al área privada de recuperación."] = "The path does not belong to the private recovery area."
-        ,["No se puede inspeccionar la carpeta."] = "The folder cannot be inspected."
-        ,["La carpeta contiene enlaces o puntos de montaje y no puede eliminarse automáticamente."] = "The folder contains links or mount points and cannot be removed automatically."
-        ,["La bóveda está abierta y no se puede descartar su trabajo."] = "The vault is open and its work cannot be discarded."
-        ,["No se pudo identificar al usuario propietario de la bóveda."] = "Could not identify the vault owner."
-        ,["La bóveda no existe o no se indicó contraseña."] = "The vault does not exist or no password was provided."
-        ,["El tamaño de la bóveda no es válido."] = "The vault size is invalid."
-        ,["La cabecera de la bóveda está incompleta."] = "The vault header is incomplete."
-        ,["El formato de la bóveda no es compatible."] = "The vault format is not supported."
-        ,["La derivación de clave no es compatible."] = "Key derivation is not supported."
-        ,["La longitud cifrada no es válida."] = "The encrypted length is invalid."
-        ,["La bóveda supera el tamaño máximo admitido en esta versión."] = "The vault exceeds the maximum size supported by this version."
-        ,["El contenido de la bóveda es demasiado grande."] = "Vault contents are too large."
-        ,["La bóveda cifrada es demasiado grande."] = "The encrypted vault is too large."
-        ,["La bóveda contiene una entrada desconocida."] = "The vault contains an unknown entry."
-        ,["El contenido expandido es demasiado grande."] = "Expanded contents are too large."
-        ,["La bóveda no contiene metadatos."] = "The vault contains no metadata."
-        ,["Los metadatos de la bóveda no son válidos."] = "Vault metadata is invalid."
-        ,["No se pudieron leer los metadatos de la bóveda."] = "Could not read vault metadata."
-        ,["Los metadatos de la bóveda están incompletos."] = "Vault metadata is incomplete."
-        ,["El archivo está truncado."] = "The file is truncated."
-        ,["El servicio no está instalado."] = "The service is not installed."
-        ,["Instalado y en ejecución como servicio de Windows."] = "Installed and running as a Windows service."
-        ,["Está instalado, pero no se encuentra en ejecución."] = "It is installed, but is not running."
-        ,["Versión del motor"] = "Engine version"
-        ,["Comunicación protegida"] = "Protected communication"
-        ,["Guardian no respondió a través del canal local protegido."] = "Guardian did not respond through the protected local channel."
-        ,["Puerta preventiva"] = "Preventive gate"
-        ,["Guardian confirma que ProtectedApp.Gate está disponible."] = "Guardian confirms that ProtectedApp.Gate is available."
-        ,["La versión instalada de Guardian no admite esta comprobación protegida."] = "The installed Guardian version does not support this protected check."
-        ,["Tarea de recuperación"] = "Recovery task"
-        ,["Guardian confirma que la tarea SYSTEM está habilitada y bien configurada."] = "Guardian confirms that the SYSTEM task is enabled and correctly configured."
-        ,["La tarea SYSTEM falta, está deshabilitada o tiene una acción incorrecta."] = "The SYSTEM task is missing, disabled, or has an incorrect action."
-        ,["La cuenta de usuario no puede consultarla; se necesita Guardian actualizado."] = "The user account cannot query it; an updated Guardian is required."
-        ,["Los binarios protegidos coinciden con su línea base."] = "Protected binaries match their baseline."
-        ,["Guardian no respondió para comprobar sus binarios."] = "Guardian did not respond to check its binaries."
-        ,["Auditoría de seguridad"] = "Security audit"
-        ,["El registro de manipulaciones mantiene una cadena válida."] = "The tamper log has a valid chain."
-        ,["El registro protegido presenta una discontinuidad."] = "The protected log has a discontinuity."
-        ,["Guardian no respondió para comprobar el registro protegido."] = "Guardian did not respond to check the protected log."
-        ,["Recuperación segura"] = "Secure recovery"
-        ,["Guardian mantiene las puertas preventivas activas hasta completar una reparación."] = "Guardian keeps preventive gates active until repair is complete."
-        ,["No hay incidencias críticas pendientes de recuperación."] = "There are no critical recovery issues pending."
-        ,["No se pudo consultar el estado de recuperación."] = "Could not query recovery status."
-        ,["Identidad de firma"] = "Signing identity"
-        ,["Guardian exige la identidad del certificado de esta instalación."] = "Guardian requires this installation's certificate identity."
-        ,["Esta instalación no tiene una identidad de firma Authenticode verificable."] = "This installation has no verifiable Authenticode signing identity."
-        ,["Guardian no respondió para comprobar la identidad de firma."] = "Guardian did not respond to check the signing identity."
-        ,["No hay rutas protegidas más de una vez."] = "No protected paths appear more than once."
-        ,["Política de protección"] = "Protection policy"
-        ,["Guardian ha cargado correctamente la política cifrada de este usuario."] = "Guardian loaded this user's encrypted policy successfully."
-        ,["Guardian no tiene una política válida para este usuario."] = "Guardian has no valid policy for this user."
-        ,["Inicio con Windows"] = "Start with Windows"
-        ,["Desactivado por decisión del usuario."] = "Disabled by user choice."
-        ,["Integración con Explorador"] = "File Explorer integration"
-        ,["La asociación .pavault y los comandos contextuales de carpetas, bóvedas y unidades están registrados."] = "The .pavault association and folder, vault, and drive context commands are registered."
-        ,["Falta la asociación de bóvedas o algún comando contextual. Reinstala ProtectedApp para recuperarlos."] = "The vault association or a context command is missing. Reinstall ProtectedApp to recover them."
-        ,["El runtime se cargó, pero el controlador de unidades virtuales no responde. Reinicia Windows o reinstala ProtectedApp."] = "The runtime loaded, but the virtual-drive driver does not respond. Restart Windows or reinstall ProtectedApp."
-        ,["El componente necesario para montar bóvedas no está disponible. Reinstala ProtectedApp para instalar Dokany."] = "The component required to mount vaults is unavailable. Reinstall ProtectedApp to install Dokany."
-        ,["Integridad de bóvedas"] = "Vault integrity"
-        ,["Unidades virtuales montadas"] = "Mounted virtual drives"
-        ,["No hay bóvedas abiertas como unidad virtual."] = "No vaults are open as a virtual drive."
-        ,["Recuperación de bóvedas"] = "Vault recovery"
-        ,["No hay diarios ni copias de recuperación pendientes."] = "There are no pending journals or recovery backups."
-        ,["Ejecución bloqueada fuera del horario permitido"] = "Launch blocked outside the permitted schedule"
-        ,["Ejecución interceptada antes de mostrar su ventana"] = "Launch intercepted before its window was shown"
-        ,["No se pudo cerrar el proceso; quizá requiere permisos de administrador"] = "Could not close the process; administrator permission may be required"
-        ,["Bóvedas"] = "Vaults"
-        ,["Elige qué programas requieren autorización"] = "Choose which programs require authorization"
-        ,["Tema de la aplicación"] = "App theme"
-        ,["Pausar protección"] = "Pause protection"
-        ,["Activar protección del grupo"] = "Enable group protection"
-        ,["Desactivar protección del grupo"] = "Disable group protection"
-        ,["Editar"] = "Edit"
-        ,["Editar protección"] = "Edit protection"
-        ,["Bloquear esta aplicación"] = "Lock this application"
-        ,["Bloquear aplicación"] = "Lock application"
-        ,["Eliminar"] = "Delete"
-        ,["Eliminar protección"] = "Remove protection"
-        ,["Contenedores cifrados con contraseña propia"] = "Encrypted containers with their own password"
-        ,["Consulta archivos sin crear una copia completa en el disco o abre la bóveda para editar y guardar cambios."] = "View files without creating a full copy on disk, or open the vault to edit and save changes."
-        ,["Convertir carpeta"] = "Convert folder"
-        ,["Convertir una carpeta en una bóveda cifrada"] = "Convert a folder into an encrypted vault"
-        ,["Limpiar ausentes"] = "Clean missing"
-        ,["Quitar de la lista las bóvedas cuyo archivo y copia de recuperación ya no existen"] = "Remove from the list vaults whose file and recovery backup no longer exist"
-        ,["Recuperación pendiente"] = "Recovery pending"
-        ,["Abrir carpeta de trabajo"] = "Open working folder"
-        ,["Abrir carpeta de recuperación"] = "Open recovery folder"
-        ,["Descartar trabajo"] = "Discard work"
-        ,["Descartar carpeta de recuperación"] = "Discard recovery folder"
-        ,["UBICACIÓN DEL ARCHIVO"] = "FILE LOCATION"
-        ,["Abrir bóveda"] = "Open vault"
-        ,["Guardar cambios y bloquear"] = "Save changes and lock"
-        ,["Guardar y bloquear bóveda"] = "Save and lock vault"
-        ,["Más acciones de bóveda"] = "More vault actions"
-        ,["Copia de recuperación"] = "Recovery backup"
-        ,["Editar bóveda"] = "Edit vault"
-        ,["Quitar bóveda"] = "Remove vault"
-        ,["No hay bóvedas cifradas"] = "No encrypted vaults"
-        ,["Mostrar eventos de las últimas 24 horas"] = "Show events from the last 24 hours"
-        ,["Filtrar eventos de las últimas 24 horas"] = "Filter events from the last 24 hours"
-        ,["Mostrar contraseñas fallidas"] = "Show failed passwords"
-        ,["Filtrar contraseñas fallidas"] = "Filter failed passwords"
-        ,["Aún no hay actividad"] = "There is no activity yet"
-        ,["Diagnóstico todavía no ejecutado"] = "Diagnostics not run yet"
-        ,["Comprueba los componentes de protección sin modificar el sistema."] = "Check protection components without modifying the system."
-        ,["Reparar protección"] = "Repair protection"
-        ,["Desbloqueo rápido mediante PIN o huella."] = "Quick unlock with PIN or fingerprint."
-        ,["Sin configurar."] = "Not configured."
-        ,["Modo viaje"] = "Travel mode"
-        ,["Activar…"] = "Enable…"
-        ,["Webhook HTTPS informativo; no bloquea ni revierte una manipulación."] = "Informational HTTPS webhook; it does not block or reverse tampering."
-        ,["Comprobación local de instaladores firmados."] = "Local check of signed installers."
-        ,["Requiere la contraseña maestra."] = "Requires the master password."
-        ,["Protección local gratuita para aplicaciones y bóvedas"] = "Free local protection for applications and vaults"
-        ,["INFORMACIÓN"] = "INFORMATION"
-        ,["Guardian aplica las reglas protegidas como SYSTEM. Las bóvedas cifradas se montan mediante Dokany y protegen el contenido mediante cifrado autenticado."] = "Guardian applies protected rules as SYSTEM. Encrypted vaults are mounted through Dokany and protect content with authenticated encryption."
-        ,["© 2026 Valvik. ProtectedApp complementa la seguridad de Windows y no sustituye las políticas empresariales."] = "© 2026 Valvik. ProtectedApp complements Windows security and does not replace enterprise policies."
-        ,["Copias y recuperación"] = "Backups and recovery"
-        ,["El contenedor principal no es válido, pero su copia cifrada anterior sí. ProtectedApp puede restaurarla y conservar el archivo dañado antes de importar la bóveda."] = "The primary container is invalid, but its previous encrypted backup is valid. ProtectedApp can restore it and preserve the damaged file before importing the vault."
-        ,["Contraseña incorrecta al recuperar la bóveda"] = "Incorrect password while recovering the vault"
-        ,["Esta acción elimina permanentemente la carpeta de trabajo sin incorporar sus cambios al contenedor cifrado."] = "This action permanently removes the working folder without adding its changes to the encrypted container."
-        ,["Recupera o descarta primero la carpeta de trabajo conservada. Quitar ahora la bóveda impediría guardarla desde ProtectedApp."] = "Recover or discard the preserved working folder first. Removing the vault now would prevent saving it from ProtectedApp."
-        ,["Todas las bóvedas de la lista tienen su contenedor principal, una copia recuperable o trabajo pendiente que requiere atención."] = "All vaults in the list have their primary container, a recoverable backup, or pending work requiring attention."
-        ,["Guarda y bloquea la bóveda y resuelve cualquier recuperación pendiente antes de eliminarla."] = "Save and lock the vault and resolve any pending recovery before deleting it."
-        ,["Bóveda eliminada permanentemente; las copias cifradas se conservaron"] = "Vault permanently deleted; encrypted backups were retained"
-        ,["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
-        ,["Contraseña incorrecta o copia no válida."] = "Incorrect password or invalid backup."
-        ,["Confirmar restauración"] = "Confirm restoration"
-        ,["La copia se verificó y se restauró como contenedor principal."] = "The backup was verified and restored as the primary container."
-        ,["Introduce la contraseña de la bóveda para validar la versión seleccionada"] = "Enter the vault password to validate the selected version"
-        ,["Contraseña incorrecta o cabecera no válida."] = "Incorrect password or invalid header."
-        ,["No hay una copia cifrada anterior válida para recuperarla automáticamente."] = "There is no valid previous encrypted backup to recover automatically."
-        ,["El contenedor principal no superó la comprobación completa de integridad, pero su copia anterior es válida"] = "The primary container did not pass the full integrity check, but its previous backup is valid"
-        ,["Bóveda"] = "Vault"
-        ,["Elige cómo quieres abrir tus archivos. Consultar permite verlos sin crear una copia completa en el disco. Editar permite modificar y guardar cambios al bloquear la bóveda."] = "Choose how to open your files. Viewing lets you see them without creating a full copy on disk. Editing lets you modify and save changes when locking the vault."
-        ,["Contraseña incorrecta al abrir la bóveda"] = "Incorrect password while opening the vault"
-        ,["No se pudo abrir la bóveda para editar."] = "Could not open the vault for editing."
-        ,["La copia se restauró, pero no se pudo abrir la bóveda."] = "The backup was restored, but the vault could not be opened."
-        ,["Referencias duplicadas de la bóveda corregidas tras validar el contenedor"] = "Duplicate vault references corrected after validating the container"
-        ,["Cambios recuperados de una sesión interrumpida; guarda y bloquea la bóveda para consolidarlos"] = "Changes recovered from an interrupted session; save and lock the vault to consolidate them"
-        ,["Bóveda abierta para editar; guarda y bloquea antes de cerrar"] = "Vault open for editing; save and lock before closing"
-        ,["Una bóveda no pudo cerrarse de forma segura. Revisa sus archivos de trabajo antes de continuar."] = "A vault could not be closed safely. Review its working files before continuing."
-        ,["Aviso de recuperación de bóveda revisado por el usuario"] = "Vault recovery notice reviewed by the user"
-        ,["Guardian rechazó la política de protección. Revisa las carpetas protegidas y vuelve a intentarlo."] = "Guardian rejected the protection policy. Review protected folders and try again."
-        ,["El servicio arrancó, pero Guardian no confirmó una política protegida. La protección permanece deshabilitada hasta que se repare el servicio."] = "The service started, but Guardian did not confirm a protected policy. Protection remains disabled until the service is repaired."
-        ,["Windows no confirmó la eliminación del servicio. Comprueba el aviso de UAC y vuelve a intentarlo."] = "Windows did not confirm service removal. Check the UAC prompt and try again."
-        ,["Bloqueo automático del panel desactivado"] = "Automatic panel lock disabled"
-        ,["día"] = "day"
-        ,["Autorización de administración no válida"] = "Invalid administration authorization"
-        ,["ProtectedApp no permite proteger sus propios componentes ni procesos esenciales de Windows porque podría dejar la sesión inutilizable."] = "ProtectedApp does not allow protecting its own components or essential Windows processes because it could make the session unusable."
-        ,["Se revocarán los periodos de confianza, se cerrarán las aplicaciones protegidas abiertas, se bloquearán las carpetas y se guardarán y cerrarán las bóvedas. El trabajo no guardado en otras aplicaciones podría perderse."] = "Trusted periods will be revoked, open protected applications closed, folders locked, and vaults saved and closed. Unsaved work in other applications may be lost."
-        ,["Se revocarán los periodos de confianza. Las aplicaciones protegidas recibirán primero una solicitud de cierre normal y tendrán hasta 5 segundos para cerrarse; las que sigan abiertas se cerrarán forzosamente. Se bloquearán las carpetas y se guardarán y cerrarán las bóvedas."] = "Trusted periods will be revoked. Protected applications will first receive a normal close request and have up to 5 seconds to close; those still open will be forcibly closed. Folders will be locked and vaults saved and closed."
-        ,["Se cerrarán las aplicaciones protegidas, se bloquearán las carpetas, se guardarán y desmontarán las bóvedas abiertas y, finalmente, se bloqueará Windows."] = "Protected applications will be closed, folders locked, open vaults saved and unmounted, and finally Windows will be locked."
-        ,["Las aplicaciones protegidas recibirán primero una solicitud de cierre normal y tendrán hasta 5 segundos para cerrarse; las que sigan abiertas se cerrarán forzosamente. Después se bloquearán las carpetas, se guardarán y desmontarán las bóvedas abiertas y se bloqueará Windows."] = "Protected applications will first receive a normal close request and have up to 5 seconds to close; those still open will be forcibly closed. Folders will then be locked, open vaults saved and unmounted, and Windows locked."
-        ,["Introduce la contraseña de la copia."] = "Enter the backup password."
-        ,["Miércoles"] = "Wednesday"
-        ,["Sábado"] = "Saturday"
-        ,["Selecciona al menos un día para el horario."] = "Select at least one day for the schedule."
-        ,["Indica un número entero de minutos para el periodo de confianza (entre 1 y 10.080)."] = "Enter a whole number of minutes for the trusted period (between 1 and 10,080)."
-        ,["Indica un número entero de minutos para el cierre automático (entre 1 y 10.080)."] = "Enter a whole number of minutes for automatic closing (between 1 and 10,080)."
-        ,["El periodo de confianza no puede superar el tiempo de cierre automático."] = "The trusted period cannot exceed the automatic closing time."
-        ,["contraseña"] = "password"
-        ,["sincronización de política pendiente"] = "policy synchronization pending"
-        ,["manipulación"] = "tampering"
-        ,["ProtectedApp no modificó tu configuración porque Windows no permitió leerla. Cierra cualquier programa que pueda estar usando los archivos de ProtectedApp y reinicia la aplicación."] = "ProtectedApp did not modify your configuration because Windows did not allow it to be read. Close any program that may be using ProtectedApp files and restart the app."
-        ,["Se produjo un error inesperado al iniciar. No se ha modificado tu configuración. Consulta root-loaded-error.log en la carpeta local de ProtectedApp para ver el detalle."] = "An unexpected startup error occurred. Your configuration has not been modified. See root-loaded-error.log in ProtectedApp's local folder for details."
-        ,["Protección eliminada y permisos originales restaurados"] = "Protection removed and original permissions restored"
-        ,["Las carpetas ya no se desbloquean mediante permisos NTFS. Usa «Cifrar carpeta como bóveda» para convertirla en una bóveda cifrada."] = "Folders are no longer unlocked through NTFS permissions. Use “Encrypt folder as vault” to convert it into an encrypted vault."
-        ,["El contenedor actual también es válido. Restaurar volverá a la versión anterior y puede descartar cambios posteriores. El actual se conservará con la marca 'replaced'."] = "The current container is also valid. Restoring will return to the previous version and may discard later changes. The current one will be kept with the 'replaced' suffix."
-        ,["La copia anterior es válida. Sustituirá al contenedor ausente o dañado; el archivo dañado se conservará con la marca 'corrupt'."] = "The previous backup is valid. It will replace the missing or damaged container; the damaged file will be kept with the 'corrupt' suffix."
-        ,["La versión seleccionada y el contenedor actual son válidos. No se ha modificado ningún archivo. Si restauras, volverás a esa fecha y el contenedor actual se conservará con la marca 'replaced'."] = "The selected version and current container are valid. No file has been modified. If you restore, you will return to that date and the current container will be kept with the 'replaced' suffix."
-        ,["La versión seleccionada es válida y el contenedor actual no pudo validarse. No se ha modificado ningún archivo. Si restauras, el archivo actual se conservará con la marca 'corrupt'."] = "The selected version is valid and the current container could not be validated. No file has been modified. If you restore, the current file will be kept with the 'corrupt' suffix."
-        ,["Revísalas para guardar sus cambios o descartarlas de forma segura."] = "Review them to save their changes or discard them safely."
-        ,["ProtectedApp conservó sus carpetas de trabajo para no perder cambios."] = "ProtectedApp preserved their working folders to avoid losing changes."
-        ,["Para reparar el servicio se desactivará su protección y se restaurarán sus permisos originales.\n\n"] = "To repair the service, its protection will be disabled and its original permissions restored.\n\n"
-        ,["No se pudo ampliar el cierre automático"] = "Could not extend automatic closing"
-        ,["Ejecución denegada"] = "Launch denied"
-        ,["Manipulación detectada:"] = "Tampering detected:"
-        ,["Actualización manual autorizada"] = "Manual update authorized"
-        ,["Retiradas"] = "Removed"
-        ,["La contraseña de la copia debe tener al menos 8 caracteres."] = "The backup password must be at least 8 characters."
-        ,["La contraseña de la copia debe tener al menos 12 caracteres."] = "The backup password must be at least 12 characters."
-        ,["La configuración es demasiado grande para crear una copia."] = "The configuration is too large to create a backup."
-        ,["El archivo no es una copia válida de ProtectedApp."] = "The file is not a valid ProtectedApp backup."
-        ,["El archivo no contiene una copia válida."] = "The file contains no valid backup."
-        ,["La versión o el formato de la copia no es compatible."] = "The backup version or format is not supported."
-        ,["El contenido de la copia no es válido."] = "Backup content is invalid."
-        ,["La contraseña es incorrecta o el archivo ha sido modificado."] = "The password is incorrect or the file has been modified."
-        ,["La versión interna de la copia no es compatible."] = "The backup internal version is not supported."
-        ,["La copia contiene demasiadas reglas."] = "The backup contains too many rules."
-        ,["La copia contiene demasiadas carpetas."] = "The backup contains too many folders."
-        ,["La copia contiene demasiadas bóvedas."] = "The backup contains too many vaults."
-        ,["La copia contiene una regla vacía."] = "The backup contains an empty rule."
-        ,["La copia contiene una regla no válida."] = "The backup contains an invalid rule."
-        ,["La copia contiene un horario sin días seleccionados."] = "The backup contains a schedule with no selected days."
-        ,["La copia contiene una carpeta no válida."] = "The backup contains an invalid folder."
-        ,["La copia contiene una referencia de bóveda no válida."] = "The backup contains an invalid vault reference."
-        ,["La copia contiene una credencial de aplicación no válida."] = "The backup contains an invalid application credential."
-        ,["La cabecera criptográfica de la copia no es válida."] = "The backup cryptographic header is invalid."
-        ,["fecha desconocida"] = "unknown date"
-        ,["modificado"] = "modified"
-        ,["Guardian no devolvió una respuesta válida."] = "Guardian did not return a valid response."
-        ,["Respuesta de Guardian no válida."] = "Invalid response from Guardian."
-        ,["Guardian no está disponible."] = "Guardian is unavailable."
-        ,["La aplicación ya no pertenece a la política."] = "The application no longer belongs to the policy."
-        ,["Solicitud no válida."] = "Invalid request."
-        ,["Solicitud vacía o demasiado grande."] = "The request is empty or too large."
-        ,["Servidor ocupado; inténtalo de nuevo."] = "Server busy; try again."
-        ,["La identidad del proceso cliente no coincide."] = "The client process identity does not match."
-        ,["La sesión del proceso cliente no coincide."] = "The client process session does not match."
-        ,["El origen de la solicitud no es válido."] = "The request source is not valid."
-        ,["El diagnóstico requiere una sesión autenticada de ProtectedApp."] = "Diagnostics require an authenticated ProtectedApp session."
-        ,["El diagnóstico se ejecutó hace unos segundos; espera antes de repetirlo."] = "Diagnostics ran a few seconds ago; wait before trying again."
-        ,["Guardar"] = "Save"
-        ,["Continuar"] = "Continue"
-        ,["Eliminar"] = "Delete"
-        ,["Descripción"] = "Description"
-        ,["Opcional"] = "Optional"
-        ,["Confirmar contraseña"] = "Confirm password"
-        ,["Nueva contraseña propia"] = "New custom password"
-        ,["Contraseña propia (opcional)"] = "Custom password (optional)"
-        ,["Mínimo 8 caracteres"] = "At least 8 characters"
-        ,["Mínimo 12 caracteres"] = "At least 12 characters"
-        ,["Vacío = usar contraseña maestra"] = "Empty = use master password"
-        ,["Mantener configuración actual"] = "Keep current settings"
-        ,["Usar contraseña maestra"] = "Use master password"
-        ,["Definir contraseña propia"] = "Set custom password"
-        ,["Editar protección"] = "Edit protection"
-        ,["Añadir aplicación"] = "Add application"
-        ,["Proteger seleccionada"] = "Protect selected"
-        ,["Elegir archivo…"] = "Choose file…"
-        ,["Nueva bóveda cifrada"] = "New encrypted vault"
-        ,["Convertir carpeta en bóveda"] = "Convert folder to vault"
-        ,["Importar bóveda"] = "Import vault"
-        ,["Copias programadas de bóvedas"] = "Scheduled vault backups"
-        ,["Alerta remota de manipulación"] = "Remote tamper alert"
-        ,["Contraseña actualizada"] = "Password updated"
-        ,["Las contraseñas no coinciden."] = "Passwords do not match."
-        ,["La contraseña debe tener al menos 8 caracteres."] = "The password must be at least 8 characters."
-        ,["La contraseña debe tener al menos 12 caracteres."] = "The password must be at least 12 characters."
-        ,["La contraseña propia debe tener al menos 6 caracteres."] = "The custom password must be at least 6 characters."
-        ,["La contraseña propia debe tener al menos 12 caracteres."] = "The custom password must be at least 12 characters."
-        ,["La nueva contraseña debe coincidir y tener al menos 6 caracteres."] = "The new password must match and be at least 6 characters."
-        ,["La nueva contraseña debe coincidir y tener al menos 12 caracteres."] = "The new password must match and be at least 12 characters."
-        ,["Contraseña incorrecta."] = "Incorrect password."
-        ,["Contraseña incorrecta o contenedor no válido."] = "Incorrect password or invalid container."
-        ,["No se puede recuperar todavía"] = "Cannot recover yet"
-        ,["La recuperación no se completó"] = "Recovery did not complete"
-        ,["No se pudo desmontar la bóveda"] = "Could not unmount vault"
-        ,["Copias creadas"] = "Backups created"
-        ,["Sin copias pendientes"] = "No pending backups"
-        ,["No hay copias que limpiar"] = "No backups to clean up"
-        ,["Protección administrada"] = "Managed protection"
-        ,["Crea tu contraseña maestra"] = "Create your master password"
-        ,["Nueva contraseña maestra"] = "New master password"
-        ,["Confirmar contraseña actual"] = "Confirm current password"
-        ,["No hay copia anterior"] = "There is no previous backup"
-        ,["La copia anterior está dañada o incompleta"] = "The previous backup is damaged or incomplete"
-        ,["Falta el contenedor principal; la copia puede recuperarse"] = "The primary container is missing; the backup can be restored"
-        ,["El contenedor principal está dañado; la copia puede recuperarse"] = "The primary container is damaged; the backup can be restored"
-        ,["Copia cifrada anterior disponible"] = "Previous encrypted backup available"
-        ,["Contraseña maestra"] = "Master password"
-        ,["Contraseña propia"] = "Custom password"
-        ,["Sin protección"] = "Unprotected"
-        ,["Bloqueada"] = "Locked"
-        ,["Guardian rechazó la autenticación."] = "Guardian rejected the authentication."
-        ,["Carpeta no disponible"] = "Folder unavailable"
-        ,["La carpeta seleccionada ya no existe."] = "The selected folder no longer exists."
-        ,["Cambiar ubicación…"] = "Change location…"
-        ,["Opcional"] = "Optional"
-        ,["Contraseña de la bóveda"] = "Vault password"
-        ,["Bloquear automáticamente después de (minutos)"] = "Automatically lock after (minutes)"
-        ,["Se creará y verificará una bóveda .pavault cifrada. La carpeta original solo se eliminará si lo confirmas después de verificar la bóveda."] = "An encrypted .pavault vault will be created and verified. The original folder will only be removed if you confirm it after verifying the vault."
-        ,["Guardar"] = "Save"
-        ,["La contraseña de la bóveda debe tener al menos 8 caracteres."] = "The vault password must be at least 8 characters."
-        ,["La contraseña de la bóveda debe tener al menos 12 caracteres."] = "The vault password must be at least 12 characters."
-        ,["Guarda la bóveda fuera de la carpeta que se va a cifrar."] = "Save the vault outside the folder being encrypted."
-        ,["Ya existe una bóveda registrada con esa ubicación. Elige otra ubicación o retira primero la referencia anterior."] = "A vault is already registered at that location. Choose another location or remove the previous reference first."
-        ,["Ya existe un archivo con ese nombre. Cambia el nombre o la ubicación."] = "A file with that name already exists. Change the name or location."
-        ,["No se pudo convertir"] = "Could not convert"
-        ,["No se pudo crear y verificar la bóveda cifrada."] = "Could not create and verify the encrypted vault."
-        ,["Bóveda cifrada creada desde"] = "Encrypted vault created from"
-        ,["Bóveda verificada"] = "Vault verified"
-        ,["La bóveda se ha creado y verificado correctamente. Para completar la conversión y evitar conservar una copia sin cifrar, elimina ahora la carpeta original. Esta acción no se puede deshacer."] = "The vault was created and verified successfully. To complete the conversion and avoid retaining an unencrypted copy, remove the original folder now. This action cannot be undone."
-        ,["Conversión pendiente"] = "Conversion pending"
-        ,["La bóveda ya está protegida, pero la carpeta original sigue existiendo sin cifrar. Elimínala manualmente cuando hayas comprobado el contenido."] = "The vault is already protected, but the original folder still exists unencrypted. Remove it manually after checking the contents."
-        ,["Carpeta original eliminada tras verificar la conversión"] = "Original folder removed after verifying the conversion"
-        ,["No se pudo eliminar la carpeta original. Revísala y elimínala manualmente cuando proceda."] = "Could not remove the original folder. Review it and remove it manually when appropriate."
-        ,["Editar carpeta protegida"] = "Edit protected folder"
-        ,["No se pudieron guardar los cambios"] = "Could not save changes"
-        ,["Guardian rechazó la configuración."] = "Guardian rejected the configuration."
-        ,["Protección de carpeta actualizada"] = "Folder protection updated"
-        ,["Autorizar conversión de carpeta"] = "Authorize folder conversion"
-        ,["Introduce la contraseña para desbloquear temporalmente la carpeta"] = "Enter the password to temporarily unlock the folder"
-        ,["Contraseña incorrecta al intentar desbloquear la carpeta"] = "Incorrect password while trying to unlock the folder"
-        ,["No se pudo bloquear la carpeta"] = "Could not lock folder"
-        ,["Guardian no confirmó el bloqueo."] = "Guardian did not confirm the lock."
-        ,["Eliminar protección de carpeta"] = "Remove folder protection"
-        ,["No se pudo restaurar la carpeta"] = "Could not restore folder"
-        ,["Guardian no pudo restaurar sus permisos originales."] = "Guardian could not restore its original permissions."
-        ,["Guardian rechazó el cambio."] = "Guardian rejected the change."
-        ,["Protección de carpeta activada"] = "Folder protection enabled"
-        ,["Protección desactivada y permisos restaurados"] = "Protection disabled and permissions restored"
-        ,["Guardian es necesario"] = "Guardian is required"
-        ,["La protección de carpetas requiere que el servicio Guardian esté instalado, actualizado y en ejecución."] = "Folder protection requires the Guardian service to be installed, up to date, and running."
-        ,["Combinación de teclas"] = "Key combination"
-        ,["Pulsa la combinación"] = "Press the key combination"
-        ,["El atajo funciona aunque la ventana esté oculta. Ejecuta el bloqueo inmediato: cierra aplicaciones protegidas, desmonta bóvedas y bloquea Windows."] = "The shortcut works even when the window is hidden. It performs the immediate lock: closes protected apps, unmounts vaults, and locks Windows."
-        ,["El atajo funciona aunque la ventana esté oculta. Solicita primero el cierre normal de las aplicaciones protegidas; tras 5 segundos, fuerza el cierre de las que sigan abiertas. Después desmonta bóvedas y bloquea Windows."] = "The shortcut works even when the window is hidden. It first requests normal closing for protected applications; after 5 seconds, it forces any that remain open to close. It then unmounts vaults and locks Windows."
-        ,["Solicita el cierre normal y, tras 5 segundos, fuerza las aplicaciones que sigan abiertas."] = "Requests normal closing and, after 5 seconds, forces any applications that remain open to close."
-        ,["Haz clic en el campo y pulsa la combinación. Debe incluir Ctrl, Alt o Mayús y una letra, número o F1 a F12."] = "Click the field and press the combination. It must include Ctrl, Alt, or Shift and a letter, number, or F1 through F12."
-        ,["Atajo de bloqueo inmediato"] = "Immediate lock shortcut"
-        ,["No se pudo configurar el atajo"] = "Could not configure shortcut"
-        ,["Atajo no disponible"] = "Shortcut unavailable"
-        ,["Windows no pudo registrar esta combinación; probablemente ya la usa otra aplicación."] = "Windows could not register this combination; another app is probably already using it."
-        ,["Usa al menos Ctrl, Alt o Mayús y una tecla, por ejemplo Ctrl+Alt+L."] = "Use at least Ctrl, Alt, or Shift and a key, for example Ctrl+Alt+L."
-        ,["La tecla debe ser una letra, un número o F1 a F12."] = "The key must be a letter, number, or F1 through F12."
-        ,["Guardian no disponible"] = "Guardian unavailable"
-        ,["No se puede aplicar el bloqueo inmediato mientras el servicio Guardian no esté activo. Repara el servicio desde Configuración."] = "Immediate lock cannot be applied while the Guardian service is inactive. Repair the service from Settings."
-        ,["No se pudo bloquear"] = "Could not lock"
-        ,["Guardian no confirmó la revocación de accesos."] = "Guardian did not confirm access revocation."
-        ,["El bloqueo inmediato requiere que Guardian esté activo. Repara el servicio desde Configuración."] = "Immediate lock requires Guardian to be active. Repair the service from Settings."
-        ,["No se pudo aplicar el bloqueo inmediato"] = "Could not apply immediate lock"
-        ,["Guardian no confirmó el bloqueo de accesos."] = "Guardian did not confirm access locking."
-        ,["Copia creada"] = "Backup created"
-        ,["La configuración se ha exportado correctamente. Guarda también la contraseña de la copia: no puede recuperarse si se pierde."] = "The configuration was exported successfully. Keep the backup password too: it cannot be recovered if lost."
-        ,["No se pudo crear la copia"] = "Could not create backup"
-        ,["Hay bóvedas abiertas"] = "There are open vaults"
-        ,["Guarda y bloquea todas las bóvedas antes de reemplazar la configuración."] = "Save and lock all vaults before replacing the configuration."
-        ,["No se pudo abrir la copia"] = "Could not open backup"
-        ,["Restaurar copia"] = "Restore backup"
-        ,["Reemplazar configuración"] = "Replace configuration"
-        ,["Copia restaurada"] = "Backup restored"
-        ,["La configuración se restauró localmente. Guardian la sincronizará después de volver a validar la contraseña maestra."] = "The configuration was restored locally. Guardian will synchronize it after the master password is validated again."
-        ,["No se pudo restaurar la copia"] = "Could not restore backup"
-        ,["Proteger copia"] = "Protect backup"
-        ,["Abrir copia cifrada"] = "Open encrypted backup"
-        ,["Contraseña de la copia"] = "Backup password"
-        ,["Repite la contraseña"] = "Repeat password"
-        ,["Esta contraseña cifra el archivo y puede ser distinta de la contraseña maestra. Necesitarás conservarla para restaurar la copia."] = "This password encrypts the file and can differ from the master password. You will need to keep it to restore the backup."
-        ,["Introduce la contraseña que se utilizó al crear esta copia."] = "Enter the password used to create this backup."
-        ,["No se pudo iniciar la desinstalación"] = "Could not start uninstallation"
-        ,["Esta copia se ejecuta desde una carpeta publicada y no fue instalada con Setup.exe. Instálala primero o retira manualmente el servicio desde Configuración."] = "This copy runs from a published folder and was not installed with Setup.exe. Install it first or remove the service manually from Settings."
-        ,["No se pudo seleccionar el instalador"] = "Could not select installer"
-        ,["Verificando firma, identidad y versión…"] = "Verifying signature, identity, and version…"
-        ,["Actualización rechazada"] = "Update rejected"
-        ,["El instalador no ha superado la validación de seguridad."] = "The installer did not pass security validation."
-        ,["Las bóvedas abiertas se guardarán y cerrarán antes de iniciar Setup. Windows solicitará permiso de administrador."] = "Open vaults will be saved and closed before starting Setup. Windows will request administrator permission."
-        ,["Actualización verificada"] = "Verified update"
-        ,["Instalar actualización"] = "Install update"
-        ,["Autorizar actualización de ProtectedApp"] = "Authorize ProtectedApp update"
-        ,["Iniciando actualización"] = "Starting update"
-        ,["No se pudo actualizar"] = "Could not update"
-        ,["Windows no pudo iniciar el instalador seleccionado."] = "Windows could not start the selected installer."
-        ,["No se pudo iniciar la actualización"] = "Could not start update"
-        ,["Comprobando la protección"] = "Checking protection"
-        ,["No se pudo completar el diagnóstico"] = "Could not complete diagnostics"
-        ,["Autorizar reparación de ProtectedApp"] = "Authorize ProtectedApp repair"
-        ,["Reparando componentes de protección"] = "Repairing protection components"
-        ,["Windows solicitará permiso de administrador para reinstalar las capas protegidas."] = "Windows will request administrator permission to reinstall protected layers."
-        ,["Reparación completada"] = "Repair completed"
-        ,["Reparación incompleta"] = "Repair incomplete"
-        ,["Guardian, Gate, la política y la tarea SYSTEM se han comprobado correctamente."] = "Guardian, Gate, the policy, and the SYSTEM task were checked successfully."
-        ,["Guardian no disponible"] = "Guardian unavailable"
-        ,["La autenticación se ha cerrado de forma segura porque el motor protegido no respondió."] = "Authentication was safely closed because the protected engine did not respond."
-        ,["Introduce tu contraseña maestra para continuar"] = "Enter your master password to continue"
-        ,["Contraseña maestra incorrecta"] = "Incorrect master password"
-        ,["No se pudo iniciar"] = "Could not start"
-        ,["Configuración TPM no disponible"] = "TPM configuration unavailable"
-        ,["ProtectedApp no ha modificado tu configuración. La clave TPM que la protege no está disponible; puede ocurrir después de restablecer el TPM, reinstalar Windows o cambiar la placa base. Restaura una copia de configuración o vuelve a configurarla cuando hayas comprobado el estado del equipo."] = "ProtectedApp has not changed your configuration. The TPM key protecting it is unavailable; this can happen after resetting the TPM, reinstalling Windows, or changing the motherboard. Restore a configuration backup or set it up again after checking the computer's state."
-        ,["Guardian rechazó la autorización."] = "Guardian rejected authorization."
-        ,["No se pudo reparar el servicio"] = "Could not repair service"
-        ,["Servicio no disponible"] = "Service unavailable"
-        ,["Los archivos del servicio no están junto a esta publicación. Vuelve a publicar ProtectedApp y copia toda la carpeta."] = "The service files are not next to this publication. Publish ProtectedApp again and copy the entire folder."
-        ,["Solicitando instalación…"] = "Requesting installation…"
-        ,["Solicitando desinstalación…"] = "Requesting uninstallation…"
-        ,["No se pudo cambiar el servicio"] = "Could not change service"
-        ,["No se pudo recuperar"] = "Could not recover"
-        ,["Guardian no devolvió la política protegida."] = "Guardian did not return the protected policy."
-        ,["Recuperar configuración protegida"] = "Recover protected configuration"
-        ,["Introduce la contraseña maestra para restaurar las reglas desde Guardian"] = "Enter the master password to restore rules from Guardian"
-        ,["Contraseña maestra incorrecta al recuperar la configuración"] = "Incorrect master password while recovering configuration"
-        ,["No hay eventos"] = "No events"
-        ,["Actividad exportada"] = "Activity exported"
-        ,["No se pudo exportar"] = "Could not export"
-        ,["Protegiendo…"] = "Protecting…"
-        ,["Consulta segura"] = "Safe viewing"
-        ,["Cambios pendientes"] = "Changes pending"
-        ,["Cambios recuperables"] = "Recoverable changes"
-        ,["Cerrada"] = "Closed"
-        ,["Copias programadas sin configurar"] = "Scheduled backups not configured"
-        ,["⚠ Copia programada pendiente"] = "⚠ Scheduled backup pending"
-        ,["⚠ Copia programada vencida"] = "⚠ Scheduled backup overdue"
-        ,["⚠ Error al crear la copia programada"] = "⚠ Error creating scheduled backup"
-        ,["fecha desconocida"] = "unknown date"
-        ,["modificado"] = "modified"
-        ,["Apertura incompleta"] = "Incomplete opening"
-        ,["No asociada"] = "Unassociated"
-        ,["Falta el contenedor"] = "Container missing"
-        ,["Lista para recuperar"] = "Ready to recover"
-        ,["Indica un nombre."] = "Enter a name."
-        ,["Introduce un nombre."] = "Enter a name."
-        ,["El tiempo debe estar entre 1 y 10.080 minutos."] = "The time must be between 1 and 10,080 minutes."
-        ,["La inactividad debe estar entre 0 y 10.080 minutos."] = "Inactivity must be between 0 and 10,080 minutes."
-        ,["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
-        ,["Las nuevas contraseñas no coinciden."] = "The new passwords do not match."
-        ,["Bloquear grupo seleccionado"] = "Lock selected group"
-        ,["Sin atajo configurado."] = "No shortcut configured."
-        ,["Comprobando estado…"] = "Checking status…"
-        ,["Guardian y seguridad"] = "Guardian and security"
-        ,["Escribe DESCARTAR para confirmar"] = "Type DISCARD to confirm"
-        ,["DESCARTAR"] = "DISCARD"
-        ,["Bóveda creada; carpeta original conservada"] = "Vault created; original folder retained"
-        ,["Bóveda creada; limpieza pendiente"] = "Vault created; cleanup pending"
-        ,["No se pudo preparar la carpeta original para eliminarla. No se eliminó ningún archivo. Cierra las aplicaciones que la usen y revisa sus permisos:"] = "Could not prepare the original folder for deletion. No files were deleted. Close applications using it and check its permissions:"
-        ,["La carpeta original se movió a una ubicación de limpieza antes de borrar su contenido, pero Windows no terminó la operación. La bóveda cifrada ya fue verificada. Revisa y elimina manualmente la carpeta restante:"] = "The original folder was moved to a cleanup location before its contents were deleted, but Windows did not complete the operation. The encrypted vault has already been verified. Review and remove the remaining folder manually:"
-        ,["Windows denegó el acceso al recurso."] = "Windows denied access to the resource."
-        ,["Windows no pudo completar la operación porque el archivo o recurso está en uso."] = "Windows could not complete the operation because the file or resource is in use."
-        ,["No se pudo completar la operación."] = "Could not complete the operation."
-        ,["Comprobación"] = "Check"
-        ,["Introduce tu contraseña maestra para autorizar la desinstalación"] = "Enter your master password to authorize uninstallation"
-        ,["Desinstalar ProtectedApp"] = "Uninstall ProtectedApp"
-        ,["Recursos de interfaz cargados correctamente."] = "User-interface resources loaded successfully."
-        ,["No se pudo exportar el registro de actividad."] = "Could not export the activity log."
-        ,["Guardian rechazó el inicio."] = "Guardian rejected the launch."
-        ,["No se pudo iniciar la aplicación."] = "Could not start the application."
-        ,["No se pudo exportar la copia de seguridad."] = "Could not export the backup."
-        ,["No se pudo revisar la recuperación de bóvedas."] = "Could not check vault recovery."
-        ,["ProtectedApp encontró un error al proteger las bóvedas tras un evento de Windows. Sus carpetas de trabajo se conservaron para no perder cambios."] = "ProtectedApp encountered an error while protecting vaults after a Windows event. Their working folders were retained to prevent data loss."
-        ,["Error al proteger las bóvedas ante un evento de Windows."] = "Error protecting vaults after a Windows event."
+        ,
+        ["Aceptar"] = "OK"
+        ,
+        ["Guardian no disponible"] = "Guardian unavailable"
+        ,
+        ["Servicio no disponible"] = "Service unavailable"
+        ,
+        ["No se pudo abrir"] = "Could not open"
+        ,
+        ["No se pudo guardar"] = "Could not save"
+        ,
+        ["No se pudo bloquear"] = "Could not lock"
+        ,
+        ["No se pudo recuperar"] = "Could not recover"
+        ,
+        ["No se pudo restaurar"] = "Could not restore"
+        ,
+        ["No se pudo eliminar"] = "Could not delete"
+        ,
+        ["No se pudo cambiar la protección"] = "Could not change protection"
+        ,
+        ["No se pudo cambiar la contraseña"] = "Could not change password"
+        ,
+        ["No se pudo crear"] = "Could not create"
+        ,
+        ["No se pudo convertir"] = "Could not convert"
+        ,
+        ["No se pudo abrir la carpeta"] = "Could not open folder"
+        ,
+        ["No se pudo abrir el Explorador"] = "Could not open File Explorer"
+        ,
+        ["No se pudo abrir la copia"] = "Could not open backup"
+        ,
+        ["No se pudo crear la copia"] = "Could not create backup"
+        ,
+        ["Copia creada"] = "Backup created"
+        ,
+        ["Copia restaurada"] = "Backup restored"
+        ,
+        ["Bóveda creada; carpeta original conservada"] = "Vault created; original folder kept"
+        ,
+        ["Bóveda duplicada"] = "Duplicate vault"
+        ,
+        ["Bóveda abierta"] = "Vault is open"
+        ,
+        ["Bóveda recuperada"] = "Vault recovered"
+        ,
+        ["Bóveda no encontrada"] = "Vault not found"
+        ,
+        ["Bóveda no disponible"] = "Vault unavailable"
+        ,
+        ["Integridad correcta"] = "Integrity verified"
+        ,
+        ["Integridad no confirmada"] = "Integrity not confirmed"
+        ,
+        ["Recuperación completada"] = "Recovery completed"
+        ,
+        ["Recuperación pendiente"] = "Recovery pending"
+        ,
+        ["Actualización rechazada"] = "Update rejected"
+        ,
+        ["No se pudo actualizar"] = "Could not update"
+        ,
+        ["No se pudo seleccionar el instalador"] = "Could not select installer"
+        ,
+        ["No hay eventos"] = "No events"
+        ,
+        ["No hay referencias ausentes"] = "No missing references"
+        ,
+        ["Sin destino configurado"] = "No destination configured"
+        ,
+        ["Sin cambios"] = "No changes"
+        ,
+        ["Sin aplicaciones"] = "No applications"
+        ,
+        ["Ya está protegido"] = "Already protected"
+        ,
+        ["Archivo no compatible"] = "Unsupported file"
+        ,
+        ["Aplicación no permitida"] = "Application not allowed"
+        ,
+        ["Acción no disponible"] = "Action unavailable"
+        ,
+        ["Documento no disponible"] = "Document unavailable"
+        ,
+        ["No se pudo abrir el documento"] = "Could not open document"
+        ,
+        ["Activo · reglas aplicadas por Guardian como SYSTEM"] = "Active · rules applied by Guardian as SYSTEM"
+        ,
+        ["Activo · pendiente de actualizar el motor de protección"] = "Active · protection engine update pending"
+        ,
+        ["Instalado pero detenido · pendiente de recuperación"] = "Installed but stopped · recovery pending"
+        ,
+        ["No instalado · protección no disponible"] = "Not installed · protection unavailable"
+        ,
+        ["Servicio activo"] = "Service active"
+        ,
+        ["Reparar servicio"] = "Repair service"
+        ,
+        ["Instalar servicio"] = "Install service"
+        ,
+        ["ProtectedApp — protección activa"] = "ProtectedApp — protection active"
+        ,
+        ["Bóveda sin nombre"] = "Unnamed vault"
+        ,
+        ["Abrir ProtectedApp"] = "Open ProtectedApp"
+        ,
+        ["Desmontar:"] = "Unmount:"
+        ,
+        ["Abrir bóveda:"] = "Open vault:"
+        ,
+        ["Bloquear y ocultar"] = "Lock and hide"
+        ,
+        ["Correcto"] = "Healthy"
+        ,
+        ["Revisar"] = "Review"
+        ,
+        ["Bloqueo"] = "Lock"
+        ,
+        ["Acceso"] = "Access"
+        ,
+        ["Aviso"] = "Warning"
+        ,
+        ["Sistema"] = "System"
+        ,
+        ["Protegiendo…"] = "Securing…"
+        ,
+        ["Consulta segura"] = "Read-only view"
+        ,
+        ["Cambios pendientes"] = "Pending changes"
+        ,
+        ["Recuperación disponible"] = "Recovery available"
+        ,
+        ["Copia dañada"] = "Backup damaged"
+        ,
+        ["Cambios recuperables"] = "Recoverable changes"
+        ,
+        ["Cerrada"] = "Locked"
+        ,
+        ["Vacía"] = "Empty"
+        ,
+        ["Copias programadas sin configurar"] = "Scheduled backups not configured"
+        ,
+        ["⚠ Copia programada pendiente"] = "⚠ Scheduled backup pending"
+        ,
+        ["⚠ Copia programada vencida"] = "⚠ Scheduled backup overdue"
+        ,
+        ["⚠ Error al crear la copia programada"] = "⚠ Scheduled backup failed"
+        ,
+        ["Revisión manual necesaria"] = "Manual review required"
+        ,
+        ["Apertura incompleta"] = "Incomplete opening"
+        ,
+        ["No asociada"] = "Not linked"
+        ,
+        ["Falta el contenedor"] = "Container missing"
+        ,
+        ["Lista para recuperar"] = "Ready to recover"
+        ,
+        ["No se indicó la contraseña de la bóveda."] = "No vault password was provided."
+        ,
+        ["La bóveda contiene demasiados elementos."] = "The vault contains too many items."
+        ,
+        ["El contenido de la bóveda supera 1 GB."] = "Vault contents exceed 1 GB."
+        ,
+        ["Los bloques cifrados superan el límite admitido."] = "Encrypted blocks exceed the supported limit."
+        ,
+        ["El índice de la bóveda es demasiado grande."] = "The vault index is too large."
+        ,
+        ["La verificación del contenedor nuevo devolvió otra bóveda."] = "New container verification returned a different vault."
+        ,
+        ["La clave de datos no es válida."] = "The data key is invalid."
+        ,
+        ["La ruta de la bóveda no es válida."] = "The vault path is invalid."
+        ,
+        ["La longitud de un archivo no es válida."] = "A file length is invalid."
+        ,
+        ["El archivo no existe dentro de la bóveda."] = "The file does not exist inside the vault."
+        ,
+        ["La prueba de escritura virtual devolvió datos distintos."] = "The virtual write test returned different data."
+        ,
+        ["La comprobación de integridad no validó el contenido esperado."] = "Integrity checking did not validate the expected content."
+        ,
+        ["La nueva contraseña no superó la verificación final."] = "The new password did not pass final verification."
+        ,
+        ["No se pudo leer el índice PAVLT003."] = "Could not read the PAVLT003 index."
+        ,
+        ["La contraseña es incorrecta o la bóveda ha sido modificada."] = "The password is incorrect or the vault has been modified."
+        ,
+        ["La bóveda contiene demasiados bloques."] = "The vault contains too many blocks."
+        ,
+        ["El archivo cambió mientras se estaba cifrando."] = "The file changed while it was being encrypted."
+        ,
+        ["La longitud del bloque no es válida."] = "The block length is invalid."
+        ,
+        ["Un bloque de la bóveda ha sido modificado."] = "A vault block has been modified."
+        ,
+        ["La actualización del índice no superó la verificación."] = "The index update did not pass verification."
+        ,
+        ["La derivación de clave PAVLT003 no es compatible."] = "PAVLT003 key derivation is not supported."
+        ,
+        ["La cabecera PAVLT003 no es válida."] = "The PAVLT003 header is invalid."
+        ,
+        ["La cabecera PAVLT003 tiene un tamaño inesperado."] = "The PAVLT003 header has an unexpected size."
+        ,
+        ["El índice no contiene metadatos de bóveda válidos."] = "The index contains no valid vault metadata."
+        ,
+        ["El índice contiene demasiados elementos."] = "The index contains too many items."
+        ,
+        ["El índice contiene rutas duplicadas."] = "The index contains duplicate paths."
+        ,
+        ["Una entrada del índice no es válida."] = "An index entry is invalid."
+        ,
+        ["Un bloque del índice no es válido."] = "An index block is invalid."
+        ,
+        ["La longitud de un bloque sin compresión no es válida."] = "An uncompressed block length is invalid."
+        ,
+        ["La zona de datos cifrados no coincide con el índice."] = "The encrypted data area does not match the index."
+        ,
+        ["Las bóvedas no admiten enlaces ni puntos de montaje."] = "Vaults do not support links or mount points."
+        ,
+        ["El índice contiene una ruta no válida."] = "The index contains an invalid path."
+        ,
+        ["El índice contiene una ruta no segura."] = "The index contains an unsafe path."
+        ,
+        ["Una ruta de la bóveda es demasiado larga."] = "A vault path is too long."
+        ,
+        ["El índice intenta salir de la carpeta de trabajo."] = "The index attempts to leave the working folder."
+        ,
+        ["El material de clave PAVLT003 no es válido."] = "PAVLT003 key material is invalid."
+        ,
+        ["El contenedor está truncado."] = "The container is truncated."
+        ,
+        ["La necesitarás para abrir ProtectedApp y cambiar ajustes."] = "You will need it to open ProtectedApp and change settings."
+        ,
+        ["Autorizar restauración"] = "Authorize restoration"
+        ,
+        ["Intento de restauración rechazado: contraseña incorrecta o copia no válida"] = "Restore attempt rejected: incorrect password or invalid backup"
+        ,
+        ["Contraseña incorrecta al intentar desbloquear la aplicación"] = "Incorrect password while trying to unlock the application"
+        ,
+        ["Acceso autorizado; aplicación iniciada"] = "Access authorized; application started"
+        ,
+        ["Protección administrada"] = "Managed protection"
+        ,
+        ["ProtectedApp aplica la protección exclusivamente mediante Guardian. No se puede pausar desde la interfaz."] = "ProtectedApp applies protection exclusively through Guardian. It cannot be paused from the interface."
+        ,
+        ["Reinstala ProtectedApp para recuperar la documentación legal."] = "Reinstall ProtectedApp to recover the legal documentation."
+        ,
+        ["Doble clic en bóvedas configurado para consulta segura"] = "Double-click vaults set to safe viewing"
+        ,
+        ["Doble clic en bóvedas configurado para editar"] = "Double-click vaults set to editing"
+        ,
+        ["Letra de unidad de bóvedas configurada automáticamente"] = "Vault drive letter set automatically"
+        ,
+        ["Avisos de copias de bóvedas activados"] = "Vault backup notifications enabled"
+        ,
+        ["Avisos de copias de bóvedas silenciados"] = "Vault backup notifications muted"
+        ,
+        ["Avisos previos de cierre automático activados"] = "Automatic closing warnings enabled"
+        ,
+        ["Avisos previos de cierre automático desactivados"] = "Automatic closing warnings disabled"
+        ,
+        ["Guardian rechazó la solicitud."] = "Guardian rejected the request."
+        ,
+        ["Copia programada pendiente: todavía no existe ninguna versión"] = "Scheduled backup pending: no version exists yet"
+        ,
+        ["Copia programada vencida: la última versión superó la frecuencia configurada"] = "Scheduled backup overdue: the latest version exceeded the configured frequency"
+        ,
+        ["Protección de bóvedas"] = "Vault protection"
+        ,
+        ["Mayús"] = "Shift"
+        ,
+        ["Atajo de bloqueo inmediato ignorado: Guardian no está disponible"] = "Immediate lock shortcut ignored: Guardian is unavailable"
+        ,
+        ["No se pudieron cerrar todas las bóvedas durante la respuesta antimanipulación; se conservó su carpeta de trabajo"] = "Not all vaults could be closed during the anti-tamper response; their working folder was preserved"
+        ,
+        ["Protección desactivada: Guardian no admite carpetas sincronizadas o redirigidas"] = "Protection disabled: Guardian does not support synchronized or redirected folders"
+        ,
+        ["Cierre automático ampliado"] = "Automatic closing extended"
+        ,
+        ["Ejecución interceptada por Guardian (SYSTEM)"] = "Launch intercepted by Guardian (SYSTEM)"
+        ,
+        ["Manipulación detectada"] = "Tampering detected"
+        ,
+        ["Copia programada de bóveda creada"] = "Scheduled vault backup created"
+        ,
+        ["Bóveda restaurada desde la copia anterior durante la importación"] = "Vault restored from the previous backup during import"
+        ,
+        ["Bóveda cifrada importada"] = "Encrypted vault imported"
+        ,
+        ["No se pudo desmontar automáticamente la unidad virtual"] = "Could not automatically unmount the virtual drive"
+        ,
+        ["No se pudo aplicar el bloqueo automático"] = "Could not apply automatic lock"
+        ,
+        ["Consulta segura cerrada y bóveda protegida"] = "Safe viewing closed and vault protected"
+        ,
+        ["Cambios guardados y bóveda protegida"] = "Changes saved and vault protected"
+        ,
+        ["No se pudo cerrar la sesión de consulta segura."] = "Could not close the safe viewing session."
+        ,
+        ["La bóveda sigue abierta para editar para evitar perder cambios."] = "The vault remains open for editing to avoid losing changes."
+        ,
+        ["Bóveda retirada de la lista; el contenedor cifrado se conservó"] = "Vault removed from the list; the encrypted container was kept"
+        ,
+        ["Comprobar versión"] = "Check version"
+        ,
+        ["Eliminar versión"] = "Delete version"
+        ,
+        ["Versión de copia programada eliminada"] = "Scheduled backup version deleted"
+        ,
+        ["Contraseña incorrecta o versión no válida."] = "Incorrect password or invalid version."
+        ,
+        ["Versión comprobada"] = "Version checked"
+        ,
+        ["Versión restaurada"] = "Version restored"
+        ,
+        ["La versión se conservó sin cambios."] = "The version was kept unchanged."
+        ,
+        ["La versión se verificó y se restauró correctamente."] = "The version was verified and restored successfully."
+        ,
+        ["Los datos de la bóveda o la contraseña no son válidos."] = "Vault data or password is invalid."
+        ,
+        ["Los datos de la bóveda, la carpeta o la contraseña no son válidos."] = "Vault data, folder, or password is invalid."
+        ,
+        ["La carpeta de origen ya no existe."] = "The source folder no longer exists."
+        ,
+        ["Ya existe un archivo en la ubicación elegida para la bóveda."] = "A file already exists at the selected vault location."
+        ,
+        ["La bóveda no puede guardarse dentro de la carpeta que se va a cifrar."] = "The vault cannot be saved inside the folder being encrypted."
+        ,
+        ["La verificación final devolvió una bóveda distinta."] = "Final verification returned a different vault."
+        ,
+        ["No se pudo crear la primera copia programada."] = "Could not create the first scheduled backup."
+        ,
+        ["No se pudo crear la segunda copia programada."] = "Could not create the second scheduled backup."
+        ,
+        ["Las copias programadas no conservaron las dos versiones esperadas."] = "Scheduled backups did not retain the expected two versions."
+        ,
+        ["No se pudo enumerar el historial de copias programadas."] = "Could not enumerate scheduled backup history."
+        ,
+        ["La versión programada no superó la comprobación estructural."] = "The scheduled version did not pass structural verification."
+        ,
+        ["La versión programada no superó la validación autenticada."] = "The scheduled version did not pass authenticated validation."
+        ,
+        ["La limpieza de versiones programadas no conservó solo la versión reciente."] = "Scheduled version cleanup did not retain only the latest version."
+        ,
+        ["No quedó una versión recuperable tras la limpieza."] = "No recoverable version remained after cleanup."
+        ,
+        ["La restauración de una versión programada no preservó el contenedor actual."] = "Restoring a scheduled version did not preserve the current container."
+        ,
+        ["La bóveda debe estar cerrada y tener un contenedor disponible."] = "The vault must be closed and have an available container."
+        ,
+        ["La carpeta de copias no puede ser la misma bóveda ni contenerla."] = "The backup folder cannot be the vault itself or contain it."
+        ,
+        ["La copia creada no superó la verificación estructural."] = "The created backup did not pass structural verification."
+        ,
+        ["La copia temporal pertenece a otra bóveda."] = "The temporary backup belongs to a different vault."
+        ,
+        ["El contenedor restaurado no superó la verificación final."] = "The restored container did not pass final verification."
+        ,
+        ["La bóveda no tiene un contenedor cifrado asociado."] = "The vault has no associated encrypted container."
+        ,
+        ["La bóveda ya tiene una sesión abierta."] = "The vault already has an open session."
+        ,
+        ["El montaje virtual necesita PAVLT003. Abre esta bóveda para editar y bloquéala una vez para migrarla."] = "Virtual mounting requires PAVLT003. Open this vault for editing and lock it once to migrate it."
+        ,
+        ["La edición virtual necesita PAVLT003. Abre y bloquea esta bóveda una vez para migrarla."] = "Virtual editing requires PAVLT003. Open and lock this vault once to migrate it."
+        ,
+        ["No hay ninguna letra de unidad disponible para montar la bóveda."] = "No drive letter is available to mount the vault."
+        ,
+        ["Dokany no pudo iniciar la unidad virtual."] = "Dokany could not start the virtual drive."
+        ,
+        ["Dokany no pudo iniciar la unidad virtual editable."] = "Dokany could not start the editable virtual drive."
+        ,
+        ["Ya existe un montaje virtual para esta bóveda."] = "A virtual mount already exists for this vault."
+        ,
+        ["Ya existe una operación abierta para esta bóveda."] = "An operation is already in progress for this vault."
+        ,
+        ["No existe una sesión abierta para esta bóveda."] = "There is no open session for this vault."
+        ,
+        ["La carpeta de trabajo ya no existe."] = "The working folder no longer exists."
+        ,
+        ["El contenedor pertenece a otra bóveda."] = "The container belongs to a different vault."
+        ,
+        ["La copia verificada pertenece a otra bóveda."] = "The verified backup belongs to a different vault."
+        ,
+        ["La copia es un enlace o punto de análisis y no se eliminará automáticamente."] = "The backup is a link or reparse point and will not be removed automatically."
+        ,
+        ["La ruta no pertenece al área privada de recuperación."] = "The path does not belong to the private recovery area."
+        ,
+        ["No se puede inspeccionar la carpeta."] = "The folder cannot be inspected."
+        ,
+        ["La carpeta contiene enlaces o puntos de montaje y no puede eliminarse automáticamente."] = "The folder contains links or mount points and cannot be removed automatically."
+        ,
+        ["La bóveda está abierta y no se puede descartar su trabajo."] = "The vault is open and its work cannot be discarded."
+        ,
+        ["No se pudo identificar al usuario propietario de la bóveda."] = "Could not identify the vault owner."
+        ,
+        ["La bóveda no existe o no se indicó contraseña."] = "The vault does not exist or no password was provided."
+        ,
+        ["El tamaño de la bóveda no es válido."] = "The vault size is invalid."
+        ,
+        ["La cabecera de la bóveda está incompleta."] = "The vault header is incomplete."
+        ,
+        ["El formato de la bóveda no es compatible."] = "The vault format is not supported."
+        ,
+        ["La derivación de clave no es compatible."] = "Key derivation is not supported."
+        ,
+        ["La longitud cifrada no es válida."] = "The encrypted length is invalid."
+        ,
+        ["La bóveda supera el tamaño máximo admitido en esta versión."] = "The vault exceeds the maximum size supported by this version."
+        ,
+        ["El contenido de la bóveda es demasiado grande."] = "Vault contents are too large."
+        ,
+        ["La bóveda cifrada es demasiado grande."] = "The encrypted vault is too large."
+        ,
+        ["La bóveda contiene una entrada desconocida."] = "The vault contains an unknown entry."
+        ,
+        ["El contenido expandido es demasiado grande."] = "Expanded contents are too large."
+        ,
+        ["La bóveda no contiene metadatos."] = "The vault contains no metadata."
+        ,
+        ["Los metadatos de la bóveda no son válidos."] = "Vault metadata is invalid."
+        ,
+        ["No se pudieron leer los metadatos de la bóveda."] = "Could not read vault metadata."
+        ,
+        ["Los metadatos de la bóveda están incompletos."] = "Vault metadata is incomplete."
+        ,
+        ["El archivo está truncado."] = "The file is truncated."
+        ,
+        ["El servicio no está instalado."] = "The service is not installed."
+        ,
+        ["Instalado y en ejecución como servicio de Windows."] = "Installed and running as a Windows service."
+        ,
+        ["Está instalado, pero no se encuentra en ejecución."] = "It is installed, but is not running."
+        ,
+        ["Versión del motor"] = "Engine version"
+        ,
+        ["Comunicación protegida"] = "Protected communication"
+        ,
+        ["Guardian no respondió a través del canal local protegido."] = "Guardian did not respond through the protected local channel."
+        ,
+        ["Puerta preventiva"] = "Preventive gate"
+        ,
+        ["Guardian confirma que ProtectedApp.Gate está disponible."] = "Guardian confirms that ProtectedApp.Gate is available."
+        ,
+        ["La versión instalada de Guardian no admite esta comprobación protegida."] = "The installed Guardian version does not support this protected check."
+        ,
+        ["Tarea de recuperación"] = "Recovery task"
+        ,
+        ["Guardian confirma que la tarea SYSTEM está habilitada y bien configurada."] = "Guardian confirms that the SYSTEM task is enabled and correctly configured."
+        ,
+        ["La tarea SYSTEM falta, está deshabilitada o tiene una acción incorrecta."] = "The SYSTEM task is missing, disabled, or has an incorrect action."
+        ,
+        ["La cuenta de usuario no puede consultarla; se necesita Guardian actualizado."] = "The user account cannot query it; an updated Guardian is required."
+        ,
+        ["Los binarios protegidos coinciden con su línea base."] = "Protected binaries match their baseline."
+        ,
+        ["Guardian no respondió para comprobar sus binarios."] = "Guardian did not respond to check its binaries."
+        ,
+        ["Auditoría de seguridad"] = "Security audit"
+        ,
+        ["El registro de manipulaciones mantiene una cadena válida."] = "The tamper log has a valid chain."
+        ,
+        ["El registro protegido presenta una discontinuidad."] = "The protected log has a discontinuity."
+        ,
+        ["Guardian no respondió para comprobar el registro protegido."] = "Guardian did not respond to check the protected log."
+        ,
+        ["Recuperación segura"] = "Secure recovery"
+        ,
+        ["Guardian mantiene las puertas preventivas activas hasta completar una reparación."] = "Guardian keeps preventive gates active until repair is complete."
+        ,
+        ["No hay incidencias críticas pendientes de recuperación."] = "There are no critical recovery issues pending."
+        ,
+        ["No se pudo consultar el estado de recuperación."] = "Could not query recovery status."
+        ,
+        ["Identidad de firma"] = "Signing identity"
+        ,
+        ["Guardian exige la identidad del certificado de esta instalación."] = "Guardian requires this installation's certificate identity."
+        ,
+        ["Esta instalación no tiene una identidad de firma Authenticode verificable."] = "This installation has no verifiable Authenticode signing identity."
+        ,
+        ["Guardian no respondió para comprobar la identidad de firma."] = "Guardian did not respond to check the signing identity."
+        ,
+        ["No hay rutas protegidas más de una vez."] = "No protected paths appear more than once."
+        ,
+        ["Política de protección"] = "Protection policy"
+        ,
+        ["Guardian ha cargado correctamente la política cifrada de este usuario."] = "Guardian loaded this user's encrypted policy successfully."
+        ,
+        ["Guardian no tiene una política válida para este usuario."] = "Guardian has no valid policy for this user."
+        ,
+        ["Inicio con Windows"] = "Start with Windows"
+        ,
+        ["Desactivado por decisión del usuario."] = "Disabled by user choice."
+        ,
+        ["Integración con Explorador"] = "File Explorer integration"
+        ,
+        ["La asociación .pavault y los comandos contextuales de carpetas, bóvedas y unidades están registrados."] = "The .pavault association and folder, vault, and drive context commands are registered."
+        ,
+        ["Falta la asociación de bóvedas o algún comando contextual. Reinstala ProtectedApp para recuperarlos."] = "The vault association or a context command is missing. Reinstall ProtectedApp to recover them."
+        ,
+        ["El runtime se cargó, pero el controlador de unidades virtuales no responde. Reinicia Windows o reinstala ProtectedApp."] = "The runtime loaded, but the virtual-drive driver does not respond. Restart Windows or reinstall ProtectedApp."
+        ,
+        ["El componente necesario para montar bóvedas no está disponible. Reinstala ProtectedApp para instalar Dokany."] = "The component required to mount vaults is unavailable. Reinstall ProtectedApp to install Dokany."
+        ,
+        ["Integridad de bóvedas"] = "Vault integrity"
+        ,
+        ["Unidades virtuales montadas"] = "Mounted virtual drives"
+        ,
+        ["No hay bóvedas abiertas como unidad virtual."] = "No vaults are open as a virtual drive."
+        ,
+        ["Recuperación de bóvedas"] = "Vault recovery"
+        ,
+        ["No hay diarios ni copias de recuperación pendientes."] = "There are no pending journals or recovery backups."
+        ,
+        ["Ejecución bloqueada fuera del horario permitido"] = "Launch blocked outside the permitted schedule"
+        ,
+        ["Ejecución interceptada antes de mostrar su ventana"] = "Launch intercepted before its window was shown"
+        ,
+        ["No se pudo cerrar el proceso; quizá requiere permisos de administrador"] = "Could not close the process; administrator permission may be required"
+        ,
+        ["Bóvedas"] = "Vaults"
+        ,
+        ["Elige qué programas requieren autorización"] = "Choose which programs require authorization"
+        ,
+        ["Tema de la aplicación"] = "App theme"
+        ,
+        ["Pausar protección"] = "Pause protection"
+        ,
+        ["Activar protección del grupo"] = "Enable group protection"
+        ,
+        ["Desactivar protección del grupo"] = "Disable group protection"
+        ,
+        ["Editar"] = "Edit"
+        ,
+        ["Editar protección"] = "Edit protection"
+        ,
+        ["Bloquear esta aplicación"] = "Lock this application"
+        ,
+        ["Bloquear aplicación"] = "Lock application"
+        ,
+        ["Eliminar"] = "Delete"
+        ,
+        ["Eliminar protección"] = "Remove protection"
+        ,
+        ["Contenedores cifrados con contraseña propia"] = "Encrypted containers with their own password"
+        ,
+        ["Consulta archivos sin crear una copia completa en el disco o abre la bóveda para editar y guardar cambios."] = "View files without creating a full copy on disk, or open the vault to edit and save changes."
+        ,
+        ["Convertir carpeta"] = "Convert folder"
+        ,
+        ["Convertir una carpeta en una bóveda cifrada"] = "Convert a folder into an encrypted vault"
+        ,
+        ["Limpiar ausentes"] = "Clean missing"
+        ,
+        ["Quitar de la lista las bóvedas cuyo archivo y copia de recuperación ya no existen"] = "Remove from the list vaults whose file and recovery backup no longer exist"
+        ,
+        ["Recuperación pendiente"] = "Recovery pending"
+        ,
+        ["Abrir carpeta de trabajo"] = "Open working folder"
+        ,
+        ["Abrir carpeta de recuperación"] = "Open recovery folder"
+        ,
+        ["Descartar trabajo"] = "Discard work"
+        ,
+        ["Descartar carpeta de recuperación"] = "Discard recovery folder"
+        ,
+        ["UBICACIÓN DEL ARCHIVO"] = "FILE LOCATION"
+        ,
+        ["Abrir bóveda"] = "Open vault"
+        ,
+        ["Guardar cambios y bloquear"] = "Save changes and lock"
+        ,
+        ["Guardar y bloquear bóveda"] = "Save and lock vault"
+        ,
+        ["Más acciones de bóveda"] = "More vault actions"
+        ,
+        ["Copia de recuperación"] = "Recovery backup"
+        ,
+        ["Editar bóveda"] = "Edit vault"
+        ,
+        ["Quitar bóveda"] = "Remove vault"
+        ,
+        ["No hay bóvedas cifradas"] = "No encrypted vaults"
+        ,
+        ["Mostrar eventos de las últimas 24 horas"] = "Show events from the last 24 hours"
+        ,
+        ["Filtrar eventos de las últimas 24 horas"] = "Filter events from the last 24 hours"
+        ,
+        ["Mostrar contraseñas fallidas"] = "Show failed passwords"
+        ,
+        ["Filtrar contraseñas fallidas"] = "Filter failed passwords"
+        ,
+        ["Aún no hay actividad"] = "There is no activity yet"
+        ,
+        ["Diagnóstico todavía no ejecutado"] = "Diagnostics not run yet"
+        ,
+        ["Comprueba los componentes de protección sin modificar el sistema."] = "Check protection components without modifying the system."
+        ,
+        ["Reparar protección"] = "Repair protection"
+        ,
+        ["Desbloqueo rápido mediante PIN o huella."] = "Quick unlock with PIN or fingerprint."
+        ,
+        ["Sin configurar."] = "Not configured."
+        ,
+        ["Modo viaje"] = "Travel mode"
+        ,
+        ["Activar…"] = "Enable…"
+        ,
+        ["Webhook HTTPS informativo; no bloquea ni revierte una manipulación."] = "Informational HTTPS webhook; it does not block or reverse tampering."
+        ,
+        ["Comprobación local de instaladores firmados."] = "Local check of signed installers."
+        ,
+        ["Requiere la contraseña maestra."] = "Requires the master password."
+        ,
+        ["Protección local gratuita para aplicaciones y bóvedas"] = "Free local protection for applications and vaults"
+        ,
+        ["INFORMACIÓN"] = "INFORMATION"
+        ,
+        ["Guardian aplica las reglas protegidas como SYSTEM. Las bóvedas cifradas se montan mediante Dokany y protegen el contenido mediante cifrado autenticado."] = "Guardian applies protected rules as SYSTEM. Encrypted vaults are mounted through Dokany and protect content with authenticated encryption."
+        ,
+        ["© 2026 Valvik. ProtectedApp complementa la seguridad de Windows y no sustituye las políticas empresariales."] = "© 2026 Valvik. ProtectedApp complements Windows security and does not replace enterprise policies."
+        ,
+        ["Copias y recuperación"] = "Backups and recovery"
+        ,
+        ["El contenedor principal no es válido, pero su copia cifrada anterior sí. ProtectedApp puede restaurarla y conservar el archivo dañado antes de importar la bóveda."] = "The primary container is invalid, but its previous encrypted backup is valid. ProtectedApp can restore it and preserve the damaged file before importing the vault."
+        ,
+        ["Contraseña incorrecta al recuperar la bóveda"] = "Incorrect password while recovering the vault"
+        ,
+        ["Esta acción elimina permanentemente la carpeta de trabajo sin incorporar sus cambios al contenedor cifrado."] = "This action permanently removes the working folder without adding its changes to the encrypted container."
+        ,
+        ["Recupera o descarta primero la carpeta de trabajo conservada. Quitar ahora la bóveda impediría guardarla desde ProtectedApp."] = "Recover or discard the preserved working folder first. Removing the vault now would prevent saving it from ProtectedApp."
+        ,
+        ["Todas las bóvedas de la lista tienen su contenedor principal, una copia recuperable o trabajo pendiente que requiere atención."] = "All vaults in the list have their primary container, a recoverable backup, or pending work requiring attention."
+        ,
+        ["Guarda y bloquea la bóveda y resuelve cualquier recuperación pendiente antes de eliminarla."] = "Save and lock the vault and resolve any pending recovery before deleting it."
+        ,
+        ["Bóveda eliminada permanentemente; las copias cifradas se conservaron"] = "Vault permanently deleted; encrypted backups were retained"
+        ,
+        ["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
+        ,
+        ["Contraseña incorrecta o copia no válida."] = "Incorrect password or invalid backup."
+        ,
+        ["Confirmar restauración"] = "Confirm restoration"
+        ,
+        ["La copia se verificó y se restauró como contenedor principal."] = "The backup was verified and restored as the primary container."
+        ,
+        ["Introduce la contraseña de la bóveda para validar la versión seleccionada"] = "Enter the vault password to validate the selected version"
+        ,
+        ["Contraseña incorrecta o cabecera no válida."] = "Incorrect password or invalid header."
+        ,
+        ["No hay una copia cifrada anterior válida para recuperarla automáticamente."] = "There is no valid previous encrypted backup to recover automatically."
+        ,
+        ["El contenedor principal no superó la comprobación completa de integridad, pero su copia anterior es válida"] = "The primary container did not pass the full integrity check, but its previous backup is valid"
+        ,
+        ["Bóveda"] = "Vault"
+        ,
+        ["Elige cómo quieres abrir tus archivos. Consultar permite verlos sin crear una copia completa en el disco. Editar permite modificar y guardar cambios al bloquear la bóveda."] = "Choose how to open your files. Viewing lets you see them without creating a full copy on disk. Editing lets you modify and save changes when locking the vault."
+        ,
+        ["Contraseña incorrecta al abrir la bóveda"] = "Incorrect password while opening the vault"
+        ,
+        ["No se pudo abrir la bóveda para editar."] = "Could not open the vault for editing."
+        ,
+        ["La copia se restauró, pero no se pudo abrir la bóveda."] = "The backup was restored, but the vault could not be opened."
+        ,
+        ["Referencias duplicadas de la bóveda corregidas tras validar el contenedor"] = "Duplicate vault references corrected after validating the container"
+        ,
+        ["Cambios recuperados de una sesión interrumpida; guarda y bloquea la bóveda para consolidarlos"] = "Changes recovered from an interrupted session; save and lock the vault to consolidate them"
+        ,
+        ["Bóveda abierta para editar; guarda y bloquea antes de cerrar"] = "Vault open for editing; save and lock before closing"
+        ,
+        ["Una bóveda no pudo cerrarse de forma segura. Revisa sus archivos de trabajo antes de continuar."] = "A vault could not be closed safely. Review its working files before continuing."
+        ,
+        ["Aviso de recuperación de bóveda revisado por el usuario"] = "Vault recovery notice reviewed by the user"
+        ,
+        ["Guardian rechazó la política de protección. Revisa las carpetas protegidas y vuelve a intentarlo."] = "Guardian rejected the protection policy. Review protected folders and try again."
+        ,
+        ["El servicio arrancó, pero Guardian no confirmó una política protegida. La protección permanece deshabilitada hasta que se repare el servicio."] = "The service started, but Guardian did not confirm a protected policy. Protection remains disabled until the service is repaired."
+        ,
+        ["Windows no confirmó la eliminación del servicio. Comprueba el aviso de UAC y vuelve a intentarlo."] = "Windows did not confirm service removal. Check the UAC prompt and try again."
+        ,
+        ["Bloqueo automático del panel desactivado"] = "Automatic panel lock disabled"
+        ,
+        ["día"] = "day"
+        ,
+        ["Autorización de administración no válida"] = "Invalid administration authorization"
+        ,
+        ["ProtectedApp no permite proteger sus propios componentes ni procesos esenciales de Windows porque podría dejar la sesión inutilizable."] = "ProtectedApp does not allow protecting its own components or essential Windows processes because it could make the session unusable."
+        ,
+        ["Se revocarán los periodos de confianza, se cerrarán las aplicaciones protegidas abiertas, se bloquearán las carpetas y se guardarán y cerrarán las bóvedas. El trabajo no guardado en otras aplicaciones podría perderse."] = "Trusted periods will be revoked, open protected applications closed, folders locked, and vaults saved and closed. Unsaved work in other applications may be lost."
+        ,
+        ["Se revocarán los periodos de confianza. Las aplicaciones protegidas recibirán primero una solicitud de cierre normal y tendrán hasta 5 segundos para cerrarse; las que sigan abiertas se cerrarán forzosamente. Se bloquearán las carpetas y se guardarán y cerrarán las bóvedas."] = "Trusted periods will be revoked. Protected applications will first receive a normal close request and have up to 5 seconds to close; those still open will be forcibly closed. Folders will be locked and vaults saved and closed."
+        ,
+        ["Se cerrarán las aplicaciones protegidas, se bloquearán las carpetas, se guardarán y desmontarán las bóvedas abiertas y, finalmente, se bloqueará Windows."] = "Protected applications will be closed, folders locked, open vaults saved and unmounted, and finally Windows will be locked."
+        ,
+        ["Las aplicaciones protegidas recibirán primero una solicitud de cierre normal y tendrán hasta 5 segundos para cerrarse; las que sigan abiertas se cerrarán forzosamente. Después se bloquearán las carpetas, se guardarán y desmontarán las bóvedas abiertas y se bloqueará Windows."] = "Protected applications will first receive a normal close request and have up to 5 seconds to close; those still open will be forcibly closed. Folders will then be locked, open vaults saved and unmounted, and Windows locked."
+        ,
+        ["Introduce la contraseña de la copia."] = "Enter the backup password."
+        ,
+        ["Miércoles"] = "Wednesday"
+        ,
+        ["Sábado"] = "Saturday"
+        ,
+        ["Selecciona al menos un día para el horario."] = "Select at least one day for the schedule."
+        ,
+        ["Indica un número entero de minutos para el periodo de confianza (entre 1 y 10.080)."] = "Enter a whole number of minutes for the trusted period (between 1 and 10,080)."
+        ,
+        ["Indica un número entero de minutos para el cierre automático (entre 1 y 10.080)."] = "Enter a whole number of minutes for automatic closing (between 1 and 10,080)."
+        ,
+        ["El periodo de confianza no puede superar el tiempo de cierre automático."] = "The trusted period cannot exceed the automatic closing time."
+        ,
+        ["contraseña"] = "password"
+        ,
+        ["sincronización de política pendiente"] = "policy synchronization pending"
+        ,
+        ["manipulación"] = "tampering"
+        ,
+        ["ProtectedApp no modificó tu configuración porque Windows no permitió leerla. Cierra cualquier programa que pueda estar usando los archivos de ProtectedApp y reinicia la aplicación."] = "ProtectedApp did not modify your configuration because Windows did not allow it to be read. Close any program that may be using ProtectedApp files and restart the app."
+        ,
+        ["Se produjo un error inesperado al iniciar. No se ha modificado tu configuración. Consulta root-loaded-error.log en la carpeta local de ProtectedApp para ver el detalle."] = "An unexpected startup error occurred. Your configuration has not been modified. See root-loaded-error.log in ProtectedApp's local folder for details."
+        ,
+        ["Protección eliminada y permisos originales restaurados"] = "Protection removed and original permissions restored"
+        ,
+        ["Las carpetas ya no se desbloquean mediante permisos NTFS. Usa «Cifrar carpeta como bóveda» para convertirla en una bóveda cifrada."] = "Folders are no longer unlocked through NTFS permissions. Use “Encrypt folder as vault” to convert it into an encrypted vault."
+        ,
+        ["El contenedor actual también es válido. Restaurar volverá a la versión anterior y puede descartar cambios posteriores. El actual se conservará con la marca 'replaced'."] = "The current container is also valid. Restoring will return to the previous version and may discard later changes. The current one will be kept with the 'replaced' suffix."
+        ,
+        ["La copia anterior es válida. Sustituirá al contenedor ausente o dañado; el archivo dañado se conservará con la marca 'corrupt'."] = "The previous backup is valid. It will replace the missing or damaged container; the damaged file will be kept with the 'corrupt' suffix."
+        ,
+        ["La versión seleccionada y el contenedor actual son válidos. No se ha modificado ningún archivo. Si restauras, volverás a esa fecha y el contenedor actual se conservará con la marca 'replaced'."] = "The selected version and current container are valid. No file has been modified. If you restore, you will return to that date and the current container will be kept with the 'replaced' suffix."
+        ,
+        ["La versión seleccionada es válida y el contenedor actual no pudo validarse. No se ha modificado ningún archivo. Si restauras, el archivo actual se conservará con la marca 'corrupt'."] = "The selected version is valid and the current container could not be validated. No file has been modified. If you restore, the current file will be kept with the 'corrupt' suffix."
+        ,
+        ["Revísalas para guardar sus cambios o descartarlas de forma segura."] = "Review them to save their changes or discard them safely."
+        ,
+        ["ProtectedApp conservó sus carpetas de trabajo para no perder cambios."] = "ProtectedApp preserved their working folders to avoid losing changes."
+        ,
+        ["Para reparar el servicio se desactivará su protección y se restaurarán sus permisos originales.\n\n"] = "To repair the service, its protection will be disabled and its original permissions restored.\n\n"
+        ,
+        ["No se pudo ampliar el cierre automático"] = "Could not extend automatic closing"
+        ,
+        ["Ejecución denegada"] = "Launch denied"
+        ,
+        ["Manipulación detectada:"] = "Tampering detected:"
+        ,
+        ["Actualización manual autorizada"] = "Manual update authorized"
+        ,
+        ["Retiradas"] = "Removed"
+        ,
+        ["La contraseña de la copia debe tener al menos 8 caracteres."] = "The backup password must be at least 8 characters."
+        ,
+        ["La contraseña de la copia debe tener al menos 12 caracteres."] = "The backup password must be at least 12 characters."
+        ,
+        ["La configuración es demasiado grande para crear una copia."] = "The configuration is too large to create a backup."
+        ,
+        ["El archivo no es una copia válida de ProtectedApp."] = "The file is not a valid ProtectedApp backup."
+        ,
+        ["El archivo no contiene una copia válida."] = "The file contains no valid backup."
+        ,
+        ["La versión o el formato de la copia no es compatible."] = "The backup version or format is not supported."
+        ,
+        ["El contenido de la copia no es válido."] = "Backup content is invalid."
+        ,
+        ["La contraseña es incorrecta o el archivo ha sido modificado."] = "The password is incorrect or the file has been modified."
+        ,
+        ["La versión interna de la copia no es compatible."] = "The backup internal version is not supported."
+        ,
+        ["La copia contiene demasiadas reglas."] = "The backup contains too many rules."
+        ,
+        ["La copia contiene demasiadas carpetas."] = "The backup contains too many folders."
+        ,
+        ["La copia contiene demasiadas bóvedas."] = "The backup contains too many vaults."
+        ,
+        ["La copia contiene una regla vacía."] = "The backup contains an empty rule."
+        ,
+        ["La copia contiene una regla no válida."] = "The backup contains an invalid rule."
+        ,
+        ["La copia contiene un horario sin días seleccionados."] = "The backup contains a schedule with no selected days."
+        ,
+        ["La copia contiene una carpeta no válida."] = "The backup contains an invalid folder."
+        ,
+        ["La copia contiene una referencia de bóveda no válida."] = "The backup contains an invalid vault reference."
+        ,
+        ["La copia contiene una credencial de aplicación no válida."] = "The backup contains an invalid application credential."
+        ,
+        ["La cabecera criptográfica de la copia no es válida."] = "The backup cryptographic header is invalid."
+        ,
+        ["fecha desconocida"] = "unknown date"
+        ,
+        ["modificado"] = "modified"
+        ,
+        ["Guardian no devolvió una respuesta válida."] = "Guardian did not return a valid response."
+        ,
+        ["Respuesta de Guardian no válida."] = "Invalid response from Guardian."
+        ,
+        ["Guardian no está disponible."] = "Guardian is unavailable."
+        ,
+        ["La aplicación ya no pertenece a la política."] = "The application no longer belongs to the policy."
+        ,
+        ["Solicitud no válida."] = "Invalid request."
+        ,
+        ["Solicitud vacía o demasiado grande."] = "The request is empty or too large."
+        ,
+        ["Servidor ocupado; inténtalo de nuevo."] = "Server busy; try again."
+        ,
+        ["La identidad del proceso cliente no coincide."] = "The client process identity does not match."
+        ,
+        ["La sesión del proceso cliente no coincide."] = "The client process session does not match."
+        ,
+        ["El origen de la solicitud no es válido."] = "The request source is not valid."
+        ,
+        ["El diagnóstico requiere una sesión autenticada de ProtectedApp."] = "Diagnostics require an authenticated ProtectedApp session."
+        ,
+        ["El diagnóstico se ejecutó hace unos segundos; espera antes de repetirlo."] = "Diagnostics ran a few seconds ago; wait before trying again."
+        ,
+        ["Guardar"] = "Save"
+        ,
+        ["Continuar"] = "Continue"
+        ,
+        ["Eliminar"] = "Delete"
+        ,
+        ["Descripción"] = "Description"
+        ,
+        ["Opcional"] = "Optional"
+        ,
+        ["Confirmar contraseña"] = "Confirm password"
+        ,
+        ["Nueva contraseña propia"] = "New custom password"
+        ,
+        ["Contraseña propia (opcional)"] = "Custom password (optional)"
+        ,
+        ["Mínimo 8 caracteres"] = "At least 8 characters"
+        ,
+        ["Mínimo 12 caracteres"] = "At least 12 characters"
+        ,
+        ["Vacío = usar contraseña maestra"] = "Empty = use master password"
+        ,
+        ["Mantener configuración actual"] = "Keep current settings"
+        ,
+        ["Usar contraseña maestra"] = "Use master password"
+        ,
+        ["Definir contraseña propia"] = "Set custom password"
+        ,
+        ["Editar protección"] = "Edit protection"
+        ,
+        ["Añadir aplicación"] = "Add application"
+        ,
+        ["Proteger seleccionada"] = "Protect selected"
+        ,
+        ["Elegir archivo…"] = "Choose file…"
+        ,
+        ["Nueva bóveda cifrada"] = "New encrypted vault"
+        ,
+        ["Convertir carpeta en bóveda"] = "Convert folder to vault"
+        ,
+        ["Importar bóveda"] = "Import vault"
+        ,
+        ["Copias programadas de bóvedas"] = "Scheduled vault backups"
+        ,
+        ["Alerta remota de manipulación"] = "Remote tamper alert"
+        ,
+        ["Contraseña actualizada"] = "Password updated"
+        ,
+        ["Las contraseñas no coinciden."] = "Passwords do not match."
+        ,
+        ["La contraseña debe tener al menos 8 caracteres."] = "The password must be at least 8 characters."
+        ,
+        ["La contraseña debe tener al menos 12 caracteres."] = "The password must be at least 12 characters."
+        ,
+        ["La contraseña propia debe tener al menos 6 caracteres."] = "The custom password must be at least 6 characters."
+        ,
+        ["La contraseña propia debe tener al menos 12 caracteres."] = "The custom password must be at least 12 characters."
+        ,
+        ["La nueva contraseña debe coincidir y tener al menos 6 caracteres."] = "The new password must match and be at least 6 characters."
+        ,
+        ["La nueva contraseña debe coincidir y tener al menos 12 caracteres."] = "The new password must match and be at least 12 characters."
+        ,
+        ["Contraseña incorrecta."] = "Incorrect password."
+        ,
+        ["Contraseña incorrecta o contenedor no válido."] = "Incorrect password or invalid container."
+        ,
+        ["No se puede recuperar todavía"] = "Cannot recover yet"
+        ,
+        ["La recuperación no se completó"] = "Recovery did not complete"
+        ,
+        ["No se pudo desmontar la bóveda"] = "Could not unmount vault"
+        ,
+        ["Copias creadas"] = "Backups created"
+        ,
+        ["Sin copias pendientes"] = "No pending backups"
+        ,
+        ["No hay copias que limpiar"] = "No backups to clean up"
+        ,
+        ["Protección administrada"] = "Managed protection"
+        ,
+        ["Crea tu contraseña maestra"] = "Create your master password"
+        ,
+        ["Nueva contraseña maestra"] = "New master password"
+        ,
+        ["Confirmar contraseña actual"] = "Confirm current password"
+        ,
+        ["No hay copia anterior"] = "There is no previous backup"
+        ,
+        ["La copia anterior está dañada o incompleta"] = "The previous backup is damaged or incomplete"
+        ,
+        ["Falta el contenedor principal; la copia puede recuperarse"] = "The primary container is missing; the backup can be restored"
+        ,
+        ["El contenedor principal está dañado; la copia puede recuperarse"] = "The primary container is damaged; the backup can be restored"
+        ,
+        ["Copia cifrada anterior disponible"] = "Previous encrypted backup available"
+        ,
+        ["Contraseña maestra"] = "Master password"
+        ,
+        ["Contraseña propia"] = "Custom password"
+        ,
+        ["Sin protección"] = "Unprotected"
+        ,
+        ["Bloqueada"] = "Locked"
+        ,
+        ["Guardian rechazó la autenticación."] = "Guardian rejected the authentication."
+        ,
+        ["Carpeta no disponible"] = "Folder unavailable"
+        ,
+        ["La carpeta seleccionada ya no existe."] = "The selected folder no longer exists."
+        ,
+        ["Cambiar ubicación…"] = "Change location…"
+        ,
+        ["Opcional"] = "Optional"
+        ,
+        ["Contraseña de la bóveda"] = "Vault password"
+        ,
+        ["Bloquear automáticamente después de (minutos)"] = "Automatically lock after (minutes)"
+        ,
+        ["Se creará y verificará una bóveda .pavault cifrada. La carpeta original solo se eliminará si lo confirmas después de verificar la bóveda."] = "An encrypted .pavault vault will be created and verified. The original folder will only be removed if you confirm it after verifying the vault."
+        ,
+        ["Guardar"] = "Save"
+        ,
+        ["La contraseña de la bóveda debe tener al menos 8 caracteres."] = "The vault password must be at least 8 characters."
+        ,
+        ["La contraseña de la bóveda debe tener al menos 12 caracteres."] = "The vault password must be at least 12 characters."
+        ,
+        ["Guarda la bóveda fuera de la carpeta que se va a cifrar."] = "Save the vault outside the folder being encrypted."
+        ,
+        ["Ya existe una bóveda registrada con esa ubicación. Elige otra ubicación o retira primero la referencia anterior."] = "A vault is already registered at that location. Choose another location or remove the previous reference first."
+        ,
+        ["Ya existe un archivo con ese nombre. Cambia el nombre o la ubicación."] = "A file with that name already exists. Change the name or location."
+        ,
+        ["No se pudo convertir"] = "Could not convert"
+        ,
+        ["No se pudo crear y verificar la bóveda cifrada."] = "Could not create and verify the encrypted vault."
+        ,
+        ["Bóveda cifrada creada desde"] = "Encrypted vault created from"
+        ,
+        ["Bóveda verificada"] = "Vault verified"
+        ,
+        ["La bóveda se ha creado y verificado correctamente. Para completar la conversión y evitar conservar una copia sin cifrar, elimina ahora la carpeta original. Esta acción no se puede deshacer."] = "The vault was created and verified successfully. To complete the conversion and avoid retaining an unencrypted copy, remove the original folder now. This action cannot be undone."
+        ,
+        ["Conversión pendiente"] = "Conversion pending"
+        ,
+        ["La bóveda ya está protegida, pero la carpeta original sigue existiendo sin cifrar. Elimínala manualmente cuando hayas comprobado el contenido."] = "The vault is already protected, but the original folder still exists unencrypted. Remove it manually after checking the contents."
+        ,
+        ["Carpeta original eliminada tras verificar la conversión"] = "Original folder removed after verifying the conversion"
+        ,
+        ["No se pudo eliminar la carpeta original. Revísala y elimínala manualmente cuando proceda."] = "Could not remove the original folder. Review it and remove it manually when appropriate."
+        ,
+        ["Editar carpeta protegida"] = "Edit protected folder"
+        ,
+        ["No se pudieron guardar los cambios"] = "Could not save changes"
+        ,
+        ["Guardian rechazó la configuración."] = "Guardian rejected the configuration."
+        ,
+        ["Protección de carpeta actualizada"] = "Folder protection updated"
+        ,
+        ["Autorizar conversión de carpeta"] = "Authorize folder conversion"
+        ,
+        ["Introduce la contraseña para desbloquear temporalmente la carpeta"] = "Enter the password to temporarily unlock the folder"
+        ,
+        ["Contraseña incorrecta al intentar desbloquear la carpeta"] = "Incorrect password while trying to unlock the folder"
+        ,
+        ["No se pudo bloquear la carpeta"] = "Could not lock folder"
+        ,
+        ["Guardian no confirmó el bloqueo."] = "Guardian did not confirm the lock."
+        ,
+        ["Eliminar protección de carpeta"] = "Remove folder protection"
+        ,
+        ["No se pudo restaurar la carpeta"] = "Could not restore folder"
+        ,
+        ["Guardian no pudo restaurar sus permisos originales."] = "Guardian could not restore its original permissions."
+        ,
+        ["Guardian rechazó el cambio."] = "Guardian rejected the change."
+        ,
+        ["Protección de carpeta activada"] = "Folder protection enabled"
+        ,
+        ["Protección desactivada y permisos restaurados"] = "Protection disabled and permissions restored"
+        ,
+        ["Guardian es necesario"] = "Guardian is required"
+        ,
+        ["La protección de carpetas requiere que el servicio Guardian esté instalado, actualizado y en ejecución."] = "Folder protection requires the Guardian service to be installed, up to date, and running."
+        ,
+        ["Combinación de teclas"] = "Key combination"
+        ,
+        ["Pulsa la combinación"] = "Press the key combination"
+        ,
+        ["El atajo funciona aunque la ventana esté oculta. Ejecuta el bloqueo inmediato: cierra aplicaciones protegidas, desmonta bóvedas y bloquea Windows."] = "The shortcut works even when the window is hidden. It performs the immediate lock: closes protected apps, unmounts vaults, and locks Windows."
+        ,
+        ["El atajo funciona aunque la ventana esté oculta. Solicita primero el cierre normal de las aplicaciones protegidas; tras 5 segundos, fuerza el cierre de las que sigan abiertas. Después desmonta bóvedas y bloquea Windows."] = "The shortcut works even when the window is hidden. It first requests normal closing for protected applications; after 5 seconds, it forces any that remain open to close. It then unmounts vaults and locks Windows."
+        ,
+        ["Solicita el cierre normal y, tras 5 segundos, fuerza las aplicaciones que sigan abiertas."] = "Requests normal closing and, after 5 seconds, forces any applications that remain open to close."
+        ,
+        ["Haz clic en el campo y pulsa la combinación. Debe incluir Ctrl, Alt o Mayús y una letra, número o F1 a F12."] = "Click the field and press the combination. It must include Ctrl, Alt, or Shift and a letter, number, or F1 through F12."
+        ,
+        ["Atajo de bloqueo inmediato"] = "Immediate lock shortcut"
+        ,
+        ["No se pudo configurar el atajo"] = "Could not configure shortcut"
+        ,
+        ["Atajo no disponible"] = "Shortcut unavailable"
+        ,
+        ["Windows no pudo registrar esta combinación; probablemente ya la usa otra aplicación."] = "Windows could not register this combination; another app is probably already using it."
+        ,
+        ["Usa al menos Ctrl, Alt o Mayús y una tecla, por ejemplo Ctrl+Alt+L."] = "Use at least Ctrl, Alt, or Shift and a key, for example Ctrl+Alt+L."
+        ,
+        ["La tecla debe ser una letra, un número o F1 a F12."] = "The key must be a letter, number, or F1 through F12."
+        ,
+        ["Guardian no disponible"] = "Guardian unavailable"
+        ,
+        ["No se puede aplicar el bloqueo inmediato mientras el servicio Guardian no esté activo. Repara el servicio desde Configuración."] = "Immediate lock cannot be applied while the Guardian service is inactive. Repair the service from Settings."
+        ,
+        ["No se pudo bloquear"] = "Could not lock"
+        ,
+        ["Guardian no confirmó la revocación de accesos."] = "Guardian did not confirm access revocation."
+        ,
+        ["El bloqueo inmediato requiere que Guardian esté activo. Repara el servicio desde Configuración."] = "Immediate lock requires Guardian to be active. Repair the service from Settings."
+        ,
+        ["No se pudo aplicar el bloqueo inmediato"] = "Could not apply immediate lock"
+        ,
+        ["Guardian no confirmó el bloqueo de accesos."] = "Guardian did not confirm access locking."
+        ,
+        ["Copia creada"] = "Backup created"
+        ,
+        ["La configuración se ha exportado correctamente. Guarda también la contraseña de la copia: no puede recuperarse si se pierde."] = "The configuration was exported successfully. Keep the backup password too: it cannot be recovered if lost."
+        ,
+        ["No se pudo crear la copia"] = "Could not create backup"
+        ,
+        ["Hay bóvedas abiertas"] = "There are open vaults"
+        ,
+        ["Guarda y bloquea todas las bóvedas antes de reemplazar la configuración."] = "Save and lock all vaults before replacing the configuration."
+        ,
+        ["No se pudo abrir la copia"] = "Could not open backup"
+        ,
+        ["Restaurar copia"] = "Restore backup"
+        ,
+        ["Reemplazar configuración"] = "Replace configuration"
+        ,
+        ["Copia restaurada"] = "Backup restored"
+        ,
+        ["La configuración se restauró localmente. Guardian la sincronizará después de volver a validar la contraseña maestra."] = "The configuration was restored locally. Guardian will synchronize it after the master password is validated again."
+        ,
+        ["No se pudo restaurar la copia"] = "Could not restore backup"
+        ,
+        ["Proteger copia"] = "Protect backup"
+        ,
+        ["Abrir copia cifrada"] = "Open encrypted backup"
+        ,
+        ["Contraseña de la copia"] = "Backup password"
+        ,
+        ["Repite la contraseña"] = "Repeat password"
+        ,
+        ["Esta contraseña cifra el archivo y puede ser distinta de la contraseña maestra. Necesitarás conservarla para restaurar la copia."] = "This password encrypts the file and can differ from the master password. You will need to keep it to restore the backup."
+        ,
+        ["Introduce la contraseña que se utilizó al crear esta copia."] = "Enter the password used to create this backup."
+        ,
+        ["No se pudo iniciar la desinstalación"] = "Could not start uninstallation"
+        ,
+        ["Esta copia se ejecuta desde una carpeta publicada y no fue instalada con Setup.exe. Instálala primero o retira manualmente el servicio desde Configuración."] = "This copy runs from a published folder and was not installed with Setup.exe. Install it first or remove the service manually from Settings."
+        ,
+        ["No se pudo seleccionar el instalador"] = "Could not select installer"
+        ,
+        ["Verificando firma, identidad y versión…"] = "Verifying signature, identity, and version…"
+        ,
+        ["Actualización rechazada"] = "Update rejected"
+        ,
+        ["El instalador no ha superado la validación de seguridad."] = "The installer did not pass security validation."
+        ,
+        ["Las bóvedas abiertas se guardarán y cerrarán antes de iniciar Setup. Windows solicitará permiso de administrador."] = "Open vaults will be saved and closed before starting Setup. Windows will request administrator permission."
+        ,
+        ["Actualización verificada"] = "Verified update"
+        ,
+        ["Instalar actualización"] = "Install update"
+        ,
+        ["Autorizar actualización de ProtectedApp"] = "Authorize ProtectedApp update"
+        ,
+        ["Iniciando actualización"] = "Starting update"
+        ,
+        ["No se pudo actualizar"] = "Could not update"
+        ,
+        ["Windows no pudo iniciar el instalador seleccionado."] = "Windows could not start the selected installer."
+        ,
+        ["No se pudo iniciar la actualización"] = "Could not start update"
+        ,
+        ["Comprobando la protección"] = "Checking protection"
+        ,
+        ["No se pudo completar el diagnóstico"] = "Could not complete diagnostics"
+        ,
+        ["Autorizar reparación de ProtectedApp"] = "Authorize ProtectedApp repair"
+        ,
+        ["Reparando componentes de protección"] = "Repairing protection components"
+        ,
+        ["Windows solicitará permiso de administrador para reinstalar las capas protegidas."] = "Windows will request administrator permission to reinstall protected layers."
+        ,
+        ["Reparación completada"] = "Repair completed"
+        ,
+        ["Reparación incompleta"] = "Repair incomplete"
+        ,
+        ["Guardian, Gate, la política y la tarea SYSTEM se han comprobado correctamente."] = "Guardian, Gate, the policy, and the SYSTEM task were checked successfully."
+        ,
+        ["Guardian no disponible"] = "Guardian unavailable"
+        ,
+        ["La autenticación se ha cerrado de forma segura porque el motor protegido no respondió."] = "Authentication was safely closed because the protected engine did not respond."
+        ,
+        ["Introduce tu contraseña maestra para continuar"] = "Enter your master password to continue"
+        ,
+        ["Contraseña maestra incorrecta"] = "Incorrect master password"
+        ,
+        ["No se pudo iniciar"] = "Could not start"
+        ,
+        ["Configuración TPM no disponible"] = "TPM configuration unavailable"
+        ,
+        ["ProtectedApp no ha modificado tu configuración. La clave TPM que la protege no está disponible; puede ocurrir después de restablecer el TPM, reinstalar Windows o cambiar la placa base. Restaura una copia de configuración o vuelve a configurarla cuando hayas comprobado el estado del equipo."] = "ProtectedApp has not changed your configuration. The TPM key protecting it is unavailable; this can happen after resetting the TPM, reinstalling Windows, or changing the motherboard. Restore a configuration backup or set it up again after checking the computer's state."
+        ,
+        ["Guardian rechazó la autorización."] = "Guardian rejected authorization."
+        ,
+        ["No se pudo reparar el servicio"] = "Could not repair service"
+        ,
+        ["Servicio no disponible"] = "Service unavailable"
+        ,
+        ["Los archivos del servicio no están junto a esta publicación. Vuelve a publicar ProtectedApp y copia toda la carpeta."] = "The service files are not next to this publication. Publish ProtectedApp again and copy the entire folder."
+        ,
+        ["Solicitando instalación…"] = "Requesting installation…"
+        ,
+        ["Solicitando desinstalación…"] = "Requesting uninstallation…"
+        ,
+        ["No se pudo cambiar el servicio"] = "Could not change service"
+        ,
+        ["No se pudo recuperar"] = "Could not recover"
+        ,
+        ["Guardian no devolvió la política protegida."] = "Guardian did not return the protected policy."
+        ,
+        ["Recuperar configuración protegida"] = "Recover protected configuration"
+        ,
+        ["Introduce la contraseña maestra para restaurar las reglas desde Guardian"] = "Enter the master password to restore rules from Guardian"
+        ,
+        ["Contraseña maestra incorrecta al recuperar la configuración"] = "Incorrect master password while recovering configuration"
+        ,
+        ["No hay eventos"] = "No events"
+        ,
+        ["Actividad exportada"] = "Activity exported"
+        ,
+        ["No se pudo exportar"] = "Could not export"
+        ,
+        ["Protegiendo…"] = "Protecting…"
+        ,
+        ["Consulta segura"] = "Safe viewing"
+        ,
+        ["Cambios pendientes"] = "Changes pending"
+        ,
+        ["Cambios recuperables"] = "Recoverable changes"
+        ,
+        ["Cerrada"] = "Closed"
+        ,
+        ["Copias programadas sin configurar"] = "Scheduled backups not configured"
+        ,
+        ["⚠ Copia programada pendiente"] = "⚠ Scheduled backup pending"
+        ,
+        ["⚠ Copia programada vencida"] = "⚠ Scheduled backup overdue"
+        ,
+        ["⚠ Error al crear la copia programada"] = "⚠ Error creating scheduled backup"
+        ,
+        ["fecha desconocida"] = "unknown date"
+        ,
+        ["modificado"] = "modified"
+        ,
+        ["Apertura incompleta"] = "Incomplete opening"
+        ,
+        ["No asociada"] = "Unassociated"
+        ,
+        ["Falta el contenedor"] = "Container missing"
+        ,
+        ["Lista para recuperar"] = "Ready to recover"
+        ,
+        ["Indica un nombre."] = "Enter a name."
+        ,
+        ["Introduce un nombre."] = "Enter a name."
+        ,
+        ["El tiempo debe estar entre 1 y 10.080 minutos."] = "The time must be between 1 and 10,080 minutes."
+        ,
+        ["La inactividad debe estar entre 0 y 10.080 minutos."] = "Inactivity must be between 0 and 10,080 minutes."
+        ,
+        ["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
+        ,
+        ["Las nuevas contraseñas no coinciden."] = "The new passwords do not match."
+        ,
+        ["Bloquear grupo seleccionado"] = "Lock selected group"
+        ,
+        ["Sin atajo configurado."] = "No shortcut configured."
+        ,
+        ["Comprobando estado…"] = "Checking status…"
+        ,
+        ["Guardian y seguridad"] = "Guardian and security"
+        ,
+        ["Escribe DESCARTAR para confirmar"] = "Type DISCARD to confirm"
+        ,
+        ["DESCARTAR"] = "DISCARD"
+        ,
+        ["Bóveda creada; carpeta original conservada"] = "Vault created; original folder retained"
+        ,
+        ["Bóveda creada; limpieza pendiente"] = "Vault created; cleanup pending"
+        ,
+        ["No se pudo preparar la carpeta original para eliminarla. No se eliminó ningún archivo. Cierra las aplicaciones que la usen y revisa sus permisos:"] = "Could not prepare the original folder for deletion. No files were deleted. Close applications using it and check its permissions:"
+        ,
+        ["La carpeta original se movió a una ubicación de limpieza antes de borrar su contenido, pero Windows no terminó la operación. La bóveda cifrada ya fue verificada. Revisa y elimina manualmente la carpeta restante:"] = "The original folder was moved to a cleanup location before its contents were deleted, but Windows did not complete the operation. The encrypted vault has already been verified. Review and remove the remaining folder manually:"
+        ,
+        ["Windows denegó el acceso al recurso."] = "Windows denied access to the resource."
+        ,
+        ["Windows no pudo completar la operación porque el archivo o recurso está en uso."] = "Windows could not complete the operation because the file or resource is in use."
+        ,
+        ["No se pudo completar la operación."] = "Could not complete the operation."
+        ,
+        ["Comprobación"] = "Check"
+        ,
+        ["Introduce tu contraseña maestra para autorizar la desinstalación"] = "Enter your master password to authorize uninstallation"
+        ,
+        ["Desinstalar ProtectedApp"] = "Uninstall ProtectedApp"
+        ,
+        ["Recursos de interfaz cargados correctamente."] = "User-interface resources loaded successfully."
+        ,
+        ["No se pudo exportar el registro de actividad."] = "Could not export the activity log."
+        ,
+        ["Guardian rechazó el inicio."] = "Guardian rejected the launch."
+        ,
+        ["No se pudo iniciar la aplicación."] = "Could not start the application."
+        ,
+        ["No se pudo exportar la copia de seguridad."] = "Could not export the backup."
+        ,
+        ["No se pudo revisar la recuperación de bóvedas."] = "Could not check vault recovery."
+        ,
+        ["ProtectedApp encontró un error al proteger las bóvedas tras un evento de Windows. Sus carpetas de trabajo se conservaron para no perder cambios."] = "ProtectedApp encountered an error while protecting vaults after a Windows event. Their working folders were retained to prevent data loss."
+        ,
+        ["Error al proteger las bóvedas ante un evento de Windows."] = "Error protecting vaults after a Windows event."
     };
 
     // A reverse lookup is only safe for one-to-one translations.  English

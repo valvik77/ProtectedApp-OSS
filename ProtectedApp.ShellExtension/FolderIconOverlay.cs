@@ -51,7 +51,8 @@ namespace ProtectedApp.ShellExtension
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IShellIconOverlayIdentifier
     {
-        [PreserveSig] int GetOverlayInfo([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder iconFile,
+        [PreserveSig]
+        int GetOverlayInfo([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder iconFile,
             int cchMax, out int iconIndex, out uint flags);
         [PreserveSig] int GetPriority(out int priority);
         [PreserveSig] int IsMemberOf([MarshalAs(UnmanagedType.LPWStr)] string path, uint attributes);

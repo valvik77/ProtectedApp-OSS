@@ -218,7 +218,7 @@ public sealed partial class MainWindow
         var name = new TextBox { Header = "Nombre", Text = suggestedName }; var category = CreateCategoryEditor("General");
         var password = new PasswordBox { Header = "Contraseña propia (opcional)", PlaceholderText = "Vacío = usar contraseña maestra", PasswordRevealMode = PasswordRevealMode.Peek }; var confirmation = new PasswordBox { Header = "Confirmar contraseña", PasswordRevealMode = PasswordRevealMode.Peek };
         var timePolicy = CreateTimePolicyEditor(0, 0, 0); var schedule = CreateScheduleEditor(false, (int)ScheduleDays.EveryDay, 9 * 60, 17 * 60, false);
-        var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,255,85,85), Windows.UI.Color.FromArgb(255,248,81,73)), FontSize = 12, TextWrapping = TextWrapping.Wrap };
+        var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12, TextWrapping = TextWrapping.Wrap };
         var editorWidth = Math.Min(980, Math.Max(320, (Root.XamlRoot?.Size.Width ?? 1100) - 100));
         var panel = new Grid { Width = editorWidth, ColumnSpacing = 16, RowSpacing = 12 };
         var wide = editorWidth >= 840;
@@ -230,7 +230,7 @@ public sealed partial class MainWindow
         var path = new TextBlock
         {
             Text = executablePath,
-            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255,98,114,164), Windows.UI.Color.FromArgb(255,118,118,118)),
+            Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 98, 114, 164), Windows.UI.Color.FromArgb(255, 118, 118, 118)),
             FontSize = 11,
             TextWrapping = TextWrapping.Wrap
         };
@@ -256,11 +256,11 @@ public sealed partial class MainWindow
         dialog.Resources["ContentDialogMaxWidth"] = dialogWidth;
         dialog.Resources["ContentDialogMinWidth"] = dialogWidth;
         var valid = false;
-        dialog.PrimaryButtonClick += (dialogSender, args) => { if (string.IsNullOrWhiteSpace(name.Text)) { error.Text=LocalizationService.T("Indica un nombre."); args.Cancel=true; return; } if (password.Password != confirmation.Password) { error.Text=LocalizationService.T("Las contraseñas no coinciden."); args.Cancel=true; return; } if (password.Password.Length is > 0 and < PasswordService.MinimumPasswordLength) { error.Text=LocalizationService.T("La contraseña propia debe tener al menos 12 caracteres."); args.Cancel=true; return; } if (!TryReadTimePolicy(timePolicy,out _,out _,out _,out var timeError)) { error.Text=LocalizationService.T(timeError); args.Cancel=true; return; } if (!TryReadSchedule(schedule,out _,out _,out _,out _,out _,out var scheduleError)) { error.Text=LocalizationService.T(scheduleError); args.Cancel=true; return; } valid=true; };
+        dialog.PrimaryButtonClick += (dialogSender, args) => { if (string.IsNullOrWhiteSpace(name.Text)) { error.Text = LocalizationService.T("Indica un nombre."); args.Cancel = true; return; } if (password.Password != confirmation.Password) { error.Text = LocalizationService.T("Las contraseñas no coinciden."); args.Cancel = true; return; } if (password.Password.Length is > 0 and < PasswordService.MinimumPasswordLength) { error.Text = LocalizationService.T("La contraseña propia debe tener al menos 12 caracteres."); args.Cancel = true; return; } if (!TryReadTimePolicy(timePolicy, out _, out _, out _, out var timeError)) { error.Text = LocalizationService.T(timeError); args.Cancel = true; return; } if (!TryReadSchedule(schedule, out _, out _, out _, out _, out _, out var scheduleError)) { error.Text = LocalizationService.T(scheduleError); args.Cancel = true; return; } valid = true; };
         if (await dialog.ShowAsync(ContentDialogPlacement.InPlace) != ContentDialogResult.Primary || !valid) return;
         TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _); TryReadSchedule(schedule, out var scheduleEnabled, out var scheduleDays, out var scheduleStart, out var scheduleEnd, out var blockOutsideSchedule, out _);
-        var app = new ProtectedApplication { Name=name.Text.Trim(), Path=executablePath, Category=string.IsNullOrWhiteSpace(category.Text)?"General":category.Text.Trim(), UnlockGraceMinutes=unlockMinutes, ForceCloseAfterMinutes=forceCloseMinutes, ForceCloseAfterInactivityMinutes=inactiveCloseMinutes, ScheduleEnabled=scheduleEnabled, ScheduleDays=scheduleDays, ScheduleStartMinutes=scheduleStart, ScheduleEndMinutes=scheduleEnd, BlockOutsideSchedule=blockOutsideSchedule };
-        if (!string.IsNullOrEmpty(password.Password)) { var hashed=PasswordService.Hash(password.Password); app.PasswordHash=hashed.Hash; app.PasswordSalt=hashed.Salt; }
+        var app = new ProtectedApplication { Name = name.Text.Trim(), Path = executablePath, Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim(), UnlockGraceMinutes = unlockMinutes, ForceCloseAfterMinutes = forceCloseMinutes, ForceCloseAfterInactivityMinutes = inactiveCloseMinutes, ScheduleEnabled = scheduleEnabled, ScheduleDays = scheduleDays, ScheduleStartMinutes = scheduleStart, ScheduleEndMinutes = scheduleEnd, BlockOutsideSchedule = blockOutsideSchedule };
+        if (!string.IsNullOrEmpty(password.Password)) { var hashed = PasswordService.Hash(password.Password); app.PasswordHash = hashed.Hash; app.PasswordSalt = hashed.Salt; }
         app.PropertyChanged += Rule_PropertyChanged; await PrepareProtectedApplicationIconsAsync([app]); Applications.Add(app); await SaveAsync(); RefreshCategoryChips(); RefreshVisibleApps(); AddActivity(app.Name, "Protección añadida");
     }
 

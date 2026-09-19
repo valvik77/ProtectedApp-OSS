@@ -373,7 +373,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     }
 
     public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security,
-        AccessControlSections sections, IDokanFileInfo info) { security = null!; return NtStatus.NotImplemented; }
+        AccessControlSections sections, IDokanFileInfo info)
+    { security = null!; return NtStatus.NotImplemented; }
     public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security,
         AccessControlSections sections, IDokanFileInfo info) => NtStatus.NotImplemented;
     public NtStatus Mounted(string mountPoint, IDokanFileInfo info) => NtStatus.Success;
@@ -505,7 +506,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                     }
                 }
                 var node = new Node(path, item.IsDirectory, item.Length, item.CreationUtc, item.LastWriteUtc,
-                    item.FromOriginal, sourcePath, item.OriginalReadableLength) { Blocks = blocks };
+                    item.FromOriginal, sourcePath, item.OriginalReadableLength)
+                { Blocks = blocks };
                 if (!restored.TryAdd(path, node)) throw new InvalidDataException("El diario contiene rutas duplicadas.");
             }
             foreach (var node in restored.Values.Where(node => node.Path.Length > 0))
@@ -681,8 +683,11 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     private static FileInformation ToInfo(Node node) => new()
     {
-        FileName = GetName(node.Path), Attributes = node.IsDirectory ? FileAttributes.Directory : FileAttributes.Normal,
-        CreationTime = node.CreationUtc, LastAccessTime = node.LastWriteUtc, LastWriteTime = node.LastWriteUtc,
+        FileName = GetName(node.Path),
+        Attributes = node.IsDirectory ? FileAttributes.Directory : FileAttributes.Normal,
+        CreationTime = node.CreationUtc,
+        LastAccessTime = node.LastWriteUtc,
+        LastWriteTime = node.LastWriteUtc,
         Length = node.IsDirectory ? 0 : node.Length
     };
     private static string NormalizePath(string path)

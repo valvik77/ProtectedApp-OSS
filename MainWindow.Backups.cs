@@ -319,14 +319,22 @@ public sealed partial class MainWindow
             frequency.Items.Add(new ComboBoxItem { Content = "Cada día", Tag = "24" });
             frequency.Items.Add(new ComboBoxItem { Content = "Cada semana", Tag = "168" });
             frequency.SelectedIndex = interval >= 168 ? 1 : 0;
-            var versions = new NumberBox { Header = "Versiones que conservar", Minimum = 1, Maximum = 20, Value = retention,
-                SmallChange = 1, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
+            var versions = new NumberBox
+            {
+                Header = "Versiones que conservar",
+                Minimum = 1,
+                Maximum = 20,
+                Value = retention,
+                SmallChange = 1,
+                SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
+            };
             var password = new PasswordBox { Header = "Contraseña de las copias", PlaceholderText = "Mínimo 12 caracteres", PasswordRevealMode = PasswordRevealMode.Peek };
             var confirm = new PasswordBox { Header = "Confirmar contraseña", PasswordRevealMode = PasswordRevealMode.Peek };
             var hint = new TextBlock
             {
                 Text = "La contraseña se guarda solo protegida por Windows en este equipo para ejecutar las copias. El archivo .pabackup sigue necesitando esa contraseña y podrás restaurarlo después de formatear si la recuerdas.",
-                FontSize = 11, TextWrapping = TextWrapping.Wrap,
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
                 Foreground = Application.Current.Resources["MutedTextBrush"] as Microsoft.UI.Xaml.Media.Brush
             };
             var panel = new StackPanel { Spacing = 10, Width = 460 };

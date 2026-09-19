@@ -427,8 +427,11 @@ public sealed partial class MainWindow
             frequency.SelectedIndex = intervalHours >= 24 * 7 ? 1 : 0;
             var retention = new NumberBox
             {
-                Header = "Versiones por bóveda", Minimum = 1, Maximum = 20,
-                Value = retentionCount, SmallChange = 1,
+                Header = "Versiones por bóveda",
+                Minimum = 1,
+                Maximum = 20,
+                Value = retentionCount,
+                SmallChange = 1,
                 SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
             };
             var panel = new StackPanel { Spacing = 10, Width = 440 };
@@ -440,7 +443,8 @@ public sealed partial class MainWindow
             panel.Children.Add(new TextBlock
             {
                 Text = "Las bóvedas abiertas se omiten. Cada copia es un contenedor .pavault completo e independiente.",
-                FontSize = 10, TextWrapping = TextWrapping.Wrap,
+                FontSize = 10,
+                TextWrapping = TextWrapping.Wrap,
                 Foreground = Application.Current.Resources["MutedTextBrush"] as Microsoft.UI.Xaml.Media.Brush
             });
             var dialog = CreateDialog("Copias programadas de bóvedas", panel, "Guardar", "Cancelar");

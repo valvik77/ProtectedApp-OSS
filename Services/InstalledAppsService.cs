@@ -140,8 +140,11 @@ public static class InstalledAppsService
                         iconPng ??= ApplicationIconService.GetIconPng(executable!);
                         applications[executable!] = new InstalledApplication
                         {
-                            Name = name.Trim(), Path = executable!, Publisher = publisher.Trim(),
-                            Source = "Programas instalados", IconPng = iconPng
+                            Name = name.Trim(),
+                            Path = executable!,
+                            Publisher = publisher.Trim(),
+                            Source = "Programas instalados",
+                            IconPng = iconPng
                         };
                     }
                 }
@@ -226,7 +229,9 @@ public static class InstalledAppsService
 
     private static InstalledApplication CreateApplication(string name, string executable, string source) => new()
     {
-        Name = name.Trim(), Path = executable, Source = source,
+        Name = name.Trim(),
+        Path = executable,
+        Source = source,
         IconPng = ApplicationIconService.GetIconPng(executable)
     };
 

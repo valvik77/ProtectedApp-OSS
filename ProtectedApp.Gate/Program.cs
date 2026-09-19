@@ -47,7 +47,7 @@ try
         WorkingDirectory = Environment.CurrentDirectory
     };
     await using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 4096, leaveOpen: true)
-        { AutoFlush = true };
+    { AutoFlush = true };
     using var reader = new StreamReader(pipe, new UTF8Encoding(false), false, 4096, leaveOpen: true);
     await writer.WriteLineAsync(JsonSerializer.Serialize(request, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
     var responseLine = await reader.ReadLineAsync(timeout.Token);

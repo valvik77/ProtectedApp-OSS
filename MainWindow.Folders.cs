@@ -36,8 +36,13 @@ public sealed partial class MainWindow
 
     private static NumberBox CreateFolderMinutesBox(int value) => new()
     {
-        Header = "Tiempo de desbloqueo (minutos)", Value = Math.Clamp(value, 1, 10_080), Minimum = 1, Maximum = 10_080,
-        SmallChange = 1, LargeChange = 5, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
+        Header = "Tiempo de desbloqueo (minutos)",
+        Value = Math.Clamp(value, 1, 10_080),
+        Minimum = 1,
+        Maximum = 10_080,
+        SmallChange = 1,
+        LargeChange = 5,
+        SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
     };
 
     private static bool TryReadFolderMinutes(NumberBox box, out int minutes, out string error)
@@ -50,6 +55,7 @@ public sealed partial class MainWindow
     private TextBlock CreateDialogErrorText() => new()
     {
         Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)),
-        FontSize = 11, TextWrapping = TextWrapping.Wrap
+        FontSize = 11,
+        TextWrapping = TextWrapping.Wrap
     };
 }

@@ -59,9 +59,9 @@ internal sealed class FolderProtectionService(
                     throw new InvalidDataException("Una carpeta protegida no puede contener una aplicación o script que también esté protegido.");
             }
             for (var first = 0; first < folders.Length; first++)
-            for (var second = first + 1; second < folders.Length; second++)
-                if (PathsOverlap(folders[first].Path, folders[second].Path))
-                    throw new InvalidDataException("Las carpetas protegidas no pueden contenerse unas dentro de otras.");
+                for (var second = first + 1; second < folders.Length; second++)
+                    if (PathsOverlap(folders[first].Path, folders[second].Path))
+                        throw new InvalidDataException("Las carpetas protegidas no pueden contenerse unas dentro de otras.");
         }
     }
 

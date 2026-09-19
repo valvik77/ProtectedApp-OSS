@@ -339,8 +339,8 @@ public sealed class VaultContainer : INotifyPropertyChanged
         if (propertyName == nameof(IsTpmBound)) OnPropertyChanged(nameof(DeviceProtectionLabel));
         if (propertyName == nameof(IsClosing))
         {
-        OnPropertyChanged(nameof(StatusLabel));
-        OnPropertyChanged(nameof(DeviceProtectionLabel));
+            OnPropertyChanged(nameof(StatusLabel));
+            OnPropertyChanged(nameof(DeviceProtectionLabel));
             OnPropertyChanged(nameof(CanOpen));
             OnPropertyChanged(nameof(CanLock));
             OnPropertyChanged(nameof(CanManageBackup));

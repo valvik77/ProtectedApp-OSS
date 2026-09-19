@@ -35,19 +35,19 @@ public static class ManualUpdateService
     public static Version GetInstalledVersion()
     {
         foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
-        foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
-        {
-            try
+            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
             {
-                using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-                using var key = baseKey.OpenSubKey(UninstallKey);
-                var displayVersion = key?.GetValue("DisplayVersion")?.ToString();
-                if (TryParseVersion(displayVersion, out var version)) return version;
-                var displayName = key?.GetValue("DisplayName")?.ToString();
-                if (TryParseVersion(displayName, out version)) return version;
+                try
+                {
+                    using var baseKey = RegistryKey.OpenBaseKey(hive, view);
+                    using var key = baseKey.OpenSubKey(UninstallKey);
+                    var displayVersion = key?.GetValue("DisplayVersion")?.ToString();
+                    if (TryParseVersion(displayVersion, out var version)) return version;
+                    var displayName = key?.GetValue("DisplayName")?.ToString();
+                    if (TryParseVersion(displayName, out version)) return version;
+                }
+                catch { }
             }
-            catch { }
-        }
 
         var executable = Environment.ProcessPath;
         if (!string.IsNullOrWhiteSpace(executable))

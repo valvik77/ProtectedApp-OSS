@@ -434,12 +434,21 @@ internal sealed class GuardianIpcServer(
                     var timedSessionToken = closeMinutes > 0
                         ? CreateTimedSessionToken(callerSid, callerPid, rule.Id, closeMinutes)
                         : null;
-                    return new GuardianResponse { Success = true, PasswordAccepted = true, ProcessId = processId,
+                    return new GuardianResponse
+                    {
+                        Success = true,
+                        PasswordAccepted = true,
+                        ProcessId = processId,
                         TimedSessionToken = timedSessionToken,
-                        LockoutEnded = ruleThrottle.LockoutEnded };
+                        LockoutEnded = ruleThrottle.LockoutEnded
+                    };
                 }
-                return new GuardianResponse { PasswordAccepted = true, Error = error ?? "No se pudo iniciar la aplicación.",
-                        LockoutEnded = ruleThrottle.LockoutEnded };
+                return new GuardianResponse
+                {
+                    PasswordAccepted = true,
+                    Error = error ?? "No se pudo iniciar la aplicación.",
+                    LockoutEnded = ruleThrottle.LockoutEnded
+                };
 
             case GuardianProtocol.ExtendTimedSession:
                 if (!IsTrustedInteractiveAgent(callerPid)) return Fail("El origen de la solicitud no es válido.");

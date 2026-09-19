@@ -1675,8 +1675,13 @@ internal sealed class GuardianEnforcer(
     }
     private static GuardianRule CloneRule(GuardianRule rule) => new()
     {
-        Id = rule.Id, Name = rule.Name, Path = rule.Path, Category = rule.Category, IsEnabled = rule.IsEnabled,
-        PasswordHash = rule.PasswordHash, PasswordSalt = rule.PasswordSalt,
+        Id = rule.Id,
+        Name = rule.Name,
+        Path = rule.Path,
+        Category = rule.Category,
+        IsEnabled = rule.IsEnabled,
+        PasswordHash = rule.PasswordHash,
+        PasswordSalt = rule.PasswordSalt,
         UnlockGraceMinutes = rule.UnlockGraceMinutes,
         ForceCloseAfterMinutes = rule.ForceCloseAfterMinutes,
         ForceCloseAfterInactivityMinutes = rule.ForceCloseAfterInactivityMinutes,

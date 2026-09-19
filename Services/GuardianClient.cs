@@ -146,14 +146,19 @@ public sealed class GuardianClient
 
     public Task<GuardianResponse> GetTamperWebhookAsync(string token) => SendAsync(new GuardianRequest
     {
-        Type = GuardianProtocol.GetTamperWebhook, Token = token
+        Type = GuardianProtocol.GetTamperWebhook,
+        Token = token
     });
 
     public Task<GuardianResponse> ConfigureTamperWebhookAsync(bool enabled, string? url, bool useHmac, string? secret, string token) =>
         SendAsync(new GuardianRequest
         {
-            Type = GuardianProtocol.ConfigureTamperWebhook, Token = token,
-            WebhookEnabled = enabled, WebhookUrl = url, WebhookUseHmac = useHmac, WebhookSecret = secret
+            Type = GuardianProtocol.ConfigureTamperWebhook,
+            Token = token,
+            WebhookEnabled = enabled,
+            WebhookUrl = url,
+            WebhookUseHmac = useHmac,
+            WebhookSecret = secret
         });
 
     public async Task<GuardianPendingRequest?> ClaimPendingAsync()
@@ -178,21 +183,21 @@ public sealed class GuardianClient
 
     public Task<GuardianResponse> ExtendTimedSessionAsync(Guid ruleId, string? timedSessionToken,
         string? authorizationToken = null) => SendAsync(new GuardianRequest
-    {
-        Type = GuardianProtocol.ExtendTimedSession,
-        RuleId = ruleId,
-        TimedSessionToken = timedSessionToken,
-        Token = authorizationToken
-    });
+        {
+            Type = GuardianProtocol.ExtendTimedSession,
+            RuleId = ruleId,
+            TimedSessionToken = timedSessionToken,
+            Token = authorizationToken
+        });
 
     public Task<GuardianResponse> ExtendInactiveSessionAsync(Guid ruleId, string? timedSessionToken,
         string? authorizationToken = null) => SendAsync(new GuardianRequest
-    {
-        Type = GuardianProtocol.ExtendInactiveSession,
-        RuleId = ruleId,
-        TimedSessionToken = timedSessionToken,
-        Token = authorizationToken
-    });
+        {
+            Type = GuardianProtocol.ExtendInactiveSession,
+            RuleId = ruleId,
+            TimedSessionToken = timedSessionToken,
+            Token = authorizationToken
+        });
 
     public Task<GuardianResponse> ReportApplicationActivityAsync(Guid ruleId) => SendAsync(new GuardianRequest
     {

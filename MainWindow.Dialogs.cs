@@ -15,7 +15,8 @@ public sealed partial class MainWindow
         heading.Children.Add(new FontIcon
         {
             Glyph = glyph switch { "\uE71D" => "\ue5c3", "\uE72E" => "\ue899", "\uEDA2" => "\ue617", _ => "\uefd6" },
-            FontFamily = (FontFamily)Application.Current.Resources["PrototypeIconFont"], FontSize = 20,
+            FontFamily = (FontFamily)Application.Current.Resources["PrototypeIconFont"],
+            FontSize = 20,
             Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 143, 205, 255), Windows.UI.Color.FromArgb(255, 0, 95, 184))
         });
         heading.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
@@ -23,10 +24,12 @@ public sealed partial class MainWindow
         foreach (var field in fields) content.Children.Add(field);
         return new Border
         {
-            CornerRadius = new CornerRadius(12), Padding = new Thickness(16),
+            CornerRadius = new CornerRadius(12),
+            Padding = new Thickness(16),
             Background = ThemeBrush(Windows.UI.Color.FromArgb(255, 23, 28, 36), Windows.UI.Color.FromArgb(255, 255, 255, 255)),
             BorderBrush = ThemeBrush(Windows.UI.Color.FromArgb(255, 62, 72, 81), Windows.UI.Color.FromArgb(255, 229, 229, 229)),
-            BorderThickness = new Thickness(1), Child = content
+            BorderThickness = new Thickness(1),
+            Child = content
         };
     }
 

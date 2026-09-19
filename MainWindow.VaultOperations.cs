@@ -972,7 +972,9 @@ public sealed partial class MainWindow
         details.Children.Add(new TextBlock
         {
             Text = "La comprobación estructural no descifra archivos. La contraseña verificará la autenticidad antes de restaurar.",
-            Foreground = (Brush)Application.Current.Resources["MutedTextBrush"], FontSize = 10, TextWrapping = TextWrapping.Wrap
+            Foreground = (Brush)Application.Current.Resources["MutedTextBrush"],
+            FontSize = 10,
+            TextWrapping = TextWrapping.Wrap
         });
         var choice = CreateDialog("Copia cifrada anterior", details, "Validar y restaurar", "Cancelar");
         choice.SecondaryButtonText = "Eliminar copia";
@@ -1053,7 +1055,7 @@ public sealed partial class MainWindow
             selector.Items.Add(new ComboBoxItem
             {
                 Tag = version,
-                Content = $"{version.CreatedUtc.ToLocalTime():dd/MM/yyyy HH:mm} · {VaultRecoveryItem.FormatBytes(version.SizeBytes)} · {(version.EnvelopeValid ? "estructura válida" : "estructura dañada") }"
+                Content = $"{version.CreatedUtc.ToLocalTime():dd/MM/yyyy HH:mm} · {VaultRecoveryItem.FormatBytes(version.SizeBytes)} · {(version.EnvelopeValid ? "estructura válida" : "estructura dañada")}"
             });
         }
         selector.SelectedIndex = 0;
@@ -1075,7 +1077,8 @@ public sealed partial class MainWindow
         panel.Children.Add(new TextBlock
         {
             Text = "Comprobar valida la contraseña y autenticidad sin modificar la bóveda. Tras una comprobación correcta podrás decidir si restaurarla.",
-            FontSize = 10, TextWrapping = TextWrapping.Wrap,
+            FontSize = 10,
+            TextWrapping = TextWrapping.Wrap,
             Foreground = (Brush)Application.Current.Resources["MutedTextBrush"]
         });
         var dialog = CreateDialog("Historial de copias programadas", panel, "Comprobar versión", "Cancelar");

@@ -76,7 +76,10 @@ public sealed partial class MainWindow
         var minutes = new NumberBox
         {
             Header = "Bloquear automáticamente después de (minutos)",
-            Minimum = 1, Maximum = 10_080, Value = 30, SmallChange = 1,
+            Minimum = 1,
+            Maximum = 10_080,
+            Value = 30,
+            SmallChange = 1,
             SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
         };
         var error = CreateDialogErrorText();
@@ -113,8 +116,10 @@ public sealed partial class MainWindow
 
         var vault = new VaultContainer
         {
-            Name = name.Text.Trim(), Description = description.Text.Trim(),
-            AutoLockMinutes = (int)minutes.Value, VaultFilePath = vaultPath!
+            Name = name.Text.Trim(),
+            Description = description.Text.Trim(),
+            AutoLockMinutes = (int)minutes.Value,
+            VaultFilePath = vaultPath!
         };
         if (!await _vaultService.CreateVaultFromFolderAsync(vault, path, vaultPath!, password.Password))
         {

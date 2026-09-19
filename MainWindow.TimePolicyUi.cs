@@ -104,9 +104,11 @@ public sealed partial class MainWindow
         var height = Root.XamlRoot?.Size.Height ?? 720;
         return new ScrollViewer
         {
-            Content = content, MaxHeight = Math.Clamp(height - 220, 120, 620),
+            Content = content,
+            MaxHeight = Math.Clamp(height - 220, 120, 620),
             VerticalScrollMode = ScrollMode.Auto,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollMode = ScrollMode.Disabled,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
     }
