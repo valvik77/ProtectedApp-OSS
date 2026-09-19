@@ -29,6 +29,7 @@ firma.
 - La activación por línea de comandos de bóvedas usa ahora un único analizador
   acotado de argumentos de Windows para abrir, actuar contextualmente y
   desmontar unidades.
+- Actualizado el SDK de pruebas a 18.10.1 para las suites de Guardian y bóvedas.
 
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 
