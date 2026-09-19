@@ -8,6 +8,17 @@ firma.
 
 > [English](CHANGELOG.md)
 
+## Pendiente de publicación
+
+### Corregido
+
+- La persistencia de estado serializa ahora los guardados simultáneos, usa
+  temporales únicos y los confirma antes del reemplazo atómico, evitando que
+  escrituras concurrentes corrompan la configuración local cifrada.
+- La versión fuente coincide ahora con la pre-release de desarrollo actual, de
+  modo que una compilación local independiente no parte de una referencia
+  obsoleta.
+
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 
 ### Corregido

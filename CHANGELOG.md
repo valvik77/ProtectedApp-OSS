@@ -7,6 +7,16 @@ candidate** is not a public release and must not be distributed as one; see
 
 > [Español](CHANGELOG.es.md)
 
+## Unreleased
+
+### Fixed
+
+- State persistence now serializes concurrent saves, uses unique temporary
+  files, and flushes them before atomic replacement, preventing colliding
+  writes from corrupting the encrypted local configuration.
+- The source version now matches the current development pre-release, so
+  standalone local builds do not begin from an obsolete version reference.
+
 ## 1.4.206 — 2026-09-19 (development pre-release)
 
 ### Fixed

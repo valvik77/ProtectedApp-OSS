@@ -165,6 +165,35 @@ public sealed class VaultPasswordChangeTests
     }
 
     [Fact]
+    public async Task StateStoreSave_ConcurrentWritesRemainReadableAndLeaveNoTemporaryFiles()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));
+        var previousRoot = Environment.GetEnvironmentVariable("PROTECTEDAPP_DATA_DIR");
+        try
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", root);
+            var store = new StateStore();
+            var expectedHashes = Enumerable.Range(0, 16).Select(index => $"state-{index}").ToHashSet();
+
+            await Task.WhenAll(expectedHashes.Select(hash => store.SaveAsync(new AppState
+            {
+                MasterPasswordHash = hash
+            })));
+
+            var loaded = await new StateStore().LoadAsync();
+            Assert.NotNull(loaded.MasterPasswordHash);
+            Assert.Contains(loaded.MasterPasswordHash!, expectedHashes);
+            Assert.Empty(Directory.EnumerateFiles(root, ".state.dat.tmp-*"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", previousRoot);
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch { }
+        }
+    }
+
+    [Fact]
     public async Task StateStoreLoad_DoesNotResetStateWhenFileIsTemporarilyLocked()
     {
         var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));

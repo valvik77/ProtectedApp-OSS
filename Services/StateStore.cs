@@ -12,6 +12,7 @@ public sealed class StateStore
     private static readonly byte[] TpmEnvelopePrefix = "PATPM1\n"u8.ToArray();
     private readonly string _statePath;
     private readonly string _legacyStatePath;
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
     private string? _tpmKeyName;
 
     public bool IsTpmProtectionEnabled => !string.IsNullOrWhiteSpace(_tpmKeyName);
@@ -70,6 +71,19 @@ public sealed class StateStore
 
     public async Task SaveAsync(AppState state)
     {
+        await _writeGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await SaveCoreAsync(state).ConfigureAwait(false);
+        }
+        finally
+        {
+            _writeGate.Release();
+        }
+    }
+
+    private async Task SaveCoreAsync(AppState state)
+    {
         var json = JsonSerializer.SerializeToUtf8Bytes(state, JsonOptions);
         var encrypted = IsTpmProtectionEnabled
             // Saving a rule also saves state.dat. Do the non-exportable-key
@@ -77,45 +91,67 @@ public sealed class StateStore
             // while a TPM provider is slow to answer.
             ? await Task.Run(() => ProtectWithTpm(json, _tpmKeyName!)).ConfigureAwait(false)
             : ProtectedData.Protect(json, Entropy, DataProtectionScope.CurrentUser);
-        var temp = _statePath + ".tmp-" + Environment.ProcessId;
-        await File.WriteAllBytesAsync(temp, encrypted);
-        File.Move(temp, _statePath, true);
+        var temporary = Path.Combine(Path.GetDirectoryName(_statePath)!,
+            $".{Path.GetFileName(_statePath)}.tmp-{Guid.NewGuid():N}");
+        try
+        {
+            await using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write,
+                FileShare.None, bufferSize: 4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await stream.WriteAsync(encrypted).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, _statePath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporary)) File.Delete(temporary);
+        }
     }
 
     /// <summary>Atomically converts the persisted state to or from TPM protection.</summary>
     public async Task SetTpmProtectionAsync(AppState state, bool enabled)
     {
-        if (enabled == IsTpmProtectionEnabled) return;
-
-        if (enabled)
+        await _writeGate.WaitAsync().ConfigureAwait(false);
+        try
         {
-            var createdKey = await Task.Run(TpmStateProtector.CreateKey).ConfigureAwait(false);
-            _tpmKeyName = createdKey;
+            if (enabled == IsTpmProtectionEnabled) return;
+
+            if (enabled)
+            {
+                var createdKey = await Task.Run(TpmStateProtector.CreateKey).ConfigureAwait(false);
+                _tpmKeyName = createdKey;
+                try
+                {
+                    await SaveCoreAsync(state).ConfigureAwait(false);
+                }
+                catch
+                {
+                    _tpmKeyName = null;
+                    await Task.Run(() => TpmStateProtector.DeleteKey(createdKey)).ConfigureAwait(false);
+                    throw;
+                }
+                return;
+            }
+
+            var previousKey = _tpmKeyName!;
+            _tpmKeyName = null;
             try
             {
-                await SaveAsync(state).ConfigureAwait(false);
+                await SaveCoreAsync(state).ConfigureAwait(false);
             }
             catch
             {
-                _tpmKeyName = null;
-                await Task.Run(() => TpmStateProtector.DeleteKey(createdKey)).ConfigureAwait(false);
+                _tpmKeyName = previousKey;
                 throw;
             }
-            return;
+            await Task.Run(() => TpmStateProtector.DeleteKey(previousKey)).ConfigureAwait(false);
         }
-
-        var previousKey = _tpmKeyName!;
-        _tpmKeyName = null;
-        try
+        finally
         {
-            await SaveAsync(state).ConfigureAwait(false);
+            _writeGate.Release();
         }
-        catch
-        {
-            _tpmKeyName = previousKey;
-            throw;
-        }
-        await Task.Run(() => TpmStateProtector.DeleteKey(previousKey)).ConfigureAwait(false);
     }
 
     private byte[] ProtectWithTpm(byte[] plainText, string keyName)
