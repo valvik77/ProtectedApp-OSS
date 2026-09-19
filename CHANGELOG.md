@@ -19,6 +19,11 @@ candidate** is not a public release and must not be distributed as one; see
 - IPC client and Guardian session lookups now release process handles promptly,
   and malformed IPC responses are handled as controlled availability errors.
 
+### Changed
+
+- Vault command-line activation now uses one bounded Windows argument parser
+  for open, contextual action, and drive-unmount requests.
+
 ## 1.4.206 — 2026-09-19 (development pre-release)
 
 ### Fixed

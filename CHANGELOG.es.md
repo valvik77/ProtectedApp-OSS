@@ -22,6 +22,12 @@ firma.
   identificadores de proceso de inmediato, y las respuestas IPC malformadas se
   tratan como errores controlados de disponibilidad.
 
+### Modificado
+
+- La activación por línea de comandos de bóvedas usa ahora un único analizador
+  acotado de argumentos de Windows para abrir, actuar contextualmente y
+  desmontar unidades.
+
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 
 ### Corregido

@@ -5,6 +5,8 @@ namespace ProtectedApp.Services;
 
 public static class VaultActivationRequest
 {
+    private const int MaximumCommandLineArguments = 4_096;
+
     public static void EnsureFileAssociation()
     {
         try
@@ -67,55 +69,41 @@ public static class VaultActivationRequest
 
     public static string? TryGetVaultPath(string? commandLineArguments)
     {
-        if (string.IsNullOrWhiteSpace(commandLineArguments)) return null;
-        var commandLine = $"ProtectedApp.exe {commandLineArguments}";
-        var argv = CommandLineToArgvW(commandLine, out var argumentCount);
-        if (argv == IntPtr.Zero) return null;
-        try
-        {
-            var arguments = new string[argumentCount];
-            for (var index = 0; index < argumentCount; index++)
-                arguments[index] = Marshal.PtrToStringUni(Marshal.ReadIntPtr(argv, index * IntPtr.Size)) ?? string.Empty;
-            return TryGetVaultPath(arguments);
-        }
-        finally { LocalFree(argv); }
+        var arguments = ParseCommandLineArguments(commandLineArguments);
+        return arguments is null ? null : TryGetVaultPath(arguments);
     }
 
     public static string? TryGetVaultActionPath(string? commandLineArguments)
-        => TryGetPathAfterArgument(commandLineArguments, TryGetVaultActionPath);
+    {
+        var arguments = ParseCommandLineArguments(commandLineArguments);
+        return arguments is null ? null : TryGetVaultActionPath(arguments);
+    }
 
     public static string? TryGetVaultOpenPath(string? commandLineArguments)
-        => TryGetPathAfterArgument(commandLineArguments, TryGetVaultOpenPath);
-
-    private static string? TryGetPathAfterArgument(string? commandLineArguments,
-        Func<IEnumerable<string>, string?> parser)
     {
-        if (string.IsNullOrWhiteSpace(commandLineArguments)) return null;
-        var commandLine = $"ProtectedApp.exe {commandLineArguments}";
-        var argv = CommandLineToArgvW(commandLine, out var argumentCount);
-        if (argv == IntPtr.Zero) return null;
-        try
-        {
-            var arguments = new string[argumentCount];
-            for (var index = 0; index < argumentCount; index++)
-                arguments[index] = Marshal.PtrToStringUni(Marshal.ReadIntPtr(argv, index * IntPtr.Size)) ?? string.Empty;
-            return parser(arguments);
-        }
-        finally { LocalFree(argv); }
+        var arguments = ParseCommandLineArguments(commandLineArguments);
+        return arguments is null ? null : TryGetVaultOpenPath(arguments);
     }
 
     public static string? TryGetVaultUnmountDrive(string? commandLineArguments)
     {
+        var arguments = ParseCommandLineArguments(commandLineArguments);
+        return arguments is null ? null : TryGetVaultUnmountDrive(arguments);
+    }
+
+    private static string[]? ParseCommandLineArguments(string? commandLineArguments)
+    {
         if (string.IsNullOrWhiteSpace(commandLineArguments)) return null;
         var commandLine = $"ProtectedApp.exe {commandLineArguments}";
         var argv = CommandLineToArgvW(commandLine, out var argumentCount);
         if (argv == IntPtr.Zero) return null;
         try
         {
+            if (argumentCount is <= 0 or > MaximumCommandLineArguments) return null;
             var arguments = new string[argumentCount];
             for (var index = 0; index < argumentCount; index++)
                 arguments[index] = Marshal.PtrToStringUni(Marshal.ReadIntPtr(argv, index * IntPtr.Size)) ?? string.Empty;
-            return TryGetVaultUnmountDrive(arguments);
+            return arguments;
         }
         finally { LocalFree(argv); }
     }

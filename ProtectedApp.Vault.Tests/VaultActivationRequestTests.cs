@@ -13,6 +13,8 @@ public sealed class VaultActivationRequestTests
 
         Assert.Equal(expected, VaultActivationRequest.TryGetVaultOpenPath(
             ["ProtectedApp.exe", "--open-vault", vaultPath]));
+        Assert.Equal(expected, VaultActivationRequest.TryGetVaultOpenPath(
+            $"--open-vault \"{vaultPath}\""));
         Assert.Null(VaultActivationRequest.TryGetVaultActionPath(
             ["ProtectedApp.exe", "--open-vault", vaultPath]));
         Assert.True(AppLaunchMode.IsSilent(["ProtectedApp.exe", "--open-vault", vaultPath]));
@@ -21,5 +23,9 @@ public sealed class VaultActivationRequestTests
             ["ProtectedApp.exe", "--vault-action", vaultPath]));
         Assert.Null(VaultActivationRequest.TryGetVaultOpenPath(
             ["ProtectedApp.exe", "--vault-action", vaultPath]));
+        var driveRoot = Path.GetPathRoot(Environment.SystemDirectory)!;
+        var commandLineRoot = driveRoot.TrimEnd(Path.DirectorySeparatorChar) + "\\\\";
+        Assert.Equal(driveRoot,
+            VaultActivationRequest.TryGetVaultUnmountDrive($"--unmount-vault-drive \"{commandLineRoot}\""));
     }
 }
