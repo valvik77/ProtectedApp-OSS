@@ -32,7 +32,15 @@ internal sealed class GuardianPolicyStore
             var expected = File.ReadAllText(GuardianConstants.BootstrapSecretPath).Trim();
             var left = Encoding.UTF8.GetBytes(expected);
             var right = Encoding.UTF8.GetBytes(candidate);
-            return left.Length == right.Length && CryptographicOperations.FixedTimeEquals(left, right);
+            try
+            {
+                return left.Length == right.Length && CryptographicOperations.FixedTimeEquals(left, right);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(left);
+                CryptographicOperations.ZeroMemory(right);
+            }
         }
         catch { return false; }
     }

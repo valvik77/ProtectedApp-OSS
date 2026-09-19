@@ -18,6 +18,8 @@ candidate** is not a public release and must not be distributed as one; see
   standalone local builds do not begin from an obsolete version reference.
 - IPC client and Guardian session lookups now release process handles promptly,
   and malformed IPC responses are handled as controlled availability errors.
+- Guardian now rejects malformed IPC JSON deterministically, and bootstrap
+  secret comparison clears its temporary byte copies after use.
 
 ### Changed
 

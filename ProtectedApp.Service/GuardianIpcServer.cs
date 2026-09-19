@@ -87,7 +87,8 @@ internal sealed class GuardianIpcServer(
                             finally { _clientSlots.Release(); }
                         }
                     }
-                    catch (Exception ex) when (ex is InvalidDataException or ArgumentException or UnauthorizedAccessException)
+                    catch (Exception ex) when (ex is InvalidDataException or JsonException or ArgumentException
+                                               or UnauthorizedAccessException)
                     {
                         response = Fail(ex.Message);
                     }

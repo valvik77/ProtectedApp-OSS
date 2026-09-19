@@ -21,6 +21,8 @@ firma.
 - El cliente IPC y las consultas de sesión de Guardian liberan ahora sus
   identificadores de proceso de inmediato, y las respuestas IPC malformadas se
   tratan como errores controlados de disponibilidad.
+- Guardian rechaza de forma determinista JSON IPC malformado, y la comparación
+  del secreto de instalación borra sus copias temporales de bytes tras usarlas.
 
 ### Modificado
 

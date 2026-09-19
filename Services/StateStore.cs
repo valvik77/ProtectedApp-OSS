@@ -106,7 +106,10 @@ public sealed class StateStore
         }
         finally
         {
-            if (File.Exists(temporary)) File.Delete(temporary);
+            // Cleanup failure must not hide the original encryption or I/O
+            // error. A later successful save uses another unique temporary.
+            try { if (File.Exists(temporary)) File.Delete(temporary); }
+            catch { }
         }
     }
 
