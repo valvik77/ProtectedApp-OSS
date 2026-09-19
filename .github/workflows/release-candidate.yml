@@ -34,7 +34,7 @@ jobs:
         run: dotnet build ProtectedApp.sln -c Release --no-restore -warnaserror
       - name: Test
         shell: pwsh
-        run: dotnet test ProtectedApp.Guardian.Tests/ProtectedApp.Guardian.Tests.csproj -c Release --no-restore --nologo; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; dotnet test ProtectedApp.Vault.Tests/ProtectedApp.Vault.Tests.csproj -c Release --no-restore --nologo
+        run: dotnet test ProtectedApp.Guardian.Tests/ProtectedApp.Guardian.Tests.csproj -c Release -p:Platform=x64 --no-build --no-restore --nologo; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; dotnet test ProtectedApp.Vault.Tests/ProtectedApp.Vault.Tests.csproj -c Release -p:Platform=x64 --no-build --no-restore --nologo
       - name: Audit source and dependencies
         shell: pwsh
         run: ./Scripts/Test-OpenSourceRelease.ps1; ./Scripts/Test-RepositorySafety.ps1
