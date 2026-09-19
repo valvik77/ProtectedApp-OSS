@@ -21,6 +21,25 @@ Aplicación WinUI 3 para proteger aplicaciones de escritorio y bóvedas cifradas
 en Windows. Guardian detecta los procesos configurados, impide su uso hasta
 validar la contraseña y los inicia de nuevo cuando la autorización es correcta.
 
+**Empieza aquí:** [web del proyecto](https://valvik77.github.io/ProtectedApp-OSS/) ·
+[descargas](https://github.com/valvik77/ProtectedApp-OSS/releases) ·
+[instalación segura y verificación del certificado](DEVELOPMENT-CERTIFICATE.md) ·
+[modelo de seguridad](SECURITY-MODEL.md) · [historial de cambios](CHANGELOG.es.md)
+
+### Resumen en un minuto
+
+1. Protege una aplicación de escritorio: Guardian pide la credencial elegida
+   antes de que el proceso pueda iniciarse.
+2. Crea una bóveda cifrada `.pavault` o convierte una carpeta y ábrela para
+   consulta o edición mediante una unidad virtual.
+3. Guarda y bloquea al terminar; los journals autenticados y copias cifradas
+   anteriores permiten recuperarse de una interrupción.
+
+> **Antes de descargar:** las versiones actuales usan el certificado de
+> desarrollo documentado, no un certificado comercial de confianza pública.
+> Comprueba el SHA-256 y la identidad del certificado; no instales el
+> certificado fuera de un equipo de pruebas que controles.
+
 La política de versiones, aprobaciones y firma pública está en
 [Code signing policy](CODE-SIGNING-POLICY.md).
 El alcance, límites y cambios realizados en Windows están documentados en el

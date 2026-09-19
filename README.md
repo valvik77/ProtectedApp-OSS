@@ -21,6 +21,25 @@ protects selected desktop applications and provides encrypted vaults for
 sensitive files. Guardian monitors configured processes, requires authorization
 before they can run, and starts them again after the password is accepted.
 
+**Start here:** [project site](https://valvik77.github.io/ProtectedApp-OSS/) ·
+[downloads](https://github.com/valvik77/ProtectedApp-OSS/releases) ·
+[safe installation and certificate verification](DEVELOPMENT-CERTIFICATE.en.md) ·
+[security model](SECURITY-MODEL.en.md) · [changelog](CHANGELOG.md)
+
+### One-minute overview
+
+1. Protect a selected desktop app: Guardian requests its configured credential
+   before the process can run.
+2. Create or convert a folder into a `.pavault` encrypted vault, then open it
+   read-only or edit it in a virtual drive.
+3. Save and lock when finished; authenticated journals and prior encrypted
+   copies provide recovery after an interruption.
+
+> **Before downloading:** releases currently use the documented development
+> certificate, not a publicly trusted commercial certificate. Verify both the
+> SHA-256 asset and the certificate identity; do not install the certificate
+> outside a test machine you control.
+
 ## What it does
 
 - Protects selected `.exe`, `.bat`, and `.py` applications with either the
