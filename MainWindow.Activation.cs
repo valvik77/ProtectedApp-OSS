@@ -102,14 +102,8 @@ public sealed partial class MainWindow
     public void ShowMainWindow()
     {
         var visibilityGeneration = Interlocked.Increment(ref _windowVisibilityGeneration);
-        try
-        {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-            Directory.CreateDirectory(folder);
-            File.AppendAllText(Path.Combine(folder, "launch.log"),
-                $"{DateTimeOffset.Now:O} ShowMainWindow called (initialized={_initialized}){Environment.NewLine}");
-        }
-        catch { }
+        AppDiagnosticLog.Append("launch.log",
+            $"{DateTimeOffset.Now:O} ShowMainWindow called (initialized={_initialized}){Environment.NewLine}");
 
         var hwnd = WindowNative.GetWindowHandle(this);
         if (_appWindow.Presenter is OverlappedPresenter presenter)

@@ -14,14 +14,8 @@ public partial class App : Application
     {
         UnhandledException += (s, e) =>
         {
-            try
-            {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-                Directory.CreateDirectory(folder);
-                File.AppendAllText(Path.Combine(folder, "crash.log"),
-                    $"{DateTimeOffset.Now:O} [XamlUnhandledException]{Environment.NewLine}{e.Message}{Environment.NewLine}{e.Exception}{Environment.NewLine}{Environment.NewLine}");
-            }
-            catch { }
+            AppDiagnosticLog.Append("crash.log",
+                $"{DateTimeOffset.Now:O} [XamlUnhandledException]{Environment.NewLine}{e.Message}{Environment.NewLine}{e.Exception}{Environment.NewLine}{Environment.NewLine}");
             // A partially initialized WinUI tree cannot service Guardian
             // requests safely. Exit cleanly instead of leaving Windows Error
             // Reporting to create a dump on every recovery attempt.
@@ -29,16 +23,8 @@ public partial class App : Application
             Environment.Exit(1);
         };
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-        {
-            try
-            {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-                Directory.CreateDirectory(folder);
-                File.AppendAllText(Path.Combine(folder, "crash.log"),
-                    $"{DateTimeOffset.Now:O} [AppDomainUnhandledException]{Environment.NewLine}{e.ExceptionObject}{Environment.NewLine}{Environment.NewLine}");
-            }
-            catch { }
-        };
+            AppDiagnosticLog.Append("crash.log",
+                $"{DateTimeOffset.Now:O} [AppDomainUnhandledException]{Environment.NewLine}{e.ExceptionObject}{Environment.NewLine}{Environment.NewLine}");
         InitializeComponent();
     }
 
@@ -293,14 +279,8 @@ public partial class App : Application
         catch (Exception ex)
         {
             LogDiagnostic($"OnLaunched exception: {ex}");
-            try
-            {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-                Directory.CreateDirectory(folder);
-                File.AppendAllText(Path.Combine(folder, "launch-exception.log"),
-                    $"{DateTimeOffset.Now:O}{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
-            }
-            catch { }
+            AppDiagnosticLog.Append("launch-exception.log",
+                $"{DateTimeOffset.Now:O}{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
 
             // A half-initialized process has neither a usable window nor a
             // tray icon. Leaving it alive makes Guardian believe its
@@ -309,17 +289,8 @@ public partial class App : Application
         }
     }
 
-    private static void LogDiagnostic(string message)
-    {
-        try
-        {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-            Directory.CreateDirectory(folder);
-            File.AppendAllText(Path.Combine(folder, "launch.log"),
-                $"{DateTimeOffset.Now:O} {message}{Environment.NewLine}");
-        }
-        catch { }
-    }
+    private static void LogDiagnostic(string message) =>
+        AppDiagnosticLog.Append("launch.log", $"{DateTimeOffset.Now:O} {message}{Environment.NewLine}");
 
     private static async Task RunUninstallAuthorizationAsync()
     {

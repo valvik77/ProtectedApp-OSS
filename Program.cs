@@ -1,5 +1,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using ProtectedApp.Services;
 using System.Runtime.InteropServices;
 using WinRT;
 
@@ -23,14 +24,8 @@ public static class Program
         }
         catch (Exception ex)
         {
-            try
-            {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ProtectedApp");
-                Directory.CreateDirectory(folder);
-                File.AppendAllText(Path.Combine(folder, "crash.log"),
-                    $"{DateTimeOffset.Now:O} [Program.Main Exception]{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
-            }
-            catch { }
+            AppDiagnosticLog.Append("crash.log",
+                $"{DateTimeOffset.Now:O} [Program.Main Exception]{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
             throw;
         }
     }
