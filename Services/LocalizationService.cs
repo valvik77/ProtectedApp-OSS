@@ -41,14 +41,12 @@ public static class LocalizationService
         ["PROTECCIÓN ACTIVA"] = "PROTECTION ACTIVE",
         ["Guardian conectado"] = "Guardian connected",
         ["Guardian requiere atención"] = "Guardian needs attention",
-        ["Protección administrada"] = "Managed protection",
         ["ESTADO LOCAL"] = "LOCAL STATUS",
         ["EVENTOS"] = "EVENTS",
         ["últimas 24 h"] = "last 24 h",
         ["REGLAS ACTIVAS"] = "ACTIVE RULES",
         ["AUTORIZACIÓN REQUERIDA"] = "AUTHORIZATION REQUIRED",
         ["aplicaciones protegidas"] = "protected applications",
-        ["BÓVEDAS"] = "VAULTS",
         ["contenedores cifrados"] = "encrypted containers",
         ["CIFRADO LOCAL"] = "LOCAL ENCRYPTION",
         ["ACTIVIDAD · 24 H"] = "ACTIVITY · 24 H",
@@ -66,7 +64,6 @@ public static class LocalizationService
         ["La comprobación detallada está disponible en Diagnóstico."] = "The detailed check is available in Diagnostics.",
         ["Consulta Diagnóstico para revisar el estado de los componentes."] = "Open Diagnostics to review component status.",
         ["Abrir diagnóstico"] = "Open diagnostics",
-        ["Bloqueo inmediato"] = "Immediate lock",
         ["Aplicaciones protegidas"] = "Protected applications",
         ["Controla qué programas necesitan autorización"] = "Control which programs require authorization",
         ["Bóvedas cifradas"] = "Encrypted vaults",
@@ -104,7 +101,6 @@ public static class LocalizationService
         ["Exige de nuevo la contraseña maestra."] = "Require the master password again.",
         ["Idioma de la aplicación"] = "App language",
         ["Elige el idioma de la interfaz y los avisos."] = "Choose the language for the interface and notifications.",
-        ["Sistema"] = "System",
         ["Español"] = "Spanish",
         ["Abrir bóvedas en consulta"] = "Open vaults for viewing",
         ["El doble clic abre en solo lectura; puedes editar desde el panel."] = "Double-click opens read-only; you can edit from the panel.",
@@ -159,13 +155,10 @@ public static class LocalizationService
         ["Indica una contraseña de al menos 12 caracteres para cifrar las copias automáticas."] = "Enter a password of at least 12 characters to encrypt automatic backups.",
         ["Copias automáticas de configuración desactivadas"] = "Automatic configuration backups disabled",
         ["Copias automáticas de configuración configuradas"] = "Automatic configuration backups configured",
-        ["Copia creada"] = "Backup created",
-        ["No se pudo crear la copia"] = "Could not create backup",
         ["La copia automática de configuración se creó correctamente."] = "The automatic configuration backup was created successfully.",
         ["No se encontró la contraseña local de las copias automáticas."] = "The local password for automatic backups was not found.",
         ["Copia automática de configuración creada"] = "Automatic configuration backup created",
         ["No se pudo crear la copia automática de configuración"] = "Could not create automatic configuration backup",
-        ["Contraseña maestra"] = "Master password",
         ["Panel y desinstalación."] = "Panel and uninstall.",
         ["Cambiar"] = "Change",
         ["Copia cifrada"] = "Encrypted backup",
@@ -173,7 +166,6 @@ public static class LocalizationService
         ["Exportar…"] = "Export…",
         ["Limpiar"] = "Clear",
         ["Activado"] = "Enabled",
-        ["Desactivado"] = "Disabled",
         ["Nunca"] = "Never",
         ["1 minuto"] = "1 minute",
         ["30 minutos"] = "30 minutes",
@@ -192,9 +184,6 @@ public static class LocalizationService
         ["Bloqueo inmediato"] = "Immediate lock",
         ["Cierra accesos protegidos, desmonta bóvedas y bloquea Windows."] = "Closes protected access, unmounts vaults and locks Windows.",
         ["Bloquear…"] = "Lock…",
-        ["Atajo de bloqueo inmediato"] = "Immediate lock shortcut",
-        ["Servicio Guardian"] = "Guardian service",
-        ["Alerta remota de manipulación"] = "Remote tamper alert",
         ["Actualización manual"] = "Manual update",
         ["Seleccionar…"] = "Select…",
         ["Desinstalar"] = "Uninstall",
@@ -211,45 +200,27 @@ public static class LocalizationService
         ["No hay aplicaciones protegidas"] = "No protected applications",
         ["Pulsa Añadir para seleccionar una aplicación, un ejecutable o un script."] = "Select Add to choose an application, executable or script.",
         ["Nueva bóveda"] = "New vault",
-        ["Convertir carpeta"] = "Convert folder",
         ["Importar"] = "Import",
-        ["Limpiar ausentes"] = "Clean missing",
-        ["Contenedores cifrados con contraseña propia"] = "Password-protected encrypted containers",
-        ["Consulta archivos sin crear una copia completa en el disco o abre la bóveda para editar y guardar cambios."] = "Browse files without creating a complete local copy, or open the vault to edit and save changes.",
         ["BÓVEDA"] = "VAULT",
-        ["UBICACIÓN DEL ARCHIVO"] = "FILE LOCATION",
         ["ESTADO"] = "STATUS",
         ["Buscar en el historial"] = "Search activity history",
         ["Exportar actividad"] = "Export activity",
         ["Exportar los eventos visibles"] = "Export visible events",
-        ["Limpiar historial"] = "Clear history",
         ["EVENTOS · 24 H"] = "EVENTS · 24 H",
         ["BLOQUEOS"] = "LOCKS",
         ["CONTRASEÑAS FALLIDAS"] = "FAILED PASSWORDS",
         ["AVISOS Y ERRORES"] = "WARNINGS AND ERRORS",
-        ["Mostrar eventos de las últimas 24 horas"] = "Show events from the last 24 hours",
-        ["Filtrar eventos de las últimas 24 horas"] = "Filter events from the last 24 hours",
         ["Mostrar bloqueos"] = "Show locks",
         ["Filtrar bloqueos"] = "Filter locks",
-        ["Mostrar contraseñas fallidas"] = "Show failed passwords",
-        ["Filtrar contraseñas fallidas"] = "Filter failed passwords",
         ["Mostrar avisos y errores"] = "Show warnings and errors",
         ["Filtrar avisos y errores"] = "Filter warnings and errors",
-        ["Aún no hay actividad"] = "No activity yet",
         ["No hay eventos que coincidan con el filtro"] = "No events match the current filter",
         ["Comprobar ahora"] = "Check now",
-        ["Diagnóstico todavía no ejecutado"] = "Diagnostics have not been run yet",
-        ["Comprueba los componentes de protección sin modificar el sistema."] = "Check protection components without changing the system.",
         ["Pulsa Comprobar ahora para analizar ProtectedApp"] = "Select Check now to analyze ProtectedApp",
-        ["Reparar protección"] = "Repair protection",
         ["Comprobando…"] = "Checking…",
-        ["Comprobando la protección"] = "Checking protection",
         ["Consultando Guardian y los componentes instalados…"] = "Checking Guardian and installed components…",
         ["Todas las comprobaciones son correctas"] = "All checks passed",
-        ["No se pudo completar el diagnóstico"] = "Could not complete diagnostics",
         ["Comprobar de nuevo"] = "Check again",
-        ["Reparando componentes de protección"] = "Repairing protection components",
-        ["Windows solicitará permiso de administrador para reinstalar las capas protegidas."] = "Windows will ask for administrator permission to reinstall the protection components.",
         ["CÓMO FUNCIONA PROTECTEDAPP"] = "HOW PROTECTEDAPP WORKS",
         ["RECOMENDACIÓN"] = "RECOMMENDATION",
         ["Contrato de licencia"] = "License agreement",
@@ -257,18 +228,13 @@ public static class LocalizationService
         ["Licencias de terceros"] = "Third-party licenses",
         ["Desarrollador"] = "Developer",
         ["Plataforma"] = "Platform",
-        ["Protección local gratuita para aplicaciones y bóvedas"] = "Free local protection for applications and vaults",
         ["Uso gratuito, personal y profesional"] = "Free for personal and professional use",
         ["Versión"] = "Version",
-        ["INFORMACIÓN"] = "INFORMATION",
         ["COMPONENTES"] = "COMPONENTS",
-        ["Guardian aplica las reglas protegidas como SYSTEM. Las bóvedas cifradas se montan mediante Dokany y protegen el contenido mediante cifrado autenticado."] = "Guardian applies protected rules as SYSTEM. Encrypted vaults are mounted through Dokany and protect their contents with authenticated encryption.",
-        ["© 2026 Valvik. ProtectedApp complementa la seguridad de Windows y no sustituye las políticas empresariales."] = "© 2026 Valvik. ProtectedApp complements Windows security and does not replace organizational security policies.",
         ["PROYECTO"] = "PROJECT",
         ["Bloquear"] = "Lock",
         ["Activa"] = "Active",
         ["Usa la contraseña maestra"] = "Uses the master password",
-        ["Contraseña propia"] = "Custom password",
         ["Todos los días"] = "Every day",
         ["Lun-Vie"] = "Mon–Fri",
         ["Fin de semana"] = "Weekend",
@@ -282,99 +248,46 @@ public static class LocalizationService
         ["horario"] = "schedule",
         ["Desbloquear ProtectedApp"] = "Unlock ProtectedApp",
         ["Autorizar nueva bóveda"] = "Authorize new vault",
-        ["Introduce tu contraseña maestra para continuar"] = "Enter your master password to continue",
-        ["Introduce la contraseña para continuar"] = "Enter the password to continue",
         ["Ver historial"] = "View history",
         ["Comprobar integridad"] = "Check integrity",
         ["Copias programadas"] = "Scheduled backups",
-        ["Copia de recuperación"] = "Recovery backup",
-        ["Editar bóveda"] = "Edit vault",
         ["Quitar de la lista"] = "Remove from list",
         ["Copias no disponibles"] = "Backups unavailable",
         ["Guarda y bloquea la bóveda y configura un destino de copias antes de continuar."] = "Save and lock the vault, then configure a backup destination before continuing.",
         ["Guardar y bloquear"] = "Save and lock",
         ["Actualizar"] = "Refresh",
-        ["No hay bóvedas cifradas"] = "No encrypted vaults",
         ["Crea un contenedor nuevo o importa uno existente."] = "Create a new container or import an existing one.",
         ["Abrir"] = "Open",
         ["Ver archivos"] = "Browse files",
-        ["Editar"] = "Edit",
         ["Eliminar permanentemente"] = "Delete permanently",
         ["Gestión de bóveda"] = "Vault management",
         ["Gestionar bóveda"] = "Manage vault",
         ["Historial de bóveda"] = "Vault history",
         ["Historial de copias programadas"] = "Scheduled backup history",
         ["No hay copias pendientes"] = "No pending backups",
-        ["No hay referencias ausentes"] = "No missing references",
         ["No hay versiones"] = "No versions",
         ["Sin versiones"] = "No versions",
-        ["Bóveda abierta"] = "Vault is open",
         ["Guarda y bloquea la bóveda antes de quitarla."] = "Save and lock the vault before removing it.",
         ["Guarda y bloquea la bóveda antes de editarla o cambiar su contraseña."] = "Save and lock the vault before editing it or changing its password.",
         ["Guarda y bloquea la bóveda antes de comprobar su integridad."] = "Save and lock the vault before checking its integrity.",
         ["Copia no compatible"] = "Incompatible backup",
-        ["Bóveda duplicada"] = "Duplicate vault",
-        ["Importar bóveda"] = "Import vault",
         ["Introduce la contraseña del contenedor"] = "Enter the container password",
         ["Introduce la contraseña actual para editar la bóveda"] = "Enter the current password to edit the vault",
         ["Introduce la contraseña para abrir la bóveda"] = "Enter the password to open the vault",
-        ["Contraseña de la bóveda"] = "Vault password",
-        ["Bloquear automáticamente después de (minutos)"] = "Lock automatically after (minutes)",
         ["Desmontar tras inactividad (0 para desactivar)"] = "Unmount after inactivity (0 to disable)",
-        ["Descripción"] = "Description",
-        ["Cambiar ubicación…"] = "Change location…",
-        ["Abrir bóveda"] = "Open vault",
         ["Copia de seguridad"] = "Backup",
         ["No se encontraron aplicaciones"] = "No applications found",
         ["Buscar aplicaciones instaladas"] = "Search installed applications",
         ["aplicaciones de escritorio detectadas"] = "desktop applications detected",
-        ["Reemplazar configuración"] = "Replace configuration",
-        ["Restaurar copia"] = "Restore backup",
-        ["Copia creada"] = "Backup created",
-        ["Copia restaurada"] = "Backup restored",
-        ["Actividad exportada"] = "Activity exported",
-        ["No hay eventos"] = "No events",
-        ["No se pudo exportar"] = "Could not export",
-        ["Añadir aplicación"] = "Add application",
-        ["Proteger seleccionada"] = "Protect selected",
-        ["Elegir archivo…"] = "Choose file…",
-        ["Editar protección"] = "Edit protection",
-        ["Bloquear esta aplicación"] = "Lock this application",
-        ["Bloquear aplicación"] = "Lock application",
-        ["Eliminar protección"] = "Remove protection",
-        ["Eliminar"] = "Delete",
         ["Grupo bloqueado"] = "Group locked",
-        ["Sin aplicaciones"] = "No applications",
-        ["Sin cambios"] = "No changes",
         ["Nombre"] = "Name",
         ["Grupo o categoría"] = "Group or category",
-        ["Mantener configuración actual"] = "Keep current settings",
-        ["Usar contraseña maestra"] = "Use master password",
-        ["Definir contraseña propia"] = "Set custom password",
-        ["Nueva contraseña propia"] = "New custom password",
-        ["Confirmar contraseña"] = "Confirm password",
         ["No se pudo verificar la contraseña."] = "Could not verify the password.",
         ["Demasiados intentos."] = "Too many attempts.",
         ["Inténtalo de nuevo en"] = "Try again in",
         ["segundos"] = "seconds",
-        ["Carpeta no disponible"] = "Folder unavailable",
-        ["La carpeta seleccionada ya no existe."] = "The selected folder no longer exists.",
-        ["Convertir carpeta en bóveda"] = "Convert folder to vault",
-        ["Bóveda verificada"] = "Vault verified",
-        ["Conversión pendiente"] = "Conversion pending",
-        ["No se pudo convertir"] = "Could not convert",
-        ["No se pudo crear y verificar la bóveda cifrada."] = "Could not create and verify the encrypted vault.",
-        ["La contraseña de la bóveda debe tener al menos 8 caracteres."] = "The vault password must contain at least 8 characters.",
         ["No se pudo descartar"] = "Could not discard",
         ["Descartar trabajo recuperable"] = "Discard recoverable work",
-        ["No se pudo abrir la carpeta"] = "Could not open folder",
-        ["No se pudo restaurar la copia"] = "Could not restore backup",
-        ["No se pudo abrir la copia"] = "Could not open backup",
-        ["No se pudo crear la copia"] = "Could not create backup",
-        ["Hay bóvedas abiertas"] = "Vaults are open",
-        ["Proteger copia"] = "Protect backup",
-        ["Abrir copia cifrada"] = "Open encrypted backup",
-        ["Contraseña de la copia"] = "Backup password",
         ["Configurar copias de bóvedas"] = "Configure vault backups",
         ["Activar copias programadas"] = "Enable scheduled backups",
         ["No se ha elegido una carpeta."] = "No folder has been selected.",
@@ -388,7 +301,6 @@ public static class LocalizationService
         ["Nueva contraseña (opcional)"] = "New password (optional)",
         ["Déjalo vacío para conservarla"] = "Leave empty to keep it",
         ["Confirmar nueva contraseña"] = "Confirm new password",
-        ["Copia cifrada anterior disponible"] = "Previous encrypted backup available",
         ["Contenedor actual"] = "Current container",
         ["Copia anterior"] = "Previous backup",
         ["La comprobación estructural no descifra archivos. La contraseña verificará la autenticidad antes de restaurar."] = "The structural check does not decrypt files. The password will verify authenticity before restoring.",
@@ -397,7 +309,6 @@ public static class LocalizationService
         ["Todavía no hay eventos registrados para esta bóveda."] = "There are no events recorded for this vault yet.",
         ["Autorizar importación de bóveda"] = "Authorize vault import",
         ["Bóveda cifrada creada"] = "Encrypted vault created",
-        ["Bóveda cifrada importada"] = "Encrypted vault imported",
         ["No se pudo guardar y desmontar la bóveda."] = "Could not save and unmount the vault.",
         ["Bóveda añadida mediante doble clic"] = "Vault added by double-click",
         ["Contraseña incorrecta al importar la bóveda"] = "Incorrect password while importing the vault",
@@ -410,7 +321,6 @@ public static class LocalizationService
         ["La copia anterior es válida, pero también lo es el contenedor actual. ¿Quieres volver deliberadamente a la versión anterior?"] = "The previous backup is valid, but so is the current container. Do you want to deliberately return to the previous version?",
         ["El contenedor principal no se pudo validar con esta contraseña, pero su copia anterior sí. ¿Quieres restaurarla ahora?"] = "The primary container could not be validated with this password, but its previous backup could. Restore it now?",
         ["Copia cifrada anterior restaurada automáticamente al abrir la bóveda"] = "Previous encrypted backup restored automatically when opening the vault",
-        ["Bóveda retirada de la lista; el contenedor cifrado se conservó"] = "Vault removed from the list; the encrypted container was kept",
         ["Gestionar referencias de bóvedas"] = "Manage vault references",
         ["sin ubicación"] = "no location",
         ["Eliminar bóveda permanentemente"] = "Delete vault permanently",
@@ -423,7 +333,6 @@ public static class LocalizationService
         ["Windows rechazó la eliminación."] = "Windows rejected the deletion.",
         ["Copia cifrada anterior eliminada con autorización maestra"] = "Previous encrypted backup deleted with master authorization",
         ["Contraseña incorrecta al editar la bóveda"] = "Incorrect password while editing the vault",
-        ["Las nuevas contraseñas no coinciden."] = "The new passwords do not match.",
         ["El contenedor no se modificó y conserva su contraseña actual."] = "The container was not modified and keeps its current password.",
         ["Configuración actualizada, pero no se pudo cambiar la contraseña de la bóveda"] = "Settings updated, but the vault password could not be changed",
         ["Los demás cambios se guardaron, pero la contraseña anterior sigue siendo válida."] = "Other changes were saved, but the previous password is still valid.",
@@ -466,10 +375,8 @@ public static class LocalizationService
         ["Copias programadas de bóvedas configuradas"] = "Scheduled vault backups configured",
         ["Copias programadas de bóvedas desactivadas"] = "Scheduled vault backups disabled",
         ["No hay bóvedas cerradas disponibles para copiar ahora."] = "There are no closed vaults available to back up now.",
-        ["Copia programada de bóveda creada"] = "Scheduled vault backup created",
         ["Este cambio no modifica las contraseñas propias de las aplicaciones."] = "This change does not modify custom application passwords.",
         ["La nueva contraseña maestra ya está activa."] = "The new master password is active.",
-        ["La autenticación se ha cerrado de forma segura porque el motor protegido no respondió."] = "Authentication was closed safely because the protected engine did not respond.",
         ["No se puede bloquear una aplicación mientras el servicio Guardian no esté activo. Repara el servicio desde Configuración."] = "An application cannot be locked while the Guardian service is not active. Repair the service from Settings.",
         ["No se puede bloquear el grupo mientras el servicio Guardian no esté activo. Repara el servicio desde Configuración."] = "The group cannot be locked while the Guardian service is not active. Repair the service from Settings.",
         ["Todas las aplicaciones del grupo ya están activas."] = "All applications in the group are already enabled.",
@@ -478,108 +385,39 @@ public static class LocalizationService
         ["Protección desactivada"] = "Protection disabled",
         ["Protección añadida"] = "Protection added",
         ["No se pudo aplicar el cambio de protección. Repara o desbloquea Guardian e inténtalo de nuevo."] = "Could not apply the protection change. Repair or unlock Guardian and try again.",
-        ["La protección de carpetas requiere que el servicio Guardian esté instalado, actualizado y en ejecución."] = "Folder protection requires the Guardian service to be installed, up to date, and running.",
         ["Alerta: Guardian no está disponible; la protección administrada necesita reparación"] = "Alert: Guardian is unavailable; managed protection needs repair",
         ["Guardian no está disponible. Repara el servicio para restaurar la protección."] = "Guardian is unavailable. Repair the service to restore protection.",
         ["Cierre normal solicitado; guarda los cambios pendientes si la aplicación lo requiere"] = "Normal closing requested; save pending changes if the application requires it",
         ["Ampliación del cierre automático cancelada"] = "Automatic closing extension cancelled",
         ["Guardian bloqueó la ejecución de forma segura."] = "Guardian blocked the launch safely.",
         ["Se detectó una manipulación de Guardian. Se han revocado los accesos protegidos."] = "Guardian tampering was detected. Protected access has been revoked.",
-        ["Solicitando instalación…"] = "Requesting installation…",
-        ["Solicitando desinstalación…"] = "Requesting uninstallation…",
-        ["Recuperar configuración protegida"] = "Recover protected settings",
-        ["Introduce la contraseña maestra para restaurar las reglas desde Guardian"] = "Enter the master password to restore rules from Guardian",
-        ["Guardian no devolvió la política protegida."] = "Guardian did not return the protected policy.",
         ["Configuración local restaurada desde la política protegida"] = "Local settings restored from the protected policy",
         ["Se han exportado"] = "Exported",
         ["No hay actividad visible para exportar con los filtros actuales."] = "There is no visible activity to export with the current filters.",
         ["Limpiar historial"] = "Clear history",
-        ["No se pudo abrir la copia"] = "Could not open the backup",
-        ["La configuración se ha exportado correctamente. Guarda también la contraseña de la copia: no puede recuperarse si se pierde."] = "The configuration was exported successfully. Keep the backup password too: it cannot be recovered if lost.",
-        ["Guarda y bloquea todas las bóvedas antes de reemplazar la configuración."] = "Save and lock all vaults before replacing settings.",
-        ["Repite la contraseña"] = "Repeat the password",
         ["No se pudo consultar"] = "Could not query",
         ["No se pudo elegir la carpeta"] = "Could not choose the folder",
         ["Selecciona una carpeta"] = "Select a folder",
         ["Limpieza completada"] = "Cleanup completed",
         ["Limpieza parcial"] = "Partial cleanup",
-        ["No se pudo configurar el atajo"] = "Could not configure the shortcut",
-        ["Atajo no disponible"] = "Shortcut unavailable",
         ["No se pudo cambiar el inicio automático"] = "Could not change automatic startup",
         ["No se pudo iniciar ProtectedApp"] = "Could not start ProtectedApp",
-        ["No se pudo iniciar la actualización"] = "Could not start the update",
-        ["No se pudo iniciar la desinstalación"] = "Could not start uninstallation",
-        ["Guardian es necesario"] = "Guardian is required",
         ["Protección de carpetas"] = "Folder protection",
         ["No se puede cambiar la protección"] = "Could not change protection",
-        ["No se pudo aplicar el bloqueo inmediato"] = "Could not apply immediate lock",
-        ["Reparación completada"] = "Repair completed",
-        ["Reparación incompleta"] = "Repair incomplete",
-        ["Autorización requerida"] = "Authorization required",
-        ["Contraseña maestra incorrecta"] = "Incorrect master password",
         ["Contraseña maestra incorrecta."] = "Incorrect master password.",
-        ["Contraseña incorrecta."] = "Incorrect password.",
-        ["Guardian rechazó la autorización."] = "Guardian rejected the authorization.",
-        ["Guardian no confirmó el bloqueo."] = "Guardian did not confirm the lock.",
-        ["Guardian rechazó la configuración."] = "Guardian rejected the configuration.",
-        ["Guardian rechazó el cambio."] = "Guardian rejected the change.",
         ["Guardian no confirmó el cambio de la regla."] = "Guardian did not confirm the rule change.",
         ["Guardian no confirmó el bloqueo selectivo."] = "Guardian did not confirm the selective lock.",
         ["No hay sensor biométrico o PIN configurado en este equipo"] = "No biometric sensor or PIN is configured on this computer",
         ["No se ha configurado un PIN o biometría para tu usuario de Windows"] = "No PIN or biometrics are configured for your Windows account",
         ["El dispositivo biométrico está ocupado"] = "The biometric device is busy",
-        ["Versión del motor"] = "Engine version",
-        ["Comunicación protegida"] = "Protected communication",
-        ["Tarea de recuperación"] = "Recovery task",
-        ["Auditoría de seguridad"] = "Security audit",
-        ["Recuperación segura"] = "Secure recovery",
-        ["Política de protección"] = "Protection policy",
-        ["Integración con Explorador"] = "File Explorer integration",
-        ["Integridad de bóvedas"] = "Vault integrity",
-        ["Recuperación de bóvedas"] = "Vault recovery",
-        ["El servicio no está instalado."] = "The service is not installed.",
-        ["Instalado y en ejecución como servicio de Windows."] = "Installed and running as a Windows service.",
-        ["Está instalado, pero no se encuentra en ejecución."] = "Installed, but not running.",
-        ["Guardian no respondió a través del canal local protegido."] = "Guardian did not respond through the protected local channel.",
-        ["Guardian confirma que ProtectedApp.Gate está disponible."] = "Guardian confirms that ProtectedApp.Gate is available.",
-        ["Guardian confirma que la tarea SYSTEM está habilitada y bien configurada."] = "Guardian confirms that the SYSTEM task is enabled and correctly configured.",
-        ["La tarea SYSTEM falta, está deshabilitada o tiene una acción incorrecta."] = "The SYSTEM task is missing, disabled, or has an incorrect action.",
-        ["Los binarios protegidos coinciden con su línea base."] = "Protected binaries match their baseline.",
-        ["El registro de manipulaciones mantiene una cadena válida."] = "The tamper log has a valid chain.",
-        ["No hay incidencias críticas pendientes de recuperación."] = "There are no critical recovery issues pending.",
-        ["Esta instalación no tiene una identidad de firma Authenticode verificable."] = "This installation has no verifiable Authenticode signing identity.",
-        ["Desactivado por decisión del usuario."] = "Disabled by the user.",
-        ["La asociación .pavault y los comandos contextuales de carpetas, bóvedas y unidades están registrados."] = "The .pavault association and folder, vault, and drive context commands are registered.",
-        ["Falta la asociación de bóvedas o algún comando contextual. Reinstala ProtectedApp para recuperarlos."] = "The vault association or a context command is missing. Reinstall ProtectedApp to restore it.",
         ["Bóveda cifrada de ProtectedApp"] = "ProtectedApp encrypted vault",
         ["Servicio Guardian"] = "Guardian service",
         ["Integridad de Guardian"] = "Guardian integrity",
-        ["Puerta preventiva"] = "Preventive gate",
-        ["Identidad de firma"] = "Signing identity",
-        ["Inicio con Windows"] = "Start with Windows",
         ["Integridad de las reglas"] = "Rule integrity",
         ["Reglas duplicadas"] = "Duplicate rules",
         ["Unidad virtual Dokany"] = "Dokany virtual drive",
-        ["Guardian ha cargado correctamente la política cifrada de este usuario."] = "Guardian has loaded this user's encrypted policy correctly.",
         ["La interfaz se comunica correctamente con Guardian."] = "The interface communicates correctly with Guardian.",
-        ["Guardian exige la identidad del certificado de esta instalación."] = "Guardian requires the certificate identity for this installation.",
         ["Configurado en modo silencioso."] = "Configured in background mode.",
-        ["No hay rutas protegidas más de una vez."] = "No protected paths are listed more than once.",
-        ["Elige qué programas requieren autorización"] = "Choose which programs require authorization",
-        ["Tema de la aplicación"] = "App theme",
-        ["Pausar protección"] = "Pause protection",
-        ["Activar protección del grupo"] = "Enable group protection",
-        ["Desactivar protección del grupo"] = "Disable group protection",
-        ["Convertir una carpeta en una bóveda cifrada"] = "Convert a folder into an encrypted vault",
-        ["Quitar de la lista las bóvedas cuyo archivo y copia de recuperación ya no existen"] = "Remove vaults whose file and recovery backup no longer exist from the list",
-        ["Abrir carpeta de recuperación"] = "Open recovery folder",
-        ["Descartar carpeta de recuperación"] = "Discard recovery folder",
-        ["Guardar y bloquear bóveda"] = "Save and lock vault",
-        ["Más acciones de bóveda"] = "More vault actions",
-        ["Desbloqueo rápido mediante PIN o huella."] = "Quick unlocking with PIN or fingerprint.",
-        ["Webhook HTTPS informativo; no bloquea ni revierte una manipulación."] = "Informational HTTPS webhook; it does not block or reverse tampering.",
-        ["Comprobación local de instaladores firmados."] = "Local verification of signed installers.",
-        ["Requiere la contraseña maestra."] = "Requires the master password.",
         ["ProtectedApp reúne en un solo lugar la protección de aplicaciones y la creación de bóvedas cifradas para guardar información sensible."] = "ProtectedApp brings application protection and encrypted vault creation together to keep sensitive information safe.",
         ["Las opciones se agrupan por finalidad para que puedas decidir qué proteger sin necesitar conocimientos técnicos."] = "Options are grouped by purpose so you can decide what to protect without technical knowledge.",
         ["Puedes pedir la contraseña maestra antes de abrir una aplicación elegida. También es posible cerrarla automáticamente tras un tiempo o después de un periodo sin actividad; si activas los avisos, ProtectedApp te avisará y permitirá ampliar ese tiempo."] = "You can require the master password before opening an app. It can also close automatically after a time limit or inactivity; if warnings are enabled, ProtectedApp will notify you and let you extend that time.",
@@ -612,7 +450,6 @@ public static class LocalizationService
         ["Si ambas horas coinciden, el horario cubre las 24 horas de los días elegidos. Los intervalos nocturnos pueden terminar al día siguiente."] = "If both times are the same, the schedule covers all 24 hours of the selected days. Overnight periods can end the next day.",
         ["Brave podrá volver a abrirse sin contraseña."] = "Brave can be opened again without a password.",
         ["Se revocará únicamente el acceso de Brave y se cerrarán sus procesos abiertos. El trabajo no guardado podría perderse."] = "Only Brave access will be revoked and its open processes will be closed. Unsaved work may be lost.",
-        ["Ejecución interceptada por Guardian (SYSTEM)"] = "Launch intercepted by Guardian (SYSTEM)",
         ["Acceso autorizado por Guardian; aplicación iniciada"] = "Access authorized by Guardian; application started",
         ["Sincronización de política pendiente: Guardian se reinició o la autorización dejó de ser válida; se reintentará automáticamente"] = "Policy synchronization pending: Guardian restarted or authorization is no longer valid; it will be retried automatically",
         ["Política sincronizada automáticamente después de recuperar la conexión"] = "Policy synchronized automatically after connection recovery",
@@ -635,13 +472,8 @@ public static class LocalizationService
         ["Consultar es recomendable cuando no necesitas modificar archivos."] = "Viewing is recommended when you do not need to modify files.",
         ["Firmar el contenido con HMAC-SHA256"] = "Sign content with HMAC-SHA256",
         ["Integridad de carpetas"] = "Folder integrity",
-        ["Integridad de bóvedas"] = "Vault integrity",
-        ["Unidades virtuales montadas"] = "Mounted virtual drives",
-        ["Recuperación de bóvedas"] = "Vault recovery",
         ["No hay carpetas protegidas que comprobar."] = "There are no protected folders to check.",
         ["No hay bóvedas registradas que comprobar."] = "There are no registered vaults to check.",
-        ["No hay bóvedas abiertas como unidad virtual."] = "No vaults are open as a virtual drive.",
-        ["No hay diarios ni copias de recuperación pendientes."] = "There are no pending journals or recovery backups.",
         ["Desbloquear"] = "Unlock",
         ["Contraseña"] = "Password",
         ["Mostrar contraseña"] = "Show password",
@@ -651,7 +483,6 @@ public static class LocalizationService
         ["Desbloquear con Windows Hello (PIN / Biometría)"] = "Unlock with Windows Hello (PIN / Biometrics)",
         ["Autorización requerida"] = "Authorization required",
         ["Ejecución bloqueada"] = "Launch blocked",
-        ["No se pudo iniciar"] = "Could not start",
         ["Entendido"] = "OK",
         ["Ahora no"] = "Not now",
         ["No ampliar"] = "Do not extend",
@@ -660,17 +491,9 @@ public static class LocalizationService
         ,
         ["Aceptar"] = "OK"
         ,
-        ["Guardian no disponible"] = "Guardian unavailable"
-        ,
-        ["Servicio no disponible"] = "Service unavailable"
-        ,
         ["No se pudo abrir"] = "Could not open"
         ,
         ["No se pudo guardar"] = "Could not save"
-        ,
-        ["No se pudo bloquear"] = "Could not lock"
-        ,
-        ["No se pudo recuperar"] = "Could not recover"
         ,
         ["No se pudo restaurar"] = "Could not restore"
         ,
@@ -682,21 +505,9 @@ public static class LocalizationService
         ,
         ["No se pudo crear"] = "Could not create"
         ,
-        ["No se pudo convertir"] = "Could not convert"
-        ,
         ["No se pudo abrir la carpeta"] = "Could not open folder"
         ,
         ["No se pudo abrir el Explorador"] = "Could not open File Explorer"
-        ,
-        ["No se pudo abrir la copia"] = "Could not open backup"
-        ,
-        ["No se pudo crear la copia"] = "Could not create backup"
-        ,
-        ["Copia creada"] = "Backup created"
-        ,
-        ["Copia restaurada"] = "Backup restored"
-        ,
-        ["Bóveda creada; carpeta original conservada"] = "Vault created; original folder kept"
         ,
         ["Bóveda duplicada"] = "Duplicate vault"
         ,
@@ -713,16 +524,6 @@ public static class LocalizationService
         ["Integridad no confirmada"] = "Integrity not confirmed"
         ,
         ["Recuperación completada"] = "Recovery completed"
-        ,
-        ["Recuperación pendiente"] = "Recovery pending"
-        ,
-        ["Actualización rechazada"] = "Update rejected"
-        ,
-        ["No se pudo actualizar"] = "Could not update"
-        ,
-        ["No se pudo seleccionar el instalador"] = "Could not select installer"
-        ,
-        ["No hay eventos"] = "No events"
         ,
         ["No hay referencias ausentes"] = "No missing references"
         ,
@@ -782,39 +583,13 @@ public static class LocalizationService
         ,
         ["Sistema"] = "System"
         ,
-        ["Protegiendo…"] = "Securing…"
-        ,
-        ["Consulta segura"] = "Read-only view"
-        ,
-        ["Cambios pendientes"] = "Pending changes"
-        ,
         ["Recuperación disponible"] = "Recovery available"
         ,
         ["Copia dañada"] = "Backup damaged"
         ,
-        ["Cambios recuperables"] = "Recoverable changes"
-        ,
-        ["Cerrada"] = "Locked"
-        ,
         ["Vacía"] = "Empty"
         ,
-        ["Copias programadas sin configurar"] = "Scheduled backups not configured"
-        ,
-        ["⚠ Copia programada pendiente"] = "⚠ Scheduled backup pending"
-        ,
-        ["⚠ Copia programada vencida"] = "⚠ Scheduled backup overdue"
-        ,
-        ["⚠ Error al crear la copia programada"] = "⚠ Scheduled backup failed"
-        ,
         ["Revisión manual necesaria"] = "Manual review required"
-        ,
-        ["Apertura incompleta"] = "Incomplete opening"
-        ,
-        ["No asociada"] = "Not linked"
-        ,
-        ["Falta el contenedor"] = "Container missing"
-        ,
-        ["Lista para recuperar"] = "Ready to recover"
         ,
         ["No se indicó la contraseña de la bóveda."] = "No vault password was provided."
         ,
@@ -899,8 +674,6 @@ public static class LocalizationService
         ["Contraseña incorrecta al intentar desbloquear la aplicación"] = "Incorrect password while trying to unlock the application"
         ,
         ["Acceso autorizado; aplicación iniciada"] = "Access authorized; application started"
-        ,
-        ["Protección administrada"] = "Managed protection"
         ,
         ["ProtectedApp aplica la protección exclusivamente mediante Guardian. No se puede pausar desde la interfaz."] = "ProtectedApp applies protection exclusively through Guardian. It cannot be paused from the interface."
         ,
@@ -1194,13 +967,9 @@ public static class LocalizationService
         ,
         ["Editar"] = "Edit"
         ,
-        ["Editar protección"] = "Edit protection"
-        ,
         ["Bloquear esta aplicación"] = "Lock this application"
         ,
         ["Bloquear aplicación"] = "Lock application"
-        ,
-        ["Eliminar"] = "Delete"
         ,
         ["Eliminar protección"] = "Remove protection"
         ,
@@ -1297,8 +1066,6 @@ public static class LocalizationService
         ["Guarda y bloquea la bóveda y resuelve cualquier recuperación pendiente antes de eliminarla."] = "Save and lock the vault and resolve any pending recovery before deleting it."
         ,
         ["Bóveda eliminada permanentemente; las copias cifradas se conservaron"] = "Vault permanently deleted; encrypted backups were retained"
-        ,
-        ["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
         ,
         ["Contraseña incorrecta o copia no válida."] = "Incorrect password or invalid backup."
         ,
@@ -1408,8 +1175,6 @@ public static class LocalizationService
         ,
         ["Retiradas"] = "Removed"
         ,
-        ["La contraseña de la copia debe tener al menos 8 caracteres."] = "The backup password must be at least 8 characters."
-        ,
         ["La contraseña de la copia debe tener al menos 12 caracteres."] = "The backup password must be at least 12 characters."
         ,
         ["La configuración es demasiado grande para crear una copia."] = "The configuration is too large to create a backup."
@@ -1446,10 +1211,6 @@ public static class LocalizationService
         ,
         ["La cabecera criptográfica de la copia no es válida."] = "The backup cryptographic header is invalid."
         ,
-        ["fecha desconocida"] = "unknown date"
-        ,
-        ["modificado"] = "modified"
-        ,
         ["Guardian no devolvió una respuesta válida."] = "Guardian did not return a valid response."
         ,
         ["Respuesta de Guardian no válida."] = "Invalid response from Guardian."
@@ -1474,15 +1235,11 @@ public static class LocalizationService
         ,
         ["El diagnóstico se ejecutó hace unos segundos; espera antes de repetirlo."] = "Diagnostics ran a few seconds ago; wait before trying again."
         ,
-        ["Guardar"] = "Save"
-        ,
         ["Continuar"] = "Continue"
         ,
         ["Eliminar"] = "Delete"
         ,
         ["Descripción"] = "Description"
-        ,
-        ["Opcional"] = "Optional"
         ,
         ["Confirmar contraseña"] = "Confirm password"
         ,
@@ -1528,11 +1285,7 @@ public static class LocalizationService
         ,
         ["La contraseña debe tener al menos 12 caracteres."] = "The password must be at least 12 characters."
         ,
-        ["La contraseña propia debe tener al menos 6 caracteres."] = "The custom password must be at least 6 characters."
-        ,
         ["La contraseña propia debe tener al menos 12 caracteres."] = "The custom password must be at least 12 characters."
-        ,
-        ["La nueva contraseña debe coincidir y tener al menos 6 caracteres."] = "The new password must match and be at least 6 characters."
         ,
         ["La nueva contraseña debe coincidir y tener al menos 12 caracteres."] = "The new password must match and be at least 12 characters."
         ,
@@ -1595,8 +1348,6 @@ public static class LocalizationService
         ["Se creará y verificará una bóveda .pavault cifrada. La carpeta original solo se eliminará si lo confirmas después de verificar la bóveda."] = "An encrypted .pavault vault will be created and verified. The original folder will only be removed if you confirm it after verifying the vault."
         ,
         ["Guardar"] = "Save"
-        ,
-        ["La contraseña de la bóveda debe tener al menos 8 caracteres."] = "The vault password must be at least 8 characters."
         ,
         ["La contraseña de la bóveda debe tener al menos 12 caracteres."] = "The vault password must be at least 12 characters."
         ,
@@ -1681,8 +1432,6 @@ public static class LocalizationService
         ["Usa al menos Ctrl, Alt o Mayús y una tecla, por ejemplo Ctrl+Alt+L."] = "Use at least Ctrl, Alt, or Shift and a key, for example Ctrl+Alt+L."
         ,
         ["La tecla debe ser una letra, un número o F1 a F12."] = "The key must be a letter, number, or F1 through F12."
-        ,
-        ["Guardian no disponible"] = "Guardian unavailable"
         ,
         ["No se puede aplicar el bloqueo inmediato mientras el servicio Guardian no esté activo. Repara el servicio desde Configuración."] = "Immediate lock cannot be applied while the Guardian service is inactive. Repair the service from Settings."
         ,
@@ -1856,7 +1605,7 @@ public static class LocalizationService
         ,
         ["La inactividad debe estar entre 0 y 10.080 minutos."] = "Inactivity must be between 0 and 10,080 minutes."
         ,
-        ["La nueva contraseña debe tener al menos 8 caracteres."] = "The new password must be at least 8 characters."
+        ["La nueva contraseña debe tener al menos 12 caracteres."] = "The new password must be at least 12 characters."
         ,
         ["Las nuevas contraseñas no coinciden."] = "The new passwords do not match."
         ,
@@ -1906,7 +1655,24 @@ public static class LocalizationService
         ,
         ["ProtectedApp encontró un error al proteger las bóvedas tras un evento de Windows. Sus carpetas de trabajo se conservaron para no perder cambios."] = "ProtectedApp encountered an error while protecting vaults after a Windows event. Their working folders were retained to prevent data loss."
         ,
-        ["Error al proteger las bóvedas ante un evento de Windows."] = "Error protecting vaults after a Windows event."
+        ["Error al proteger las bóvedas ante un evento de Windows."] = "Error protecting vaults after a Windows event.",
+        // Dialogs and labels added after auditing every user-facing literal against this catalogue.
+        ["Selecciona un ejecutable .exe, un script por lotes .bat o un script de Python .py."] = "Select an .exe executable, a .bat batch script, or a .py Python script.",
+        ["Ese archivo ya aparece en tu lista."] = "That file is already in your list.",
+        ["ProtectedApp no puede proteger su propio proceso."] = "ProtectedApp cannot protect its own process.",
+        ["No hay aplicaciones activas en el grupo seleccionado."] = "There are no active applications in the selected group.",
+        ["No hay aplicaciones activas en el grupo."] = "There are no active applications in the group.",
+        ["Tiempo de desbloqueo (minutos)"] = "Unlock time (minutes)",
+        ["Desinstalador no disponible"] = "Uninstaller unavailable",
+        ["Instala y activa Guardian antes de configurar alertas remotas."] = "Install and activate Guardian before configuring remote alerts.",
+        ["Elige una carpeta existente para guardar las copias programadas."] = "Choose an existing folder to store scheduled backups.",
+        ["Selecciona un archivo cuyo nombre termine en .pavault.bak."] = "Select a file whose name ends in .pavault.bak.",
+        ["El archivo cifrado fue movido o eliminado y no existe una copia anterior recuperable."] = "The encrypted file was moved or deleted, and no recoverable previous copy exists.",
+        ["Escribe ELIMINAR para confirmar"] = "Type DELETE to confirm",
+        ["ELIMINAR"] = "DELETE",
+        ["Conservar las copias cifradas existentes (.bak, TPM y programadas)"] = "Keep existing encrypted backups (.bak, TPM, and scheduled)",
+        ["No se puede eliminar"] = "Cannot delete",
+        ["Ese contenedor ya aparece en la lista."] = "That container is already in the list.",
     };
 
     // A reverse lookup is only safe for one-to-one translations.  English

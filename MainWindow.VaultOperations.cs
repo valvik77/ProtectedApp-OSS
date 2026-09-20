@@ -638,7 +638,14 @@ public sealed partial class MainWindow
 
     private async Task DeleteVaultPermanentlyFromUiAsync(VaultContainer vault)
     {
-        var confirmation = new TextBox { Header = "Escribe ELIMINAR para confirmar", MaxLength = 8 };
+        // The prompt and the accepted word are both localized from the same catalogue,
+        // so an English user is asked to type the same word that is accepted.
+        var confirmationWord = LocalizationService.T("ELIMINAR");
+        var confirmation = new TextBox
+        {
+            Header = "Escribe ELIMINAR para confirmar",
+            MaxLength = Math.Max(8, confirmationWord.Length)
+        };
         var keepCopies = new CheckBox
         {
             Content = "Conservar las copias cifradas existentes (.bak, TPM y programadas)",
@@ -655,7 +662,7 @@ public sealed partial class MainWindow
         var dialog = CreateDialog("Eliminar bóveda permanentemente", content, "Eliminar permanentemente", "Cancelar");
         dialog.IsPrimaryButtonEnabled = false;
         confirmation.TextChanged += (_, _) => dialog.IsPrimaryButtonEnabled =
-            confirmation.Text.Equals("ELIMINAR", StringComparison.Ordinal);
+            confirmation.Text.Equals(confirmationWord, StringComparison.Ordinal);
         if (await dialog.ShowAsync() != ContentDialogResult.Primary ||
             !await VerifyMasterAsync($"Autorizar eliminación permanente de {vault.Name}")) return;
 
