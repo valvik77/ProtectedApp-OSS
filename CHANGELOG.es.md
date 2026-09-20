@@ -24,14 +24,17 @@ firma.
 - Guardian rechaza de forma determinista JSON IPC malformado, y la comparación
   del secreto de instalación borra sus copias temporales de bytes tras usarlas.
 - Los diagnósticos de arranque y de fallos (`launch.log`, `crash.log`,
-  `launch-exception.log`) tienen ahora tamaño acotado: un archivo que alcanza
-  256 KB se rota a un único archivo `.1` en lugar de crecer durante toda la
-  vida de la instalación.
+  `launch-exception.log`) tienen ahora un tamaño estrictamente acotado:
+  ningún archivo supera 256 KiB. Una entrada que no cabe rota antes el archivo
+  a un único `.1`, y una sola entrada mayor que el límite se trunca con una
+  marca, en lugar de crecer durante toda la vida de la instalación.
 - Quince diálogos y etiquetas (avisos de archivo o bóveda duplicados,
   confirmación de eliminación permanente, mensajes del desinstalador y de las
   alertas remotas, entre otros) se mostraban en español con la interfaz en
-  inglés. La confirmación de eliminación permanente pide y acepta ahora la
-  palabra localizada.
+  inglés. La confirmación de eliminación permanente se localiza ahora al
+  construir el diálogo, desde el mismo código que valida la respuesta, y
+  acepta siempre también la palabra original en español, de modo que a un
+  usuario en inglés nunca se le pide una palabra que se rechaza.
 - El mensaje en inglés de una contraseña nueva de bóveda demasiado corta indica
   ahora el mínimo real de 12 caracteres en lugar de quedar sin traducción.
 - El filtro del webhook de alertas de manipulación rechaza además direcciones

@@ -21,13 +21,17 @@ candidate** is not a public release and must not be distributed as one; see
 - Guardian now rejects malformed IPC JSON deterministically, and bootstrap
   secret comparison clears its temporary byte copies after use.
 - Launch and crash diagnostics (`launch.log`, `crash.log`,
-  `launch-exception.log`) are now size-bounded: a file that reaches 256 KB is
-  rotated to a single `.1` companion instead of growing for the life of the
-  installation.
+  `launch-exception.log`) are now strictly size-bounded: no file exceeds
+  256 KiB. An entry that would not fit rotates the file to a single `.1`
+  companion first, and a single entry larger than the limit is truncated with
+  a marker, instead of growing for the life of the installation.
 - Fifteen dialogs and labels (duplicate-file and duplicate-vault notices,
   permanent-deletion confirmation, uninstaller and remote-alert messages, and
   others) were shown in Spanish while the English interface was selected. The
-  permanent-deletion prompt now asks for, and accepts, the localized word.
+  permanent-deletion prompt is now localized when the dialog is built, from the
+  same code that validates the answer, and it always accepts the original
+  Spanish word as well, so an English user can never be asked for a word that
+  is rejected.
 - The English message for a too-short new vault password now states the
   enforced 12-character minimum instead of resolving to no translation.
 - The tamper-alert webhook filter now also rejects multicast, reserved,
