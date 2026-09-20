@@ -9,6 +9,8 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+## 1.4.210 — 2026-09-21 (development pre-release)
+
 ### Fixed
 
 - State persistence now serializes concurrent saves, uses unique temporary

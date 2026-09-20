@@ -10,6 +10,8 @@ firma.
 
 ## Pendiente de publicación
 
+## 1.4.210 — 2026-09-21 (pre-release de desarrollo)
+
 ### Corregido
 
 - La persistencia de estado serializa ahora los guardados simultáneos, usa
