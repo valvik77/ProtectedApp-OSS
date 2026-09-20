@@ -23,6 +23,23 @@ firma.
   tratan como errores controlados de disponibilidad.
 - Guardian rechaza de forma determinista JSON IPC malformado, y la comparación
   del secreto de instalación borra sus copias temporales de bytes tras usarlas.
+- Los diagnósticos de arranque y de fallos (`launch.log`, `crash.log`,
+  `launch-exception.log`) tienen ahora tamaño acotado: un archivo que alcanza
+  256 KB se rota a un único archivo `.1` en lugar de crecer durante toda la
+  vida de la instalación.
+- Quince diálogos y etiquetas (avisos de archivo o bóveda duplicados,
+  confirmación de eliminación permanente, mensajes del desinstalador y de las
+  alertas remotas, entre otros) se mostraban en español con la interfaz en
+  inglés. La confirmación de eliminación permanente pide y acepta ahora la
+  palabra localizada.
+- El mensaje en inglés de una contraseña nueva de bóveda demasiado corta indica
+  ahora el mínimo real de 12 caracteres en lugar de quedar sin traducción.
+- El filtro del webhook de alertas de manipulación rechaza además direcciones
+  multicast, reservadas, de pruebas de rendimiento (`198.18.0.0/15`), de
+  documentación y direcciones IPv6 que embeben un destino IPv4 (`::/96`,
+  NAT64), sumadas a los rangos de loopback y privados.
+- El sitio web del proyecto deja de fallar cuando el navegador bloquea
+  `localStorage` e ignora un idioma almacenado que no reconoce.
 
 ### Modificado
 
@@ -33,6 +50,9 @@ firma.
 - Actualizado Microsoft Windows App SDK a 2.5.1 tras superar la compilación
   x64, las pruebas de Guardian y bóvedas, y la validación visual de
   compatibilidad.
+- Eliminadas 206 entradas duplicadas ya sustituidas y cuatro entradas obsoletas
+  de longitud de contraseña del catálogo de localización en inglés. Se verificó
+  que el catálogo efectivo no cambia salvo por las correcciones anteriores.
 
 ## 1.4.206 — 2026-09-19 (pre-release de desarrollo)
 

@@ -20,6 +20,21 @@ candidate** is not a public release and must not be distributed as one; see
   and malformed IPC responses are handled as controlled availability errors.
 - Guardian now rejects malformed IPC JSON deterministically, and bootstrap
   secret comparison clears its temporary byte copies after use.
+- Launch and crash diagnostics (`launch.log`, `crash.log`,
+  `launch-exception.log`) are now size-bounded: a file that reaches 256 KB is
+  rotated to a single `.1` companion instead of growing for the life of the
+  installation.
+- Fifteen dialogs and labels (duplicate-file and duplicate-vault notices,
+  permanent-deletion confirmation, uninstaller and remote-alert messages, and
+  others) were shown in Spanish while the English interface was selected. The
+  permanent-deletion prompt now asks for, and accepts, the localized word.
+- The English message for a too-short new vault password now states the
+  enforced 12-character minimum instead of resolving to no translation.
+- The tamper-alert webhook filter now also rejects multicast, reserved,
+  benchmarking (`198.18.0.0/15`), documentation, and IPv6 addresses that embed
+  an IPv4 target (`::/96`, NAT64), in addition to loopback and private ranges.
+- The project website no longer stops working when the browser blocks
+  `localStorage`, and ignores an unrecognized stored language.
 
 ### Changed
 
@@ -28,6 +43,9 @@ candidate** is not a public release and must not be distributed as one; see
 - Updated the test SDK to 18.10.1 for the Guardian and vault test suites.
 - Updated Microsoft Windows App SDK to 2.5.1 after successful x64 build,
   Guardian/vault test, and visual compatibility validation.
+- Removed 206 superseded duplicate entries and four obsolete password-length
+  entries from the English localization catalogue. The effective catalogue was
+  verified unchanged apart from the corrections listed above.
 
 ## 1.4.206 — 2026-09-19 (development pre-release)
 
