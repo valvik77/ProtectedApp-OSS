@@ -72,19 +72,73 @@ public sealed class LocalizationServiceTests
     }
 
     [Fact]
-    public void PermanentDeletionConfirmation_PromptAndAcceptedWordStayInSync()
+    public void PermanentDeletionConfirmation_PromptNamesTheWordThatIsAccepted()
     {
         try
         {
+            foreach (var (language, expectedWord) in new[] { ("en", "DELETE"), ("es", "ELIMINAR") })
+            {
+                LocalizationService.SetLanguage(language);
+
+                Assert.Equal(expectedWord, PermanentDeletionConfirmation.LocalizedWord);
+                // What the dialog shows is exactly what it accepts.
+                Assert.Contains(PermanentDeletionConfirmation.LocalizedWord, PermanentDeletionConfirmation.Prompt,
+                    StringComparison.Ordinal);
+                Assert.True(PermanentDeletionConfirmation.IsConfirmed(PermanentDeletionConfirmation.LocalizedWord));
+                Assert.True(PermanentDeletionConfirmation.MaxLength >= PermanentDeletionConfirmation.LocalizedWord.Length);
+            }
+
             LocalizationService.SetLanguage("en");
-            var englishWord = LocalizationService.T("ELIMINAR");
-            Assert.Equal("DELETE", englishWord);
-            Assert.Contains(englishWord, LocalizationService.T("Escribe ELIMINAR para confirmar"), StringComparison.Ordinal);
+            Assert.Equal("Type DELETE to confirm", PermanentDeletionConfirmation.Prompt);
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
+    public void PermanentDeletionConfirmation_NeverBlocksAPromptedWordAndStaysStrict()
+    {
+        try
+        {
+            foreach (var language in new[] { "en", "es" })
+            {
+                LocalizationService.SetLanguage(language);
+
+                // The original word is always accepted, so a prompt that was not
+                // translated (or was translated late) can never lock the user out.
+                Assert.True(PermanentDeletionConfirmation.IsConfirmed("ELIMINAR"));
+                Assert.True(PermanentDeletionConfirmation.IsConfirmed("DELETE") == (language == "en"));
+
+                Assert.False(PermanentDeletionConfirmation.IsConfirmed(null));
+                Assert.False(PermanentDeletionConfirmation.IsConfirmed(string.Empty));
+                Assert.False(PermanentDeletionConfirmation.IsConfirmed("eliminar"));
+                Assert.False(PermanentDeletionConfirmation.IsConfirmed("ELIMINAR "));
+                Assert.False(PermanentDeletionConfirmation.IsConfirmed("ELIMINA"));
+            }
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
+    public void PermanentDeletionConfirmation_PromptSurvivesRetranslationAndLanguageSwitch()
+    {
+        try
+        {
+            // ApplyTo runs again when the dialog loads and when the language changes;
+            // it feeds the already-rendered prompt back through T().
+            LocalizationService.SetLanguage("en");
+            var english = PermanentDeletionConfirmation.Prompt;
+            Assert.Equal(english, LocalizationService.T(english));
 
             LocalizationService.SetLanguage("es");
-            var spanishWord = LocalizationService.T("ELIMINAR");
-            Assert.Equal("ELIMINAR", spanishWord);
-            Assert.Contains(spanishWord, LocalizationService.T("Escribe ELIMINAR para confirmar"), StringComparison.Ordinal);
+            var spanish = LocalizationService.T(english);
+            Assert.Equal(PermanentDeletionConfirmation.SourcePrompt, spanish);
+            Assert.Equal(spanish, LocalizationService.T(spanish));
         }
         finally
         {
