@@ -24,7 +24,8 @@ validar la contraseña y los inicia de nuevo cuando la autorización es correcta
 **Empieza aquí:** [web del proyecto](https://valvik77.github.io/ProtectedApp-OSS/) ·
 [descargas](https://github.com/valvik77/ProtectedApp-OSS/releases) ·
 [instalación segura y verificación del certificado](DEVELOPMENT-CERTIFICATE.md) ·
-[modelo de seguridad](SECURITY-MODEL.md) · [historial de cambios](CHANGELOG.es.md)
+[modelo de seguridad](SECURITY-MODEL.md) · [cómo se construyó](https://valvik77.github.io/ProtectedApp-OSS/how-it-is-built.html) ·
+[kit de prensa](https://valvik77.github.io/ProtectedApp-OSS/press.html) · [historial de cambios](CHANGELOG.es.md)
 
 ### Resumen en un minuto
 

@@ -24,7 +24,8 @@ before they can run, and starts them again after the password is accepted.
 **Start here:** [project site](https://valvik77.github.io/ProtectedApp-OSS/) ·
 [downloads](https://github.com/valvik77/ProtectedApp-OSS/releases) ·
 [safe installation and certificate verification](DEVELOPMENT-CERTIFICATE.en.md) ·
-[security model](SECURITY-MODEL.en.md) · [changelog](CHANGELOG.md)
+[security model](SECURITY-MODEL.en.md) · [how it was built](https://valvik77.github.io/ProtectedApp-OSS/how-it-is-built.html) ·
+[press kit](https://valvik77.github.io/ProtectedApp-OSS/press.html) · [changelog](CHANGELOG.md)
 
 ### One-minute overview
 

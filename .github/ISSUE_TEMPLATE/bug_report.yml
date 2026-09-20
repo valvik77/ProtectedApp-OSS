@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible problem in ProtectedApp.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include passwords, vault files, private paths, logs containing secrets, or vulnerability details. Use the private security reporting channel for security issues."
+  - type: input
+    id: version
+    attributes:
+      label: ProtectedApp version
+      placeholder: "For example: 1.4.207"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and steps to reproduce
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Protected applications
+        - Encrypted vaults
+        - Guardian service
+        - Installation or update
+        - Interface
+        - Other
+    validations:
+      required: true
