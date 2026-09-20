@@ -267,15 +267,23 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
         return !IPAddress.TryParse(uri.DnsSafeHost, out var address) || IsPublicAddress(address);
     }
 
-    private static bool IsPublicAddress(IPAddress address)
+    internal static bool IsPublicAddress(IPAddress address)
     {
         if (IPAddress.IsLoopback(address)) return false;
         if (address.IsIPv4MappedToIPv6) return IsPublicAddress(address.MapToIPv4());
         if (address.AddressFamily == AddressFamily.InterNetworkV6)
         {
             var ipv6Bytes = address.GetAddressBytes();
-            return !address.Equals(IPAddress.IPv6Any) && !address.IsIPv6LinkLocal && !address.IsIPv6SiteLocal
-                && !address.IsIPv6Multicast && (ipv6Bytes[0] & 0xFE) != 0xFC; // Unique-local fc00::/7
+            // IPv4-compatible (::/96) addresses are deprecated and never public. NAT64
+            // (64:ff9b::/96) embeds an IPv4 address, which must be judged on its own so
+            // it cannot carry a private target past this filter.
+            if (ipv6Bytes.Take(12).All(value => value == 0)) return false;
+            if (ipv6Bytes[0] == 0x00 && ipv6Bytes[1] == 0x64 && ipv6Bytes[2] == 0xFF && ipv6Bytes[3] == 0x9B
+                && ipv6Bytes.Skip(4).Take(8).All(value => value == 0))
+                return IsPublicAddress(new IPAddress(ipv6Bytes.Skip(12).ToArray()));
+            return !address.IsIPv6LinkLocal && !address.IsIPv6SiteLocal && !address.IsIPv6Multicast
+                && (ipv6Bytes[0] & 0xFE) != 0xFC // Unique-local fc00::/7
+                && !(ipv6Bytes[0] == 0x20 && ipv6Bytes[1] == 0x01 && ipv6Bytes[2] == 0x0D && ipv6Bytes[3] == 0xB8); // Documentation 2001:db8::/32
         }
         if (address.AddressFamily != AddressFamily.InterNetwork) return false;
 
@@ -283,10 +291,15 @@ internal sealed class TamperWebhookNotifier(ILogger<TamperWebhookNotifier> logge
         return bytes[0] switch
         {
             0 or 10 or 127 => false,
+            >= 224 => false, // Multicast, reserved and broadcast
             100 when bytes[1] is >= 64 and <= 127 => false,
             169 when bytes[1] == 254 => false,
             172 when bytes[1] is >= 16 and <= 31 => false,
             192 when bytes[1] == 168 => false,
+            192 when bytes[1] == 0 && bytes[2] is 0 or 2 => false, // 192.0.0.0/24 and 192.0.2.0/24
+            198 when bytes[1] is 18 or 19 => false, // Benchmarking 198.18.0.0/15, also used by fake-IP proxies
+            198 when bytes[1] == 51 && bytes[2] == 100 => false, // Documentation 198.51.100.0/24
+            203 when bytes[1] == 0 && bytes[2] == 113 => false, // Documentation 203.0.113.0/24
             _ => true
         };
     }
