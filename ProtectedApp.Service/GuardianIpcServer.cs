@@ -551,7 +551,7 @@ internal sealed class GuardianIpcServer(
             PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 64 * 1024, 64 * 1024, security);
     }
 
-    private static string GetCallerSid(NamedPipeServerStream pipe)
+    internal static string GetCallerSid(NamedPipeServerStream pipe)
     {
         string? sid = null;
         pipe.RunAsClient(() => sid = WindowsIdentity.GetCurrent().User?.Value);

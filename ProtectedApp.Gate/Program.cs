@@ -29,7 +29,7 @@ if (hostMarker >= 0)
 try
 {
     await using var pipe = new NamedPipeClientStream(".", GuardianProtocol.PipeName,
-        PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Impersonation);
+        PipeDirection.InOut, PipeOptions.Asynchronous, GuardianProtocol.ClientImpersonationLevel);
     using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
     await pipe.ConnectAsync(timeout.Token);
 

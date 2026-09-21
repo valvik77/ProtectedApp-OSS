@@ -217,7 +217,7 @@ public sealed class GuardianClient
             // safety limit; ordinary requests remain responsive at three seconds.
             using var timeout = new CancellationTokenSource(timeoutOverride ?? TimeSpan.FromSeconds(3));
             await using var pipe = new NamedPipeClientStream(".", GuardianProtocol.PipeName,
-                PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Impersonation);
+                PipeDirection.InOut, PipeOptions.Asynchronous, GuardianProtocol.ClientImpersonationLevel);
             await pipe.ConnectAsync(timeout.Token);
             using var reader = new StreamReader(pipe, new UTF8Encoding(false), false, 4096, leaveOpen: true);
             await using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 4096, leaveOpen: true) { AutoFlush = true };

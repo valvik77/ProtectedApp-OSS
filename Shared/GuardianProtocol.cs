@@ -3,6 +3,12 @@ namespace ProtectedApp.Shared;
 public static class GuardianProtocol
 {
     public const string PipeName = "ProtectedApp.Guardian.v1";
+    // The service only needs to learn who is calling. Identification lets it read
+    // the caller's token without being able to act as that user, so a process that
+    // answers on the pipe in place of the service cannot use an elevated caller's
+    // identity.
+    public const System.Security.Principal.TokenImpersonationLevel ClientImpersonationLevel =
+        System.Security.Principal.TokenImpersonationLevel.Identification;
     // Shared by the UI and the SYSTEM service so a service upgrade cannot
     // accidentally disable pending-request polling in the interactive agent.
     public const string ProtectionVersion = "32";
