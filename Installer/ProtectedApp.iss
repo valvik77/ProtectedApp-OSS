@@ -116,14 +116,14 @@ Root: HKLM; Subkey: "Software\Classes\Drive\shell\ProtectedApp.UnmountVault"; Va
 Root: HKLM; Subkey: "Software\Classes\Drive\shell\ProtectedApp.UnmountVault\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" --unmount-vault-drive ""%1"""
 
 [Run]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Install-ShellExtension.ps1"""; StatusMsg: "{cm:DisableLegacyShell}"; Flags: runhidden waituntilterminated
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Cleanup-ShellExtensions.ps1"" -ShellDirectory ""{app}\Shell"" -RemoveAll"; StatusMsg: "{cm:CleanShell}"; Flags: runhidden waituntilterminated
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Install-ShellExtension.ps1"""; StatusMsg: "{cm:DisableLegacyShell}"; Flags: runhidden waituntilterminated; Check: LegacyShellRegistrationPresent
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Cleanup-ShellExtensions.ps1"" -ShellDirectory ""{app}\Shell"" -RemoveAll"; StatusMsg: "{cm:CleanShell}"; Flags: runhidden waituntilterminated; Check: LegacyShellFilesPresent
 Filename: "{sys}\explorer.exe"; Description: "{cm:RestartExplorer}"; Flags: nowait postinstall skipifsilent runasoriginaluser; Check: RestartExplorerAfterInstall
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--post-install --install-language ""{language}"""; Description: "{cm:StartProtection}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [UninstallRun]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Remove-ShellExtension.ps1"" -AssemblyPath ""{app}\Shell\ProtectedApp.ShellExtension.{#MyAppVersion}.dll"""; RunOnceId: "RemoveShellExtension"; Flags: runhidden waituntilterminated
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Cleanup-ShellExtensions.ps1"" -ShellDirectory ""{app}\Shell"" -RemoveAll"; RunOnceId: "CleanupShellExtensions"; Flags: runhidden waituntilterminated
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Remove-ShellExtension.ps1"" -AssemblyPath ""{app}\Shell\ProtectedApp.ShellExtension.{#MyAppVersion}.dll"""; RunOnceId: "RemoveShellExtension"; Flags: runhidden waituntilterminated; Check: LegacyShellRegistrationPresent
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Shell\Cleanup-ShellExtensions.ps1"" -ShellDirectory ""{app}\Shell"" -RemoveAll"; RunOnceId: "CleanupShellExtensions"; Flags: runhidden waituntilterminated; Check: LegacyShellFilesPresent
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Service\Remove-Service.ps1"""; RunOnceId: "RemoveGuardian"; Flags: runhidden waituntilterminated
 Filename: "{sys}\taskkill.exe"; Parameters: "/F /T /IM ProtectedApp.exe"; RunOnceId: "StopProtectedApp"; Flags: runhidden waituntilterminated; StatusMsg: "{cm:CloseProtectedApp}"
 
@@ -135,6 +135,35 @@ var
   MaintenanceMayBeActive: Boolean;
   ExplorerRestartRequired: Boolean;
   InstallationCompleted: Boolean;
+
+// Older releases registered an in-process Explorer extension. Its cleanup scripts
+// run only when something of it is still on the computer, so a clean installation
+// and its removal do not start hidden PowerShell processes for a component that
+// no longer exists. Keep these checks in step with Install-ShellExtension.ps1
+// (registry) and Cleanup-ShellExtensions.ps1 (files).
+function LegacyShellRegistrationPresent(): Boolean;
+begin
+  Result :=
+    RegKeyExists(HKLM, 'Software\Classes\AppID\{B22C3BE7-3ADC-4D51-A1E8-C7F72188F6E7}') or
+    RegKeyExists(HKLM, 'Software\Classes\CLSID\{6DCC2C90-2C9F-4C38-9075-7F2B1391C9B2}') or
+    RegKeyExists(HKLM, 'Software\Classes\CLSID\{6BB2DA61-9C95-41A6-9F2D-35C3335D0F22}') or
+    RegKeyExists(HKLM, 'Software\Classes\CLSID\{42C771D7-2B8A-464C-97AB-BE23E892F0F9}') or
+    RegValueExists(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved', '{6DCC2C90-2C9F-4C38-9075-7F2B1391C9B2}') or
+    RegValueExists(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved', '{6BB2DA61-9C95-41A6-9F2D-35C3335D0F22}') or
+    RegKeyExists(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Explorer\ShellIconOverlayIdentifiers\ProtectedApp') or
+    RegKeyExists(HKLM, 'Software\Classes\Directory\shell\ProtectedApp.Unlock') or
+    RegValueExists(HKLM, 'Software\Classes\ProtectedApp.Vault\shell\ProtectedApp.Mount', 'ExplorerCommandHandler') or
+    RegValueExists(HKLM, 'Software\Classes\Drive\shell\ProtectedApp.UnmountVault', 'AppliesTo');
+end;
+
+function LegacyShellFilesPresent(): Boolean;
+var
+  FindRec: TFindRec;
+begin
+  Result := FindFirst(ExpandConstant('{app}\Shell\ProtectedApp.ShellExtension*'), FindRec);
+  if Result then
+    FindClose(FindRec);
+end;
 
 function IsDokanyRuntimeCompatible(): Boolean;
 var
