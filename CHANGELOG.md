@@ -9,6 +9,59 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+### Fixed
+
+- A protected `.py` or `.bat` script started with a relative name (`python
+  backup.py`, `.\backup.py`) was not recognized and ran without a password.
+  Guardian, its independent emergency-recovery supervisor, and the app's
+  monitor and inactivity tracking now resolve relative names against the
+  directory the process started in, read from the process itself (including
+  32-bit processes), and also recognize the `\\?\` path prefix. The command
+  line is split with Windows' own parser (`CommandLineToArgvW`), so a
+  backslash-escaped quote such as `python -X\" backup.py` can no longer hide the
+  script, and a script inside a shell string (`cmd /c "python backup.py"`) is
+  recognized. Existing 8.3 short paths on local disks are also normalized to
+  their long Windows path before comparison; a network path is never looked up
+  (that would make the SYSTEM service contact whatever server a caller names),
+  so it is compared as written. Launching as `python -m module`, or from a shell
+  string that first changes directory, is still not recognized.
+- After a protected `.py` script was approved, its own arguments were dropped
+  and it started in the script's folder. It now keeps the arguments that follow
+  the script, harmless interpreter options (`-u`, `-X`, `-W`, `py -3.11`) and
+  the original working directory. Options that execute other code (`-c`, `-m`)
+  and shell wrappers are still never replayed, so approving one script cannot
+  authorize a different payload.
+- An interpreter launch intercepted for a user with no ProtectedApp
+  configuration is no longer refused for lack of a policy; it now passes
+  through like any other script.
+
+### Security
+
+- Guardian no longer starts a program in the interactive session on behalf of a
+  caller that is not that session's user (a service, another account, or a "run
+  as" launch). Before, the program was started with the session user's token,
+  running the caller's command under a different identity.
+
+### Changed
+
+- The Guardian pipe clients (the protection gate and the management app) now
+  connect at the Identification impersonation level instead of Impersonation.
+  Guardian only needs to know who is calling, so it can still read the caller's
+  identity but can no longer act as that user, even if another process answers
+  on the pipe in place of the service.
+- The installer and uninstaller start the four legacy Explorer-extension
+  cleanup scripts only when registry entries or files of that removed extension
+  remain. A clean installation, and its removal, no longer launch those hidden
+  PowerShell processes.
+
+### Documentation
+
+- Added [SYSTEM-MECHANISMS.en.md](SYSTEM-MECHANISMS.en.md), which explains why
+  each sensitive Windows mechanism (IFEO gate, service, `SYSTEM` task, process
+  termination, folder locking, Dokany, installer scripts) is needed, how far it
+  is limited, and how to inspect and remove it, including the effect a protected
+  Python script has on other scripts run by the same interpreter.
+
 ## 1.4.210 — 2026-09-21 (development pre-release)
 
 ### Fixed

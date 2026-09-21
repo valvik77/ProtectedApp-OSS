@@ -29,7 +29,9 @@ Explorador y el runtime Dokany necesario para las unidades virtuales de las
 bóvedas. Estos componentes, sus rutas y sus permisos se comprueban mediante los
 diagnósticos de la aplicación. La desinstalación oficial elimina los componentes
 propios de ProtectedApp; Dokany se conserva cuando puede ser compartido por
-otros programas.
+otros programas. [Mecanismos del sistema](SYSTEM-MECHANISMS.md) explica por qué
+es necesario cada mecanismo, hasta dónde está limitado y cómo inspeccionarlo o
+eliminarlo.
 
 ## Datos y red
 

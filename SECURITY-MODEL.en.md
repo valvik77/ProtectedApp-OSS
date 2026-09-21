@@ -28,6 +28,8 @@ as `SYSTEM`, optional Explorer integrations, and the Dokany runtime required for
 vault virtual drives. The application diagnostics verify these components, their
 paths, and their permissions. The official uninstaller removes ProtectedApp's
 own components; Dokany is retained when it may be shared with other software.
+[System mechanisms](SYSTEM-MECHANISMS.en.md) explains why each mechanism is
+needed, how far it is limited, and how to inspect or remove it.
 
 ## Data and network
 

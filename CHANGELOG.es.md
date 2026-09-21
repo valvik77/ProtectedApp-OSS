@@ -10,6 +10,64 @@ firma.
 
 ## Pendiente de publicación
 
+### Corregido
+
+- Un script `.py` o `.bat` protegido que se iniciaba con un nombre relativo
+  (`python backup.py`, `.\backup.py`) no se reconocía y se ejecutaba sin
+  contraseña. Guardian, su supervisor independiente de recuperación de
+  emergencia, y el monitor y el seguimiento de inactividad de la aplicación
+  resuelven ahora los nombres relativos contra el directorio desde el que se
+  lanzó el proceso, leído del propio proceso (también de 32 bits), y reconocen
+  además el prefijo de ruta `\\?\`. La línea de comandos se divide con el
+  analizador propio de Windows (`CommandLineToArgvW`), de modo que una comilla
+  escapada con barra invertida como en `python -X\" backup.py` ya no puede
+  ocultar el script, y se reconoce un script dentro de una cadena de shell
+  (`cmd /c "python backup.py"`). Las rutas cortas 8.3 existentes en discos
+  locales también se normalizan a su ruta larga de Windows antes de compararlas;
+  una ruta de red nunca se consulta (el servicio SYSTEM contactaría con el
+  servidor que indique quien llama), así que se compara tal como está. Iniciarlo como
+  `python -m módulo` o desde una cadena de shell que antes cambie de directorio
+  sigue sin reconocerse.
+- Tras aprobar un script `.py` protegido, se descartaban sus argumentos y se
+  iniciaba en la carpeta del script. Ahora conserva los argumentos que siguen al
+  script, las opciones inocuas del intérprete (`-u`, `-X`, `-W`, `py -3.11`) y el
+  directorio de trabajo original. Las opciones que ejecutan otro código (`-c`,
+  `-m`) y las envolturas de shell siguen sin reproducirse nunca, de modo que
+  aprobar un script no puede autorizar una carga distinta.
+- El inicio de un intérprete interceptado para un usuario sin configuración de
+  ProtectedApp ya no se rechaza por falta de política; ahora pasa como cualquier
+  otro script.
+
+### Seguridad
+
+- Guardian ya no inicia un programa en la sesión interactiva en nombre de quien
+  llama si este no es el usuario de esa sesión (un servicio, otra cuenta o un
+  inicio con «ejecutar como»). Antes, el programa se iniciaba con el token del
+  usuario de la sesión, ejecutando el comando de quien llamaba con otra
+  identidad.
+
+### Cambiado
+
+- Los clientes de la tubería de Guardian (la puerta de protección y la
+  aplicación de gestión) se conectan ahora con el nivel de suplantación
+  Identification en lugar de Impersonation. Guardian solo necesita saber quién
+  llama, de modo que puede seguir leyendo la identidad del llamante pero ya no
+  puede actuar como ese usuario, aunque otro proceso responda en la tubería en
+  lugar del servicio.
+- El instalador y el desinstalador lanzan los cuatro scripts de limpieza de la
+  extensión heredada del Explorador solo cuando quedan entradas de registro o
+  archivos de esa extensión ya eliminada. Una instalación limpia, y su
+  eliminación, ya no inician esos procesos ocultos de PowerShell.
+
+### Documentación
+
+- Se añade [SYSTEM-MECHANISMS.md](SYSTEM-MECHANISMS.md), que explica por qué es
+  necesario cada mecanismo sensible de Windows (puerta IFEO, servicio, tarea
+  `SYSTEM`, finalización de procesos, bloqueo de carpetas, Dokany, scripts del
+  instalador), hasta dónde está limitado y cómo inspeccionarlo y eliminarlo,
+  incluido el efecto que tiene un script de Python protegido sobre otros
+  scripts ejecutados por el mismo intérprete.
+
 ## 1.4.210 — 2026-09-21 (pre-release de desarrollo)
 
 ### Corregido
