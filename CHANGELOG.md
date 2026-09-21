@@ -9,6 +9,8 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+## 1.4.211 — 2026-09-22 (development pre-release)
+
 ### Fixed
 
 - A protected `.py` or `.bat` script started with a relative name (`python

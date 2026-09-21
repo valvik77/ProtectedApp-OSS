@@ -10,6 +10,8 @@ firma.
 
 ## Pendiente de publicación
 
+## 1.4.211 — 2026-09-22 (pre-release de desarrollo)
+
 ### Corregido
 
 - Un script `.py` o `.bat` protegido que se iniciaba con un nombre relativo
