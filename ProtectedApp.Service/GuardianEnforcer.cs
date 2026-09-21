@@ -188,6 +188,13 @@ internal sealed class GuardianEnforcer(
     {
         processId = 0;
         error = null;
+        if (!CallerOwnsSession(userSid, sessionId))
+        {
+            error = "La sesión interactiva pertenece a otra cuenta; el programa no se puede iniciar en ella de forma segura.";
+            logger.LogWarning("Lanzamiento de {Rule} rechazado: el SID {Sid} no es el usuario de la sesión {SessionId}.",
+                rule.Name, userSid, sessionId);
+            return false;
+        }
         var key = ProcessKey(userSid, sessionId, rule.Path);
         _launchAllowances[key] = DateTimeOffset.UtcNow.AddSeconds(8);
         uint pid = 0;
@@ -537,11 +544,11 @@ internal sealed class GuardianEnforcer(
                         !ProtectedTarget.IsScript(rule.Path) && PathsEqual(rule.Path, path));
                     if (matchingRule is null
                         && ProtectedTarget.IsPotentialScriptHost(path)
-                        && TryGetProcessCommandLine(process, now, out var commandLine)
+                        && TryGetProcessCommandLine(process, now, out var commandLine, out var workingDirectory)
                         && !string.IsNullOrWhiteSpace(commandLine))
                     {
                         matchingRule = rules.FirstOrDefault(rule => ProtectedTarget.IsScript(rule.Path)
-                            && ProtectedTarget.CommandLineReferences(commandLine, rule.Path));
+                            && ProtectedTarget.CommandLineReferences(commandLine, rule.Path, workingDirectory));
                     }
                     if (matchingRule is null) continue;
                     if (requestGracefulClose)
@@ -700,8 +707,8 @@ internal sealed class GuardianEnforcer(
                     var matches = !ProtectedTarget.IsScript(rule.Path)
                         ? PathsEqual(rule.Path, path)
                         : ProtectedTarget.IsPotentialScriptHost(path)
-                            && TryGetProcessCommandLine(process, now, out var commandLine)
-                            && ProtectedTarget.CommandLineReferences(commandLine, rule.Path);
+                            && TryGetProcessCommandLine(process, now, out var commandLine, out var workingDirectory)
+                            && ProtectedTarget.CommandLineReferences(commandLine, rule.Path, workingDirectory);
                     if (!matches && !descendantProcessIds.Contains(process.Id)) continue;
                     TryTerminate(process.Id, terminatedProcessIds, gracefulClose && !ProtectedTarget.IsScript(rule.Path));
                 }
@@ -864,25 +871,29 @@ internal sealed class GuardianEnforcer(
             return false;
         }
 
+        // A user without a policy simply has no protected script: their launch passes through.
         var policy = policyStore.GetPolicy(userSid);
-        if (policy is null) { error = "No existe una política para el usuario."; return false; }
-        var safeWorkingDirectory = !string.IsNullOrWhiteSpace(workingDirectory) && Directory.Exists(workingDirectory)
-            ? workingDirectory
-            : Path.GetDirectoryName(normalizedHost);
-        var context = $"\"{normalizedHost}\" {arguments} \"{safeWorkingDirectory}\"";
-        var rule = policy.Rules.FirstOrDefault(candidate => candidate.IsEnabled
+        // The launching directory decides what a relative script name refers to. Only a real,
+        // absolute directory is trusted for that.
+        var startDirectory = !string.IsNullOrWhiteSpace(workingDirectory)
+            && Path.IsPathFullyQualified(workingDirectory) && Directory.Exists(workingDirectory)
+                ? workingDirectory
+                : null;
+        var safeWorkingDirectory = startDirectory ?? Path.GetDirectoryName(normalizedHost);
+        var context = $"\"{normalizedHost}\" {arguments}";
+        var rule = policy?.Rules.FirstOrDefault(candidate => candidate.IsEnabled
             && Path.GetExtension(candidate.Path).Equals(".py", StringComparison.OrdinalIgnoreCase)
-            && ProtectedTarget.CommandLineReferences(context, candidate.Path));
+            && ProtectedTarget.CommandLineReferences(context, candidate.Path, startDirectory));
         if (rule is not null)
         {
             var now = DateTimeOffset.UtcNow;
             var pendingKey = ProcessKey(userSid, sessionId, rule.Path);
-            // The original host command line is untrusted input intercepted by
-            // IFEO. Retaining options such as "-c" or "-m" would turn the
-            // authorization dialog for a protected script into permission to
-            // execute a different payload. Re-launch only the canonical script.
-            var launchContext = new CapturedLaunch(normalizedHost,
-                $"\"{Path.GetFullPath(rule.Path)}\"", Path.GetDirectoryName(rule.Path));
+            // The original host command line is untrusted input intercepted by IFEO. Options
+            // such as "-c" or "-m" would turn the authorization dialog for a protected script
+            // into permission to execute a different payload, so only the script, the
+            // arguments after it and harmless interpreter options are replayed.
+            var launchContext = BuildScriptRelaunch(normalizedHost, context, startDirectory, rule.Path,
+                executionGate.FindPythonLauncher(userSid));
             var schedule = GetScheduleDisposition(rule, now);
             if (schedule == ScheduleDisposition.Block)
             {
@@ -925,6 +936,17 @@ internal sealed class GuardianEnforcer(
             logger.LogWarning("Script Python bloqueado antes de iniciar el intérprete: {Rule} ({Target}), sesión {SessionId}.",
                 rule.Name, rule.Path, sessionId);
             return true;
+        }
+
+        // Guardian starts the interpreter again in the session of its interactive user. That is
+        // only the caller's own identity in the ordinary case; for a service, another account
+        // or a "run as" launch it would silently run the caller's command as someone else.
+        if (!CallerOwnsSession(userSid, sessionId))
+        {
+            error = "El intérprete se inició desde una cuenta distinta de la sesión interactiva y no se puede reenviar de forma segura.";
+            logger.LogWarning("Intérprete {Host} rechazado: el SID {Sid} no es el usuario de la sesión {SessionId}.",
+                normalizedHost, userSid, sessionId);
+            return false;
         }
 
         var started = executionGate.WithTemporaryBypass(normalizedHost, () =>
@@ -1066,17 +1088,21 @@ internal sealed class GuardianEnforcer(
         if (sid is null) return false;
         if (!policyBySid.TryGetValue(sid, out var policy)) return true;
         string? matchedCommandLine = null;
+        string? matchedWorkingDirectory = null;
         var rule = policy.Rules.FirstOrDefault(candidate =>
             candidate.IsEnabled && !ProtectedTarget.IsScript(candidate.Path) && PathsEqual(candidate.Path, path));
         if (rule is null
             && ProtectedTarget.IsPotentialScriptHost(path)
             && policy.Rules.Any(candidate => candidate.IsEnabled && ProtectedTarget.IsScript(candidate.Path)))
         {
-            if (!TryGetProcessCommandLine(process, now, out matchedCommandLine)) return false;
+            if (!TryGetProcessCommandLine(process, now, out matchedCommandLine, out matchedWorkingDirectory))
+                return false;
+            var commandLine = matchedCommandLine;
+            var workingDirectory = matchedWorkingDirectory;
             rule = policy.Rules.FirstOrDefault(candidate =>
                 candidate.IsEnabled
                 && ProtectedTarget.IsScript(candidate.Path)
-                && ProtectedTarget.CommandLineReferences(matchedCommandLine, candidate.Path));
+                && ProtectedTarget.CommandLineReferences(commandLine, candidate.Path, workingDirectory));
         }
         if (rule is null) return true;
         var protectedPath = rule.Path;
@@ -1154,7 +1180,8 @@ internal sealed class GuardianEnforcer(
             var pendingKey = ProcessKey(sid, sessionId, protectedPath);
             var capturedLaunch = Path.GetExtension(protectedPath).Equals(".py", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(matchedCommandLine)
-                    ? new CapturedLaunch(path, ExtractArguments(matchedCommandLine, path), Path.GetDirectoryName(protectedPath))
+                    ? BuildScriptRelaunch(path, matchedCommandLine, matchedWorkingDirectory, protectedPath,
+                        executionGate.FindPythonLauncher(sid))
                     : null;
             SetPending(pendingKey, sid, sessionId, rule, now, capturedLaunch);
             logger.LogWarning("Ejecución interceptada por SYSTEM: {Rule} ({Target}), host {HostPath}, PID {ProcessId}, sesión {SessionId}.", rule.Name, protectedPath, path, process.Id, sessionId);
@@ -1240,15 +1267,20 @@ internal sealed class GuardianEnforcer(
         return currentProcess.SessionId;
     }
 
-    private bool TryGetProcessCommandLine(Process process, DateTimeOffset now, out string? commandLine)
+    // The directory the process started in is read together with its command line, because a
+    // relative script name ("python backup.py") only identifies a file once resolved against it.
+    private bool TryGetProcessCommandLine(Process process, DateTimeOffset now, out string? commandLine,
+        out string? workingDirectory)
     {
         commandLine = null;
+        workingDirectory = null;
         try
         {
             var startUtc = process.StartTime.ToUniversalTime();
             if (_commandLines.TryGetValue(process.Id, out var cached) && cached.StartUtc == startUtc)
             {
                 commandLine = cached.CommandLine;
+                workingDirectory = cached.WorkingDirectory;
                 _commandLines[process.Id] = cached with { LastSeenUtc = now };
                 return true;
             }
@@ -1259,7 +1291,8 @@ internal sealed class GuardianEnforcer(
             {
                 commandLine = Convert.ToString(item["CommandLine"]);
                 if (string.IsNullOrWhiteSpace(commandLine)) return false;
-                _commandLines[process.Id] = new ProcessCommandLine(commandLine, startUtc, now);
+                workingDirectory = ProcessWorkingDirectory.TryGet(process.Id);
+                _commandLines[process.Id] = new ProcessCommandLine(commandLine, startUtc, now, workingDirectory);
                 return true;
             }
         }
@@ -1645,14 +1678,39 @@ internal sealed class GuardianEnforcer(
             rule.ScheduleStartMinutes, rule.ScheduleEndMinutes, rule.BlockOutsideSchedule,
             now.ToLocalTime());
     private static bool SidEquals(string left, string right) => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
-    private static string ExtractArguments(string commandLine, string executable)
+    // Starting a process in a user's session uses that session's token, so the caller must be
+    // that session's user.
+    private bool CallerOwnsSession(string userSid, int sessionId) =>
+        GetSessionSid(sessionId, DateTimeOffset.UtcNow) is { } sessionSid && SidEquals(sessionSid, userSid);
+
+    /// <summary>
+    /// What to start after the user approved a protected script that was intercepted while
+    /// running as <paramref name="commandLine"/>. Only the script, its own arguments and
+    /// harmless interpreter options are replayed, in the directory it was started from.
+    /// </summary>
+    internal static CapturedLaunch BuildScriptRelaunch(string hostPath, string commandLine,
+        string? workingDirectory, string scriptPath, string? pythonLauncher)
     {
-        var source = commandLine.TrimStart();
-        var quoted = $"\"{executable}\"";
-        if (source.StartsWith(quoted, StringComparison.OrdinalIgnoreCase)) return source[quoted.Length..].TrimStart();
-        if (source.StartsWith(executable, StringComparison.OrdinalIgnoreCase)) return source[executable.Length..].TrimStart();
-        var separator = source.IndexOfAny([' ', '\t']);
-        return separator < 0 ? string.Empty : source[(separator + 1)..].TrimStart();
+        var script = Path.GetFullPath(scriptPath);
+        var startDirectory = !string.IsNullOrWhiteSpace(workingDirectory) && Directory.Exists(workingDirectory)
+            ? workingDirectory
+            : Path.GetDirectoryName(script);
+        if (ProtectedTarget.IsPythonInterpreter(hostPath))
+        {
+            var arguments = ProtectedTarget.BuildCanonicalScriptArguments(commandLine, script, workingDirectory,
+                keepInterpreterOptions: true) ?? $"\"{script}\"";
+            return new CapturedLaunch(hostPath, arguments, startDirectory);
+        }
+
+        // cmd.exe or PowerShell wrapped the script. A shell command line is never replayed: the
+        // script starts through the Python launcher, keeping only its own arguments.
+        var scriptArguments = ProtectedTarget.BuildCanonicalScriptArguments(commandLine, script, workingDirectory,
+            keepInterpreterOptions: false) ?? $"\"{script}\"";
+        if (pythonLauncher is not null) return new CapturedLaunch(pythonLauncher, scriptArguments, startDirectory);
+        // Without a launcher the fallback goes through cmd.exe, where "&" would start another
+        // command, so the trailing arguments are not carried over.
+        return new CapturedLaunch(Path.Combine(Environment.SystemDirectory, "cmd.exe"),
+            $"/d /c python \"{script}\"", startDirectory);
     }
     private static bool HasActiveAuthorizedHostProcess(ScriptHostAuthorization authorization)
     {
@@ -1721,7 +1779,8 @@ internal sealed class GuardianEnforcer(
 
     private sealed record AllowedProcess(string Path, DateTime StartUtc, string UserSid, int SessionId,
         bool ScheduleBypass);
-    private sealed record ProcessCommandLine(string CommandLine, DateTime StartUtc, DateTimeOffset LastSeenUtc);
+    private sealed record ProcessCommandLine(string CommandLine, DateTime StartUtc, DateTimeOffset LastSeenUtc,
+        string? WorkingDirectory);
     private sealed record AgentRecoveryState(int Attempt, DateTimeOffset LastLaunchUtc,
         DateTimeOffset NextAttemptUtc);
     private sealed record SessionIdentity(string Sid, DateTimeOffset ExpiresUtc);
@@ -1741,7 +1800,7 @@ internal sealed class GuardianEnforcer(
     {
         public int TotalCount => GracefulCloseCount + ForcedTerminationCount;
     }
-    private sealed record CapturedLaunch(string Executable, string Arguments, string? WorkingDirectory);
+    internal sealed record CapturedLaunch(string Executable, string Arguments, string? WorkingDirectory);
     private sealed class PendingProcess(string userSid, int sessionId, GuardianRule rule,
         DateTimeOffset detectedUtc, CapturedLaunch? launchContext = null,
         string kind = GuardianProtocol.PendingAuthentication, string? message = null,

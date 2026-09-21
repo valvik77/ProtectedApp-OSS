@@ -191,8 +191,11 @@ internal static class GuardianHealthCheck
                             && ProtectedTarget.IsPotentialScriptHost(path)
                             && TryReadCommandLine(process.Id, out var commandLine))
                         {
+                            // Emergency recovery must recognize a script started by a relative
+                            // name ("python backup.py") just as the running Guardian does.
+                            var workingDirectory = ProcessWorkingDirectory.TryGet(process.Id);
                             protectedScript = rules.Any(rule => ProtectedTarget.IsScript(rule.Path)
-                                && ProtectedTarget.CommandLineReferences(commandLine, rule.Path));
+                                && ProtectedTarget.CommandLineReferences(commandLine, rule.Path, workingDirectory));
                         }
                         if (!protectedExecutable && !protectedScript) continue;
                         process.Kill(entireProcessTree: true);

@@ -111,11 +111,11 @@ public sealed class ProcessMonitorService : IDisposable
                         if (!protectedExecutable
                             && scriptRules.Length > 0
                             && ProtectedTarget.IsPotentialScriptHost(path)
-                            && TryGetProcessCommandLine(process, now, out var commandLine)
+                            && TryGetProcessCommandLine(process, now, out var commandLine, out var workingDirectory)
                             && !string.IsNullOrWhiteSpace(commandLine))
                         {
                             protectedScript = scriptRules.Any(rule =>
-                                ProtectedTarget.CommandLineReferences(commandLine, rule.Path));
+                                ProtectedTarget.CommandLineReferences(commandLine, rule.Path, workingDirectory));
                         }
                         if (!protectedExecutable && !protectedScript) continue;
                         process.Kill(entireProcessTree: true);
@@ -164,8 +164,8 @@ public sealed class ProcessMonitorService : IDisposable
                         var matches = !ProtectedTarget.IsScript(app.Path)
                             ? string.Equals(Normalize(path), key, StringComparison.OrdinalIgnoreCase)
                             : ProtectedTarget.IsPotentialScriptHost(path)
-                                && TryGetProcessCommandLine(process, now, out var commandLine)
-                                && ProtectedTarget.CommandLineReferences(commandLine, app.Path);
+                                && TryGetProcessCommandLine(process, now, out var commandLine, out var workingDirectory)
+                                && ProtectedTarget.CommandLineReferences(commandLine, app.Path, workingDirectory);
                         if (matches) TryTerminate(process.Id, terminatedProcessIds);
                     }
                     catch { }
@@ -305,9 +305,9 @@ public sealed class ProcessMonitorService : IDisposable
             && scriptRules.Count > 0
             && ProtectedTarget.IsPotentialScriptHost(path))
         {
-            if (!TryGetProcessCommandLine(process, now, out var commandLine)) return false;
+            if (!TryGetProcessCommandLine(process, now, out var commandLine, out var workingDirectory)) return false;
             app = scriptRules.FirstOrDefault(candidate =>
-                ProtectedTarget.CommandLineReferences(commandLine, candidate.Path));
+                ProtectedTarget.CommandLineReferences(commandLine, candidate.Path, workingDirectory));
         }
         if (app is null) return true;
 
@@ -404,15 +404,18 @@ public sealed class ProcessMonitorService : IDisposable
         catch { }
     }
 
-    private bool TryGetProcessCommandLine(Process process, DateTimeOffset now, out string? commandLine)
+    private bool TryGetProcessCommandLine(Process process, DateTimeOffset now, out string? commandLine,
+        out string? workingDirectory)
     {
         commandLine = null;
+        workingDirectory = null;
         try
         {
             var startUtc = process.StartTime.ToUniversalTime();
             if (_commandLines.TryGetValue(process.Id, out var cached) && cached.StartUtc == startUtc)
             {
                 commandLine = cached.CommandLine;
+                workingDirectory = cached.WorkingDirectory;
                 _commandLines[process.Id] = cached with { LastSeenUtc = now };
                 return true;
             }
@@ -423,7 +426,10 @@ public sealed class ProcessMonitorService : IDisposable
             {
                 commandLine = Convert.ToString(item["CommandLine"]);
                 if (string.IsNullOrWhiteSpace(commandLine)) return false;
-                _commandLines[process.Id] = new ProcessCommandLine(commandLine, startUtc, now);
+                // A relative script name only identifies a file once resolved against the
+                // directory the process started in.
+                workingDirectory = ProcessWorkingDirectory.TryGet(process.Id);
+                _commandLines[process.Id] = new ProcessCommandLine(commandLine, startUtc, now, workingDirectory);
                 return true;
             }
         }
@@ -476,7 +482,8 @@ public sealed class ProcessMonitorService : IDisposable
     }
 
     private sealed record AllowedProcess(string ProtectedPath, DateTime StartUtc);
-    private sealed record ProcessCommandLine(string CommandLine, DateTime StartUtc, DateTimeOffset LastSeenUtc);
+    private sealed record ProcessCommandLine(string CommandLine, DateTime StartUtc, DateTimeOffset LastSeenUtc,
+        string? WorkingDirectory);
     private sealed record TrustedAuthorization(DateTimeOffset GrantedUtc, DateTimeOffset ExpiresUtc,
         int GraceMinutes, string? PasswordHash, string? PasswordSalt);
 

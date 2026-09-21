@@ -468,7 +468,8 @@ public sealed partial class MainWindow
             {
                 var commandLine = Convert.ToString(item["CommandLine"]);
                 return !string.IsNullOrWhiteSpace(commandLine)
-                    && ProtectedTarget.CommandLineReferences(commandLine, app.Path);
+                    && ProtectedTarget.CommandLineReferences(commandLine, app.Path,
+                        ProcessWorkingDirectory.TryGet(process.Id));
             }
         }
         catch { }

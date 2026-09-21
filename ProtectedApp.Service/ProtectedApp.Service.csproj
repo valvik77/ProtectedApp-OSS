@@ -22,6 +22,8 @@
     <Compile Include="..\Shared\GuardianProtocol.cs" Link="Shared\GuardianProtocol.cs" />
     <Compile Include="..\Shared\ProtectedTarget.cs" Link="Shared\ProtectedTarget.cs" />
     <Compile Include="..\Shared\ProcessSuspender.cs" Link="Shared\ProcessSuspender.cs" />
+    <Compile Include="..\Shared\ProcessWorkingDirectory.cs" Link="Shared\ProcessWorkingDirectory.cs" />
+    <Compile Include="..\Shared\WindowsCommandLine.cs" Link="Shared\WindowsCommandLine.cs" />
     <Compile Include="..\Shared\ProtectionSchedule.cs" Link="Shared\ProtectionSchedule.cs" />
   </ItemGroup>
 
