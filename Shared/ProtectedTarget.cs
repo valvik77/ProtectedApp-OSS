@@ -32,7 +32,7 @@ public static class ProtectedTarget
     public static bool CommandLineReferences(string? commandLine, string targetPath, string? workingDirectory)
     {
         if (string.IsNullOrWhiteSpace(commandLine) || !IsScript(targetPath)) return false;
-        var target = CanonicalizePath(GetFullPathLexically(targetPath)).Replace('/', '\\');
+        var target = SafePath.GetFullPath(targetPath).Replace('/', '\\');
         return ContainsFullPath(commandLine.Replace('/', '\\'), target)
             || IndexOfScriptArgument(WindowsCommandLine.Split(commandLine), target, workingDirectory, out _) >= 0;
     }
@@ -49,7 +49,7 @@ public static class ProtectedTarget
         string? workingDirectory, bool keepInterpreterOptions)
     {
         if (string.IsNullOrWhiteSpace(commandLine) || !IsScript(targetPath)) return null;
-        var target = CanonicalizePath(GetFullPathLexically(targetPath)).Replace('/', '\\');
+        var target = SafePath.GetFullPath(targetPath).Replace('/', '\\');
         var arguments = WindowsCommandLine.Split(commandLine);
         var index = IndexOfScriptArgument(arguments, target, workingDirectory, out var wholeArgument);
         if (index < 0) return ContainsFullPath(commandLine.Replace('/', '\\'), target) ? Quote(target) : null;
@@ -135,60 +135,16 @@ public static class ProtectedTarget
         try
         {
             string full;
-            if (Path.IsPathFullyQualified(candidate)) full = GetFullPathLexically(candidate);
-            else if (workingDirectory is not null) full = GetFullPathLexically(candidate, workingDirectory);
+            if (Path.IsPathFullyQualified(candidate)) full = SafePath.GetFullPath(candidate);
+            else if (workingDirectory is not null) full = SafePath.GetFullPath(candidate, workingDirectory);
             else return false;
-            // GetLongPathNameW resolves an existing 8.3 alias (for example
-            // C:\\PROGRA~1\\tool.py) before the comparison. If Windows cannot resolve it,
-            // retain the supplied full path: it will not accidentally match another rule.
-            return CanonicalizePath(full).Equals(target, StringComparison.OrdinalIgnoreCase);
+            return full.Equals(target, StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {
             return false;
         }
     }
-
-    // Path.GetFullPath also expands 8.3 aliases whenever the string contains a "~", which reads
-    // the file system -- and for a UNC path contacts the server (about 21 s when it does not
-    // answer). Hiding the tilde keeps the normalization (".", "..", separators) purely lexical;
-    // the one deliberate, guarded lookup is CanonicalizePath.
-    private static string GetFullPathLexically(string path, string? basePath = null)
-    {
-        const char Placeholder = '';
-        var hidden = path.Replace('~', Placeholder);
-        var full = basePath is null
-            ? Path.GetFullPath(hidden)
-            : Path.GetFullPath(hidden, basePath.Replace('~', Placeholder));
-        return full.Replace(Placeholder, '~');
-    }
-
-    // Resolving an alias reads the file system, and this runs in the SYSTEM service on text that
-    // whoever starts a process controls. A UNC path would make Guardian contact that server
-    // (blocking for ~20 s when it is unreachable, and authenticating to it with the computer
-    // account when it is not), so only a path that can hold an alias -- it has a "~" -- on a
-    // fixed local drive is looked up. Everything else is compared as written.
-    private static string CanonicalizePath(string fullPath)
-    {
-        if (fullPath.IndexOf('~') < 0 || !IsOnFixedLocalDrive(fullPath)) return fullPath;
-        var capacity = 260;
-        for (var attempt = 0; attempt < 2; attempt++)
-        {
-            var buffer = new System.Text.StringBuilder(capacity);
-            var length = GetLongPathName(fullPath, buffer, buffer.Capacity);
-            if (length == 0) return fullPath;
-            if (length < buffer.Capacity) return buffer.ToString();
-            // A too-small buffer returns the required size; include the terminator.
-            capacity = checked((int)length + 1);
-        }
-        return fullPath;
-    }
-
-    private static bool IsOnFixedLocalDrive(string fullPath) =>
-        fullPath.Length >= 3 && char.IsAsciiLetter(fullPath[0]) && fullPath[1] == ':' && fullPath[2] == '\\'
-        && GetDriveType(fullPath[..3]) == DriveFixed;
-
-    private const uint DriveFixed = 3;
 
     private enum InterpreterOption { Unsafe, Flag, TakesValue }
 
@@ -240,12 +196,4 @@ public static class ProtectedTarget
     private static bool IsArgumentBoundary(char value) =>
         value == '\0' || value == '"' || value == '\'' || value == '=' || value == '&'
         || value == '(' || value == ')' || char.IsWhiteSpace(value);
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode,
-        SetLastError = true)]
-    private static extern uint GetLongPathName(string shortPath, System.Text.StringBuilder longPath,
-        int longPathBufferLength);
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-    private static extern uint GetDriveType(string rootPathName);
 }

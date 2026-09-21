@@ -24,6 +24,7 @@
     <Compile Include="..\Shared\ProcessSuspender.cs" Link="Shared\ProcessSuspender.cs" />
     <Compile Include="..\Shared\ProcessWorkingDirectory.cs" Link="Shared\ProcessWorkingDirectory.cs" />
     <Compile Include="..\Shared\WindowsCommandLine.cs" Link="Shared\WindowsCommandLine.cs" />
+    <Compile Include="..\Shared\SafePath.cs" Link="Shared\SafePath.cs" />
     <Compile Include="..\Shared\ProtectionSchedule.cs" Link="Shared\ProtectionSchedule.cs" />
   </ItemGroup>
 

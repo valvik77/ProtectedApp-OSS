@@ -613,7 +613,7 @@ internal sealed class GuardianIpcServer(
             using var process = Process.GetProcessById(processId);
             var path = process.MainModule?.FileName;
             return !string.IsNullOrWhiteSpace(path)
-                && string.Equals(Path.GetFullPath(path), Path.GetFullPath(options.AppPath),
+                && string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(options.AppPath),
                     StringComparison.OrdinalIgnoreCase)
                 && GuardianAgentIdentity.Matches(path);
         }
@@ -628,7 +628,7 @@ internal sealed class GuardianIpcServer(
             var path = process.MainModule?.FileName;
             var installedGate = Path.Combine(GuardianConstants.StateFolder, "ProtectedApp.Gate.exe");
             return !string.IsNullOrWhiteSpace(path)
-                && string.Equals(Path.GetFullPath(path), Path.GetFullPath(installedGate),
+                && string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(installedGate),
                     StringComparison.OrdinalIgnoreCase);
         }
         catch { return false; }

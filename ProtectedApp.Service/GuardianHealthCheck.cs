@@ -250,8 +250,8 @@ internal static class GuardianHealthCheck
     {
         try
         {
-            return string.Equals(Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
-                Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar),
+            return string.Equals(SafePath.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
+                SafePath.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar),
                 StringComparison.OrdinalIgnoreCase);
         }
         catch { return false; }

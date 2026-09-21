@@ -37,6 +37,16 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Security
 
+- The SYSTEM service no longer reads the file system, or the network, for a
+  path that a caller controls. Path.GetFullPath expands 8.3 aliases whenever a
+  path contains "~", and File.Exists, Directory.Exists and directory listing
+  are all file-system reads; for a path on a share each one blocked for about
+  21 s when the server did not answer, and would authenticate to it with the
+  computer account when it did. A process started from a share, a Gate started
+  with a crafted argument, or a working directory on a share was enough. Process
+  image paths, the caller's identity checks on the pipe, the paths the Gate
+  sends, and the interpreter and working-directory checks now normalize text
+  only, and probe the disk solely for a fixed local drive.
 - Guardian no longer starts a program in the interactive session on behalf of a
   caller that is not that session's user (a service, another account, or a "run
   as" launch). Before, the program was started with the session user's token,

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using ProtectedApp.Shared;
 
 namespace ProtectedApp.Service;
 
@@ -18,10 +19,10 @@ internal static class GuardianAgentIdentity
         {
             var expected = JsonSerializer.Deserialize<AgentIdentity>(File.ReadAllText(GuardianConstants.AgentIdentityPath),
                 JsonOptions);
-            var fullPath = Path.GetFullPath(path);
+            var fullPath = SafePath.GetFullPath(path);
             if (expected is null || expected.Version != 1 || string.IsNullOrWhiteSpace(expected.Path)
                 || string.IsNullOrWhiteSpace(expected.Sha256) || expected.Sha256.Length != 64
-                || !string.Equals(fullPath, Path.GetFullPath(expected.Path), StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(fullPath, SafePath.GetFullPath(expected.Path), StringComparison.OrdinalIgnoreCase)
                 || !File.Exists(fullPath)) return false;
 
             using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read,

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ProtectedApp.Shared;
 
 namespace ProtectedApp.Service;
 
@@ -56,8 +57,8 @@ internal sealed class GuardianWorker(
                 {
                     if (!process.HasExited
                         && process.SessionId == sessionId
-                        && string.Equals(Path.GetFullPath(process.MainModule?.FileName ?? string.Empty),
-                            Path.GetFullPath(expectedPath), StringComparison.OrdinalIgnoreCase))
+                        && string.Equals(SafePath.GetFullPath(process.MainModule?.FileName ?? string.Empty),
+                            SafePath.GetFullPath(expectedPath), StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
                 catch { }

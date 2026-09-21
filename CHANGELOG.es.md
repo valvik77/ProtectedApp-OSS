@@ -40,6 +40,18 @@ firma.
 
 ### Seguridad
 
+- El servicio SYSTEM ya no lee el sistema de archivos ni la red para una ruta
+  que controla quien llama. Path.GetFullPath expande los alias 8.3 siempre que
+  una ruta contiene «~», y File.Exists, Directory.Exists y el listado de un
+  directorio son lecturas del sistema de archivos; con una ruta en un recurso
+  compartido, cada una bloqueaba unos 21 s si el servidor no respondía, y se
+  autenticaría contra él con la cuenta del equipo si respondía. Bastaba un
+  proceso iniciado desde un recurso compartido, un Gate iniciado con un
+  argumento manipulado o un directorio de trabajo en un recurso compartido. Las
+  rutas de imagen de procesos, las comprobaciones de identidad de quien llama a
+  la tubería, las rutas que envía el Gate y las comprobaciones de intérprete y
+  directorio de trabajo normalizan ahora solo texto, y consultan el disco
+  únicamente en una unidad local fija.
 - Guardian ya no inicia un programa en la sesión interactiva en nombre de quien
   llama si este no es el usuario de esa sesión (un servicio, otra cuenta o un
   inicio con «ejecutar como»). Antes, el programa se iniciaba con el token del

@@ -65,7 +65,7 @@ internal sealed class ExecutionGateManager(
 
     public bool IsPythonHost(string userSid, string path)
     {
-        var normalized = Path.GetFullPath(path);
+        var normalized = SafePath.GetFullPath(path);
         lock (_sync)
             if (_managedPythonHosts.Contains(normalized) || _observedPythonHosts.Contains(normalized)) return true;
         return GetPythonHostsForUser(userSid).Contains(normalized, StringComparer.OrdinalIgnoreCase);
@@ -74,10 +74,13 @@ internal sealed class ExecutionGateManager(
     public bool ObservePythonHost(string path)
     {
         string normalized;
-        try { normalized = Path.GetFullPath(path); }
+        try { normalized = SafePath.GetFullPath(path); }
         catch { return false; }
-        if (!File.Exists(normalized) || !ProtectedTarget.IsPotentialScriptHost(normalized)
-            || !Path.GetFileName(normalized).StartsWith("py", StringComparison.OrdinalIgnoreCase)) return false;
+        // The path is a process image the caller chose: a share is never probed from here.
+        if (!ProtectedTarget.IsPotentialScriptHost(normalized)
+            || !Path.GetFileName(normalized).StartsWith("py", StringComparison.OrdinalIgnoreCase)
+            || !SafePath.IsOnFixedLocalDrive(normalized)
+            || !File.Exists(normalized)) return false;
         lock (_sync) return _observedPythonHosts.Add(normalized);
     }
 
@@ -87,10 +90,11 @@ internal sealed class ExecutionGateManager(
 
     public string[] GetHostAuthorizationFamily(string userSid, string executable)
     {
-        var normalized = Path.GetFullPath(executable);
+        var normalized = SafePath.GetFullPath(executable);
         var hosts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { normalized };
         var directory = Path.GetDirectoryName(normalized);
-        if (!string.IsNullOrWhiteSpace(directory))
+        // The executable can be a process image the caller chose; a share is never listed from here.
+        if (!string.IsNullOrWhiteSpace(directory) && SafePath.IsOnFixedLocalDrive(directory))
         {
             try
             {
@@ -104,7 +108,7 @@ internal sealed class ExecutionGateManager(
         if (fileName.Equals("py.exe", StringComparison.OrdinalIgnoreCase)
             || fileName.Equals("pyw.exe", StringComparison.OrdinalIgnoreCase))
             hosts.UnionWith(GetPythonHostsForUser(userSid));
-        return hosts.Where(File.Exists).ToArray();
+        return hosts.Where(host => SafePath.IsOnFixedLocalDrive(host) && File.Exists(host)).ToArray();
     }
 
     public void BeginApplicationAuthorization(string targetPath)
@@ -172,7 +176,7 @@ internal sealed class ExecutionGateManager(
 
     internal bool IsHostAuthorizationActive(string hostPath)
     {
-        lock (_sync) return _hostAuthorizations.ContainsKey(Path.GetFullPath(hostPath));
+        lock (_sync) return _hostAuthorizations.ContainsKey(SafePath.GetFullPath(hostPath));
     }
 
     public void ReconcileApplicationAuthorizations(IEnumerable<string> activePaths)

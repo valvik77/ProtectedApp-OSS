@@ -799,7 +799,7 @@ internal sealed class GuardianEnforcer(
     public bool RegisterBlockedAttempt(string userSid, int sessionId, string targetPath)
     {
         string normalized;
-        try { normalized = Path.GetFullPath(targetPath); }
+        try { normalized = SafePath.GetFullPath(targetPath); }
         catch { return false; }
         var policy = policyStore.GetPolicy(userSid);
         var rule = policy?.Rules.FirstOrDefault(candidate => candidate.IsEnabled
@@ -863,7 +863,7 @@ internal sealed class GuardianEnforcer(
     {
         error = null;
         string normalizedHost;
-        try { normalizedHost = Path.GetFullPath(hostPath); }
+        try { normalizedHost = SafePath.GetFullPath(hostPath); }
         catch { error = "La ruta del intérprete no es válida."; return false; }
         if (!executionGate.IsPythonHost(userSid, normalizedHost))
         {
@@ -873,17 +873,15 @@ internal sealed class GuardianEnforcer(
 
         // A user without a policy simply has no protected script: their launch passes through.
         var policy = policyStore.GetPolicy(userSid);
-        // The launching directory decides what a relative script name refers to. Only a real,
-        // absolute directory is trusted for that.
-        var startDirectory = !string.IsNullOrWhiteSpace(workingDirectory)
-            && Path.IsPathFullyQualified(workingDirectory) && Directory.Exists(workingDirectory)
-                ? workingDirectory
-                : null;
-        var safeWorkingDirectory = startDirectory ?? Path.GetDirectoryName(normalizedHost);
+        // The launching directory decides what a relative script name refers to. It is only
+        // compared as text there, so any absolute path will do; the caller chose it.
+        var launchDirectory = !string.IsNullOrWhiteSpace(workingDirectory)
+            && Path.IsPathFullyQualified(workingDirectory) ? workingDirectory : null;
+        var safeWorkingDirectory = UsableStartDirectory(launchDirectory) ?? Path.GetDirectoryName(normalizedHost);
         var context = $"\"{normalizedHost}\" {arguments}";
         var rule = policy?.Rules.FirstOrDefault(candidate => candidate.IsEnabled
             && Path.GetExtension(candidate.Path).Equals(".py", StringComparison.OrdinalIgnoreCase)
-            && ProtectedTarget.CommandLineReferences(context, candidate.Path, startDirectory));
+            && ProtectedTarget.CommandLineReferences(context, candidate.Path, launchDirectory));
         if (rule is not null)
         {
             var now = DateTimeOffset.UtcNow;
@@ -892,7 +890,7 @@ internal sealed class GuardianEnforcer(
             // such as "-c" or "-m" would turn the authorization dialog for a protected script
             // into permission to execute a different payload, so only the script, the
             // arguments after it and harmless interpreter options are replayed.
-            var launchContext = BuildScriptRelaunch(normalizedHost, context, startDirectory, rule.Path,
+            var launchContext = BuildScriptRelaunch(normalizedHost, context, launchDirectory, rule.Path,
                 executionGate.FindPythonLauncher(userSid));
             var schedule = GetScheduleDisposition(rule, now);
             if (schedule == ScheduleDisposition.Block)
@@ -1640,7 +1638,7 @@ internal sealed class GuardianEnforcer(
     }
 
     private static string ProcessKey(string sid, int sessionId, string path) =>
-        $"{sid}|{sessionId}|{Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar)}";
+        $"{sid}|{sessionId}|{SafePath.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar)}";
 
     private static bool TryGetPathFromProcessKey(string key, out string path)
     {
@@ -1671,8 +1669,8 @@ internal sealed class GuardianEnforcer(
         return (policy?.MasterPasswordHash, policy?.MasterPasswordSalt);
     }
     private static bool PathsEqual(string left, string right) => string.Equals(
-        Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
-        Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
+        SafePath.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
+        SafePath.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private static ScheduleDisposition GetScheduleDisposition(GuardianRule rule, DateTimeOffset now) =>
         ProtectionSchedule.GetDisposition(rule.ScheduleEnabled, rule.ScheduleDays,
             rule.ScheduleStartMinutes, rule.ScheduleEndMinutes, rule.BlockOutsideSchedule,
@@ -1683,6 +1681,14 @@ internal sealed class GuardianEnforcer(
     private bool CallerOwnsSession(string userSid, int sessionId) =>
         GetSessionSid(sessionId, DateTimeOffset.UtcNow) is { } sessionSid && SidEquals(sessionSid, userSid);
 
+    // The directory a caller started in is theirs to choose. Probing whether it exists reads the
+    // file system, and for a share it contacts that server from the SYSTEM service, so only a
+    // directory on a fixed local drive is checked; anything else is not used for the relaunch.
+    internal static string? UsableStartDirectory(string? directory) =>
+        !string.IsNullOrWhiteSpace(directory) && SafePath.IsOnFixedLocalDrive(directory) && Directory.Exists(directory)
+            ? directory
+            : null;
+
     /// <summary>
     /// What to start after the user approved a protected script that was intercepted while
     /// running as <paramref name="commandLine"/>. Only the script, its own arguments and
@@ -1691,10 +1697,8 @@ internal sealed class GuardianEnforcer(
     internal static CapturedLaunch BuildScriptRelaunch(string hostPath, string commandLine,
         string? workingDirectory, string scriptPath, string? pythonLauncher)
     {
-        var script = Path.GetFullPath(scriptPath);
-        var startDirectory = !string.IsNullOrWhiteSpace(workingDirectory) && Directory.Exists(workingDirectory)
-            ? workingDirectory
-            : Path.GetDirectoryName(script);
+        var script = SafePath.GetFullPath(scriptPath);
+        var startDirectory = UsableStartDirectory(workingDirectory) ?? Path.GetDirectoryName(script);
         if (ProtectedTarget.IsPythonInterpreter(hostPath))
         {
             var arguments = ProtectedTarget.BuildCanonicalScriptArguments(commandLine, script, workingDirectory,
@@ -1724,7 +1728,7 @@ internal sealed class GuardianEnforcer(
                     if (process.HasExited || process.SessionId != authorization.SessionId
                         || process.StartTime.ToUniversalTime() < authorization.StartUtc.AddSeconds(-1)) continue;
                     var path = process.MainModule?.FileName;
-                    if (!string.IsNullOrWhiteSpace(path) && hosts.Contains(Path.GetFullPath(path))) return true;
+                    if (!string.IsNullOrWhiteSpace(path) && hosts.Contains(SafePath.GetFullPath(path))) return true;
                 }
                 catch { }
             }
