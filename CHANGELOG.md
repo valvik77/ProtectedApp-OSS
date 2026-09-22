@@ -33,7 +33,11 @@ candidate** is not a public release and must not be distributed as one; see
   password (it is detected after the password has unwrapped the data key), and
   such a failure no longer counts as a failed password attempt. The recovery
   dialogs now list each temporary's date and size and the state of the previous
-  backup, and are fully translated.
+  backup, and are fully translated. Closing the password window during the
+  check now follows the same controlled cancellation as the Cancel button.
+  Every password window now defers a title-bar close requested during
+  verification until it finishes, so a verification that succeeds is never
+  reported to the caller as cancelled.
 - Added a deterministic corruption-and-recovery regression corpus for PAVLT003/4
   vaults: damaged headers, encrypted indexes, file chunks, truncated containers,
   delta journals and encrypted backups must be rejected without altering the

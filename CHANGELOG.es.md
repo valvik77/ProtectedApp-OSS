@@ -34,7 +34,12 @@ firma.
   detecta después de que la contraseña haya desenvuelto la clave de datos), y
   ese fallo ya no cuenta como intento de contraseña fallido. Los diálogos de
   recuperación muestran la fecha y el tamaño de cada temporal y el estado de la
-  copia anterior, y están traducidos por completo.
+  copia anterior, y están traducidos por completo. Cerrar la ventana de
+  contraseña durante la comprobación sigue ahora la misma cancelación controlada
+  que el botón Cancelar. Todas las ventanas de contraseña aplazan ahora el
+  cierre pedido desde la barra de título durante la verificación hasta que
+  termina, de modo que una verificación correcta nunca se notifica como
+  cancelada.
 - Se añadió un corpus determinista de regresión para corrupción y recuperación
   de bóvedas PAVLT003/4: las cabeceras, índices cifrados, bloques de archivo,
   contenedores truncados, diarios delta y copias cifradas dañados deben

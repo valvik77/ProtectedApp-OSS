@@ -23,6 +23,7 @@ public sealed partial class UnlockWindow : Window
     private readonly IntPtr _hwnd;
     private bool _resultSet;
     private bool _verifying;
+    private bool _closeRequested;
     private bool _hasBeenActivated;
     private bool _unlockContentLoaded;
     private DateTimeOffset _retryUntilUtc;
@@ -107,8 +108,25 @@ public sealed partial class UnlockWindow : Window
         {
             WindowsHelloButton.Visibility = Visibility.Visible;
         }
-        _appWindow.Closing += (_, _) =>
+        _appWindow.Closing += (_, args) =>
         {
+            if (_verifying && !_resultSet)
+            {
+                // Closing now would report "cancelled" while the verifier may still
+                // succeed (e.g. mount or restore). Defer the close until it finishes:
+                // a failure then closes as cancelled, a success is honoured. Cancellable
+                // verifications are also signalled so they can stop early.
+                args.Cancel = true;
+                _closeRequested = true;
+                if (_cancellableVerification) CancelUnlock();
+                else
+                {
+                    StatusText.Text = LocalizationService.T(StatusText, "Text",
+                        "La ventana se cerrará al terminar la comprobación.");
+                    StatusText.Visibility = Visibility.Visible;
+                }
+                return;
+            }
             _retryTimer.Stop();
             _verificationCancellation?.Cancel();
             Complete(false);
@@ -320,8 +338,9 @@ public sealed partial class UnlockWindow : Window
         _verificationCancellation = null;
         StatusText.Text = string.Empty;
         StatusText.Visibility = Visibility.Collapsed;
-        if (!result.Success && cancellation?.IsCancellationRequested == true)
+        if (!result.Success && (_closeRequested || cancellation?.IsCancellationRequested == true))
         {
+            if (result.RetryAfterSeconds > 0) UnlockRetryRegistry.Record(_retryScope, result, DateTimeOffset.UtcNow);
             _verifying = false;
             CancelUnlock();
             return;

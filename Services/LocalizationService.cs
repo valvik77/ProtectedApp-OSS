@@ -667,6 +667,8 @@ public static class LocalizationService
         ,
         ["Cancelando…"] = "Cancelling…"
         ,
+        ["La ventana se cerrará al terminar la comprobación."] = "The window will close when the check finishes."
+        ,
         ["La bóveda contiene demasiados bloques."] = "The vault contains too many blocks."
         ,
         ["El archivo cambió mientras se estaba cifrando."] = "The file changed while it was being encrypted."
