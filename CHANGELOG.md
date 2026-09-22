@@ -9,6 +9,10 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+No changes yet.
+
+## 1.4.212 — 2026-09-22 (development pre-release)
+
 ### Security
 
 - Scheduled vault backups now compute the source SHA-256 while copying and

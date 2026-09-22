@@ -10,6 +10,10 @@ firma.
 
 ## Pendiente de publicación
 
+Sin cambios todavía.
+
+## 1.4.212 — 2026-09-22 (pre-release de desarrollo)
+
 ### Seguridad
 
 - Las copias programadas de bóvedas calculan ahora el SHA-256 del origen durante
