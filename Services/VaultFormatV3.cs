@@ -421,11 +421,22 @@ internal static class VaultFormatV3
     }
 
     internal static async Task<(int FileCount, int ChunkCount, long VerifiedBytes)> VerifyIntegrityAsync(
-        OpenedVault opened)
+        OpenedVault opened, IProgress<int>? percentProgress = null, CancellationToken cancellationToken = default)
     {
         var fileCount = 0;
         var chunkCount = 0;
         long verifiedBytes = 0;
+        var totalChunks = opened.Index.Entries.Where(entry => !entry.IsDirectory).Sum(entry => (long)entry.Chunks.Count);
+        var reportedPercent = -1;
+        void ReportPercent()
+        {
+            if (percentProgress is null) return;
+            var percent = totalChunks == 0 ? 100 : (int)(chunkCount * 100L / totalChunks);
+            if (percent == reportedPercent) return;
+            reportedPercent = percent;
+            percentProgress.Report(percent);
+        }
+        ReportPercent();
         for (var entryIndex = 0; entryIndex < opened.Index.Entries.Count; entryIndex++)
         {
             var entry = opened.Index.Entries[entryIndex];
@@ -433,6 +444,7 @@ internal static class VaultFormatV3
             fileCount++;
             for (var chunkIndex = 0; chunkIndex < entry.Chunks.Count; chunkIndex++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var plaintext = await ReadChunkAsync(opened, entryIndex, chunkIndex);
                 try
                 {
@@ -440,6 +452,7 @@ internal static class VaultFormatV3
                     chunkCount++;
                 }
                 finally { CryptographicOperations.ZeroMemory(plaintext); }
+                ReportPercent();
             }
         }
         return (fileCount, chunkCount, verifiedBytes);
@@ -524,6 +537,7 @@ internal static class VaultFormatV3
         VaultTpmBinding? tpmBinding = null;
         byte[]? indexCiphertext = null;
         byte[]? indexPlaintext = null;
+        var dataKeyUnwrapped = false;
         try
         {
             tpmBinding = header.TpmBinding?.Clone();
@@ -539,6 +553,7 @@ internal static class VaultFormatV3
             using (var aes = new AesGcm(wrapKey, TagSize))
                 aes.Decrypt(header.KeyNonce, header.WrappedDataKey, header.KeyTag, dataKey,
                     BuildWrapAad(header.Salt));
+            dataKeyUnwrapped = true;
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.Read | FileShare.Delete, 128 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
             stream.Position = header.HeaderSize + header.DataLength;
@@ -556,6 +571,16 @@ internal static class VaultFormatV3
             dataKey = null;
             tpmBinding = null;
             return result;
+        }
+        catch (Exception ex) when (dataKeyUnwrapped && ex is AuthenticationTagMismatchException
+            or InvalidDataException or JsonException or EndOfStreamException)
+        {
+            // The data key only unwraps with the right password (and TPM secret), so
+            // anything failing after that point is damage, not a wrong password.
+            var damaged = new InvalidDataException(
+                "La contraseña es correcta, pero el índice cifrado de la bóveda está dañado.", ex);
+            damaged.Data[PasswordVerifiedDataKey] = true;
+            throw damaged;
         }
         catch (AuthenticationTagMismatchException)
         {
@@ -1185,6 +1210,16 @@ internal static class VaultFormatV3
         }
         finally { CryptographicOperations.ZeroMemory(buffer); }
     }
+
+    private const string PasswordVerifiedDataKey = "ProtectedApp.PasswordVerified";
+
+    /// <summary>
+    /// True when <see cref="OpenAsync"/> failed after the password unwrapped the data key:
+    /// the password is correct and the index that follows is damaged, not a wrong password.
+    /// (InvalidDataException is sealed, so this is a marker rather than a subtype.)
+    /// </summary>
+    internal static bool IsDamagedAfterPasswordVerified(Exception ex)
+        => ex is InvalidDataException && ex.Data[PasswordVerifiedDataKey] is true;
 
     internal sealed class OpenedVault : IDisposable
     {

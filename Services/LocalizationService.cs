@@ -621,6 +621,52 @@ public static class LocalizationService
         ,
         ["La contraseña es incorrecta o la bóveda ha sido modificada."] = "The password is incorrect or the vault has been modified."
         ,
+        ["La contraseña es correcta, pero el índice cifrado de la bóveda está dañado."] = "The password is correct, but the vault's encrypted index is damaged."
+        ,
+        ["La recuperación temporal no es válida."] = "The temporary-file recovery is not valid."
+        ,
+        ["El temporal ya no es un candidato seguro para recuperar."] = "The temporary file is no longer a safe recovery candidate."
+        ,
+        ["El contenedor principal volvió a aparecer; no se sobrescribió."] = "The main container reappeared; it was not overwritten."
+        ,
+        ["La contraseña es correcta, pero el índice cifrado del temporal está dañado. El archivo se conservó sin restaurar."] = "The password is correct, but the temporary file's encrypted index is damaged. The file was kept and not restored."
+        ,
+        ["El temporal está cifrado con esta contraseña, pero pertenece a otra bóveda."] = "The temporary file is encrypted with this password but belongs to a different vault."
+        ,
+        ["La contraseña es correcta, pero uno o más bloques del temporal no superaron la comprobación de integridad. El archivo se conservó sin restaurar."] = "The password is correct, but one or more temporary-file blocks failed the integrity check. The file was kept and not restored."
+        ,
+        ["Varios temporales detectados"] = "Multiple temporary files found"
+        ,
+        ["Recuperación manual necesaria"] = "Manual recovery required"
+        ,
+        ["Escritura interrumpida detectada"] = "Interrupted write detected"
+        ,
+        ["Restaurar temporal"] = "Restore temporary file"
+        ,
+        ["Usar copia anterior"] = "Use previous backup"
+        ,
+        ["Temporal cifrado"] = "Encrypted temporary file"
+        ,
+        ["Copia cifrada anterior"] = "Previous encrypted backup"
+        ,
+        ["Estructura reconocida"] = "Structure recognized"
+        ,
+        ["Estructura no reconocida"] = "Structure not recognized"
+        ,
+        ["No se encuentra el contenedor principal, pero se detectó un temporal cifrado de una escritura interrumpida. Solo se restaurará tras comprobar su contraseña, que pertenece a esta bóveda y la integridad de todo su contenido cifrado. No sobrescribirá ningún archivo existente."] = "The main container is missing, but an encrypted temporary file from an interrupted write was found. It will only be restored after checking its password, that it belongs to this vault, and the integrity of all its encrypted contents. No existing file will be overwritten."
+        ,
+        ["No se encuentra el contenedor principal y se detectaron varios temporales cifrados de escrituras interrumpidas. ProtectedApp no elegirá ninguno automáticamente."] = "The main container is missing and several encrypted temporary files from interrupted writes were found. ProtectedApp will not choose one automatically."
+        ,
+        ["También puedes usar la copia cifrada anterior. Se comprobará con la contraseña antes de restaurarla."] = "You can also use the previous encrypted backup. It will be checked with the password before it is restored."
+        ,
+        ["Puedes usar la copia cifrada anterior, que se comprobará con la contraseña, o cancelar para revisar los temporales manualmente."] = "You can use the previous encrypted backup, which will be checked with the password, or cancel to review the temporary files manually."
+        ,
+        ["No hay una copia cifrada anterior. Conserva los archivos y revisa los temporales manualmente."] = "There is no previous encrypted backup. Keep the files and review the temporary files manually."
+        ,
+        ["Introduce la contraseña para restaurar la bóveda"] = "Enter the password to restore the vault"
+        ,
+        ["Cancelando…"] = "Cancelling…"
+        ,
         ["La bóveda contiene demasiados bloques."] = "The vault contains too many blocks."
         ,
         ["El archivo cambió mientras se estaba cifrando."] = "The file changed while it was being encrypted."
@@ -1796,6 +1842,10 @@ public static class LocalizationService
         if (match.Success) return $"{match.Groups[1].Value} vault(s) have pending changes to check before opening.";
         match = Regex.Match(value, @"^(\d+) bóvedas disponibles\.$");
         if (match.Success) return $"{match.Groups[1].Value} vault(s) available.";
+        match = Regex.Match(value, @"^Y (\d+) temporales más\.$");
+        if (match.Success) return $"And {match.Groups[1].Value} more temporary file(s).";
+        match = Regex.Match(value, @"^Comprobando la integridad del temporal: (\d+) %$");
+        if (match.Success) return $"Checking temporary file integrity: {match.Groups[1].Value}%";
         match = Regex.Match(value, @"^(\d+) bóveda\(s\) figuran como abiertas, pero su unidad no responde: (.+)\.$");
         if (match.Success) return $"{match.Groups[1].Value} vault(s) are marked as open, but their drive does not respond: {match.Groups[2].Value}.";
         match = Regex.Match(value, @"^(\d+) unidad\(es\) no exponen el sistema de archivos PAVLT003: (.+)\.$");
@@ -2043,6 +2093,10 @@ public static class LocalizationService
         if (match.Success) return $"{match.Groups[1].Value} bóvedas tienen cambios pendientes de comprobar antes de abrirse.";
         match = Regex.Match(value, @"^(\d+) vault\(s\) available\.$");
         if (match.Success) return $"{match.Groups[1].Value} bóvedas disponibles.";
+        match = Regex.Match(value, @"^And (\d+) more temporary file\(s\)\.$");
+        if (match.Success) return $"Y {match.Groups[1].Value} temporales más.";
+        match = Regex.Match(value, @"^Checking temporary file integrity: (\d+)%$");
+        if (match.Success) return $"Comprobando la integridad del temporal: {match.Groups[1].Value} %";
         match = Regex.Match(value, @"^(\d+) vault\(s\) are marked as open, but their drive does not respond: (.+)\.$");
         if (match.Success) return $"{match.Groups[1].Value} bóveda(s) figuran como abiertas, pero su unidad no responde: {match.Groups[2].Value}.";
         match = Regex.Match(value, @"^(\d+) drive\(s\) do not expose the PAVLT003 file system: (.+)\.$");

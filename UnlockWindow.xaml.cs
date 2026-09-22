@@ -14,7 +14,9 @@ namespace ProtectedApp;
 
 public sealed partial class UnlockWindow : Window
 {
-    private readonly Func<string, Task<UnlockAttemptResult>> _verifyPassword;
+    private readonly Func<string, IProgress<string>, CancellationToken, Task<UnlockAttemptResult>> _verifyPassword;
+    private readonly bool _cancellableVerification;
+    private CancellationTokenSource? _verificationCancellation;
     private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly DispatcherTimer _retryTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly AppWindow _appWindow;
@@ -52,6 +54,27 @@ public sealed partial class UnlockWindow : Window
     public UnlockWindow(string title, string subtitle, Func<string, Task<UnlockAttemptResult>> verifyPassword,
         bool allowWindowsHello = false, Func<Task<UnlockAttemptResult>>? verifyHello = null,
         string? retryScope = null)
+        : this(title, subtitle, (password, _, _) => verifyPassword(password), false,
+            allowWindowsHello, verifyHello, retryScope)
+    {
+    }
+
+    /// <summary>
+    /// For slow verifications: the callback may report status text (shown under the
+    /// password) and Cancel stays available, signalling the token. A successful result
+    /// is still honoured if it arrives after cancellation was requested.
+    /// </summary>
+    public UnlockWindow(string title, string subtitle,
+        Func<string, IProgress<string>, CancellationToken, Task<UnlockAttemptResult>> verifyPassword,
+        string? retryScope = null)
+        : this(title, subtitle, verifyPassword, true, false, null, retryScope)
+    {
+    }
+
+    private UnlockWindow(string title, string subtitle,
+        Func<string, IProgress<string>, CancellationToken, Task<UnlockAttemptResult>> verifyPassword,
+        bool cancellableVerification, bool allowWindowsHello, Func<Task<UnlockAttemptResult>>? verifyHello,
+        string? retryScope)
     {
         InitializeComponent();
         LocalizationService.LanguageChanged += RefreshLanguage;
@@ -63,6 +86,7 @@ public sealed partial class UnlockWindow : Window
         ToolTipService.SetToolTip(AppNameText, LocalizationService.T(AppNameText, "ToolTip", title));
         ToolTipService.SetToolTip(SubtitleText, LocalizationService.T(SubtitleText, "ToolTip", subtitle));
         _verifyPassword = verifyPassword;
+        _cancellableVerification = cancellableVerification;
         _verifyHello = verifyHello;
         _allowWindowsHello = allowWindowsHello;
         // A title/subtitle pair is stable for the same prompt. Callers can
@@ -86,6 +110,7 @@ public sealed partial class UnlockWindow : Window
         _appWindow.Closing += (_, _) =>
         {
             _retryTimer.Stop();
+            _verificationCancellation?.Cancel();
             Complete(false);
         };
         if (_appWindow.Presenter is OverlappedPresenter presenter)
@@ -266,7 +291,6 @@ public sealed partial class UnlockWindow : Window
     {
         if (e.Key != VirtualKey.Escape) return;
         e.Handled = true;
-        if (_verifying) return;
         CancelUnlock();
     }
 
@@ -278,13 +302,30 @@ public sealed partial class UnlockWindow : Window
         var password = PasswordInput.Password;
         PasswordInput.IsEnabled = false;
         RevealPasswordButton.IsEnabled = false;
-        CancelButton.IsEnabled = false;
+        CancelButton.IsEnabled = _cancellableVerification;
         UnlockButton.IsEnabled = false;
         ErrorText.Text = string.Empty;
         ErrorText.Visibility = Visibility.Collapsed;
+        using var cancellation = _cancellableVerification ? new CancellationTokenSource() : null;
+        _verificationCancellation = cancellation;
+        var progress = new Progress<string>(status =>
+        {
+            if (!_verifying || cancellation?.IsCancellationRequested == true) return;
+            StatusText.Text = LocalizationService.T(StatusText, "Text", status);
+            StatusText.Visibility = Visibility.Visible;
+        });
         UnlockAttemptResult result;
-        try { result = await _verifyPassword(password); }
+        try { result = await _verifyPassword(password, progress, cancellation?.Token ?? CancellationToken.None); }
         catch { result = new UnlockAttemptResult(false, LocalizationService.T("No se pudo verificar la contraseña.")); }
+        _verificationCancellation = null;
+        StatusText.Text = string.Empty;
+        StatusText.Visibility = Visibility.Collapsed;
+        if (!result.Success && cancellation?.IsCancellationRequested == true)
+        {
+            _verifying = false;
+            CancelUnlock();
+            return;
+        }
         if (!result.Success)
         {
             CancelButton.IsEnabled = true;
@@ -360,7 +401,15 @@ public sealed partial class UnlockWindow : Window
 
     private void CancelUnlock()
     {
-        if (_verifying) return;
+        if (_verifying)
+        {
+            if (_verificationCancellation is not { IsCancellationRequested: false } cancellation) return;
+            cancellation.Cancel();
+            CancelButton.IsEnabled = false;
+            StatusText.Text = LocalizationService.T(StatusText, "Text", "Cancelando…");
+            StatusText.Visibility = Visibility.Visible;
+            return;
+        }
         Complete(false);
         Close();
     }

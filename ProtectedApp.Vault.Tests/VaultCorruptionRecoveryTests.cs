@@ -251,19 +251,130 @@ public sealed class VaultCorruptionRecoveryTests
         var candidates = service.FindPendingWriteRecovery(vault);
         var candidate = Assert.Single(candidates);
         Assert.Equal(temporaryPath, candidate.TemporaryPath, ignoreCase: true);
-        Assert.False(await service.RestorePendingWriteAsync(vault, candidate, VaultPassword + "wrong"));
+        var wrongPassword = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword + "wrong");
+        Assert.False(wrongPassword.Restored);
+        Assert.False(wrongPassword.PasswordVerified);
         Assert.False(File.Exists(fixture.VaultPath));
         Assert.True(File.Exists(temporaryPath));
 
         var otherVault = new VaultContainer { Id = Guid.NewGuid(), VaultFilePath = fixture.VaultPath };
-        Assert.False(await service.RestorePendingWriteAsync(otherVault, candidate, VaultPassword));
+        var mismatchedVault = await service.RestorePendingWriteAsync(otherVault, candidate, VaultPassword);
+        Assert.False(mismatchedVault.Restored);
+        Assert.True(mismatchedVault.PasswordVerified);
         Assert.False(File.Exists(fixture.VaultPath));
         Assert.True(File.Exists(temporaryPath));
 
-        Assert.True(await service.RestorePendingWriteAsync(vault, candidate, VaultPassword), service.LastError);
+        var restored = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword);
+        Assert.True(restored.Restored, restored.Error);
+        Assert.True(restored.PasswordVerified);
         Assert.True(File.Exists(fixture.VaultPath));
         Assert.False(File.Exists(temporaryPath));
         Assert.True(await service.VerifyVaultPasswordAsync(fixture.VaultPath, VaultPassword));
+    }
+
+    [Fact]
+    public async Task PendingWriteRecovery_RejectsCorruptedPayloadBeforeRestoring()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var service = new VaultService();
+        var vault = await service.LoadVaultAsync(fixture.VaultPath, VaultPassword);
+        Assert.NotNull(vault);
+        vault.VaultFilePath = fixture.VaultPath;
+
+        // Flip a byte inside the ciphertext of the payload's first block, located through
+        // the authenticated index, so the mutation cannot land in the header or index.
+        long chunkByte;
+        using (var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword))
+        {
+            var chunk = opened.Index.Entries.Single(entry => entry.Path.EndsWith("payload.bin")).Chunks[0];
+            chunkByte = opened.Header.HeaderSize + chunk.Offset + chunk.CipherLength / 2;
+        }
+        var temporaryPath = fixture.PathFor(".vault.pavault.corrupted.v3tmp");
+        File.Move(fixture.VaultPath, temporaryPath);
+        await FlipByteAsync(temporaryPath, chunkByte);
+
+        var candidate = Assert.Single(service.FindPendingWriteRecovery(vault));
+        var result = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword);
+
+        Assert.False(result.Restored);
+        Assert.True(result.PasswordVerified);
+        Assert.Contains("bloques", result.Error);
+        Assert.False(File.Exists(fixture.VaultPath));
+        Assert.True(File.Exists(temporaryPath));
+    }
+
+    [Fact]
+    public async Task PendingWriteRecovery_CorruptedIndexIsNotReportedAsWrongPassword()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var service = new VaultService();
+        var vault = await service.LoadVaultAsync(fixture.VaultPath, VaultPassword);
+        Assert.NotNull(vault);
+        vault.VaultFilePath = fixture.VaultPath;
+
+        long indexByte;
+        using (var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword))
+            // Index layout: nonce (12) + tag (16) + ciphertext, right after the data area.
+            indexByte = opened.Header.HeaderSize + opened.Header.DataLength + 12 + 16 + opened.Header.IndexLength / 2;
+        var temporaryPath = fixture.PathFor(".vault.pavault.index.v3tmp");
+        File.Move(fixture.VaultPath, temporaryPath);
+        await FlipByteAsync(temporaryPath, indexByte);
+        var candidate = Assert.Single(service.FindPendingWriteRecovery(vault));
+
+        var wrongPassword = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword + "wrong");
+        Assert.False(wrongPassword.PasswordVerified);
+
+        var result = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword);
+        Assert.False(result.Restored);
+        Assert.True(result.PasswordVerified);
+        Assert.Contains("índice", result.Error);
+        Assert.False(File.Exists(fixture.VaultPath));
+        Assert.True(File.Exists(temporaryPath));
+    }
+
+    [Fact]
+    public async Task PendingWriteRecovery_ReportsProgressAndHonoursCancellation()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var service = new VaultService();
+        var vault = await service.LoadVaultAsync(fixture.VaultPath, VaultPassword);
+        Assert.NotNull(vault);
+        vault.VaultFilePath = fixture.VaultPath;
+        var temporaryPath = fixture.PathFor(".vault.pavault.cancel.v3tmp");
+        File.Move(fixture.VaultPath, temporaryPath);
+        var candidate = Assert.Single(service.FindPendingWriteRecovery(vault));
+
+        using (var cancelled = new CancellationTokenSource())
+        {
+            cancelled.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                service.RestorePendingWriteAsync(vault, candidate, VaultPassword, null, cancelled.Token));
+        }
+        Assert.False(File.Exists(fixture.VaultPath));
+        Assert.True(File.Exists(temporaryPath));
+
+        var reported = new List<int>();
+        var restored = await service.RestorePendingWriteAsync(vault, candidate, VaultPassword,
+            new SynchronousProgress<int>(reported.Add));
+        Assert.True(restored.Restored, restored.Error);
+        Assert.Equal(0, reported[0]);
+        Assert.Equal(100, reported[^1]);
+        Assert.Equal(reported.Order(), reported);
+    }
+
+    private static async Task FlipByteAsync(string path, long position)
+    {
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite);
+        stream.Position = position;
+        var value = stream.ReadByte();
+        Assert.NotEqual(-1, value);
+        stream.Position = position;
+        stream.WriteByte((byte)(value ^ 0xA5));
+    }
+
+    private sealed class SynchronousProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 
     [Fact]

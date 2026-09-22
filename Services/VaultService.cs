@@ -258,9 +258,9 @@ public sealed class VaultService : IDisposable
         await LoadVaultAsync(vaultFilePath, password) is not null;
 
     /// <summary>
-    /// Finds complete PAVLT write temporaries only when their destination is missing.
-    /// Discovery is deliberately non-destructive: authentication and an explicit user
-    /// decision are both required before <see cref="RestorePendingWriteAsync"/> moves one.
+    /// Finds structurally complete PAVLT write temporaries only when their destination is missing.
+    /// Discovery is deliberately non-destructive: the password, vault identity, every encrypted
+    /// data block, and an explicit user decision must all be verified before one is moved.
     /// </summary>
     public IReadOnlyList<VaultWriteRecoveryCandidate> FindPendingWriteRecovery(VaultContainer vault)
     {
@@ -294,16 +294,22 @@ public sealed class VaultService : IDisposable
         }
     }
 
-    public async Task<bool> RestorePendingWriteAsync(VaultContainer vault, VaultWriteRecoveryCandidate candidate,
-        string password)
+    /// <summary>
+    /// Restores a write temporary only after the password, the vault identity and every
+    /// encrypted block are verified. <paramref name="integrityPercent"/> reports 0-100 while
+    /// blocks are checked; cancelling leaves the temporary exactly where it was.
+    /// </summary>
+    public async Task<VaultWriteRecoveryResult> RestorePendingWriteAsync(VaultContainer vault, VaultWriteRecoveryCandidate candidate,
+        string password, IProgress<int>? integrityPercent = null, CancellationToken cancellationToken = default)
     {
         LastError = null;
         if (vault is null || candidate is null || vault.Id == Guid.Empty || string.IsNullOrWhiteSpace(password))
         {
             LastError = "La recuperación temporal no es válida.";
-            return false;
+            return new(false, false, LastError);
         }
 
+        var passwordVerified = false;
         try
         {
             var targetPath = Path.GetFullPath(vault.VaultFilePath ?? string.Empty);
@@ -312,21 +318,51 @@ public sealed class VaultService : IDisposable
                 || !IsKnownWriteTemporary(targetPath, temporaryPath) || !IsSafeWriteTemporary(temporaryPath))
                 throw new InvalidDataException("El temporal ya no es un candidato seguro para recuperar.");
 
-            using var opened = await VaultFormatV3.OpenAsync(temporaryPath, password);
-            if (opened.Vault.Id != vault.Id)
-                throw new InvalidDataException("El temporal pertenece a otra bóveda.");
-            if (File.Exists(targetPath))
-                throw new IOException("El contenedor principal volvió a aparecer; no se sobrescribió.");
+            VaultFormatV3.OpenedVault opened;
+            try
+            {
+                opened = await VaultFormatV3.OpenAsync(temporaryPath, password);
+            }
+            catch (Exception ex) when (VaultFormatV3.IsDamagedAfterPasswordVerified(ex))
+            {
+                LastError = "La contraseña es correcta, pero el índice cifrado del temporal está dañado. El archivo se conservó sin restaurar.";
+                return new(false, true, LastError);
+            }
 
-            File.Move(temporaryPath, targetPath, overwrite: false);
+            using (opened)
+            {
+                passwordVerified = true;
+                if (opened.Vault.Id != vault.Id)
+                {
+                    LastError = "El temporal está cifrado con esta contraseña, pero pertenece a otra bóveda.";
+                    return new(false, true, LastError);
+                }
+
+                try
+                {
+                    await VaultFormatV3.VerifyIntegrityAsync(opened, integrityPercent, cancellationToken);
+                }
+                catch (Exception ex) when (IsVaultDataException(ex))
+                {
+                    LastError = "La contraseña es correcta, pero uno o más bloques del temporal no superaron la comprobación de integridad. El archivo se conservó sin restaurar.";
+                    return new(false, true, LastError);
+                }
+
+                // Last point where cancelling is honoured: past it the move is atomic.
+                cancellationToken.ThrowIfCancellationRequested();
+                if (File.Exists(targetPath))
+                    throw new IOException("El contenedor principal volvió a aparecer; no se sobrescribió.");
+
+                File.Move(temporaryPath, targetPath, overwrite: false);
+            }
             VaultFormatV3.DeleteStaleWriteTemporaries(targetPath);
             UpdateRuntimeMetadata(vault, targetPath);
-            return true;
+            return new(true, true, null);
         }
         catch (Exception ex) when (IsVaultDataException(ex))
         {
             LastError = ex.Message;
-            return false;
+            return new(false, passwordVerified, LastError);
         }
     }
 

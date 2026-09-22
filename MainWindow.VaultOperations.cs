@@ -304,6 +304,87 @@ public sealed partial class MainWindow
         return workingDirectoryCount == 1 ? "1 trabajo conservado" : $"{workingDirectoryCount} trabajos conservados";
     }
 
+    // Source strings are Spanish; CreateDialog localizes the whole tree through
+    // LocalizationService, including live language changes.
+    private StackPanel CreatePendingWriteRecoveryDetails(
+        IReadOnlyList<VaultWriteRecoveryCandidate> candidates, VaultBackupInfo backupInfo)
+    {
+        var single = candidates.Count == 1;
+        var details = new StackPanel { Spacing = 8, MaxWidth = 520 };
+        details.Children.Add(new TextBlock
+        {
+            Text = single
+                ? "No se encuentra el contenedor principal, pero se detectó un temporal cifrado de una escritura interrumpida. " +
+                  "Solo se restaurará tras comprobar su contraseña, que pertenece a esta bóveda y la integridad de todo su contenido cifrado. " +
+                  "No sobrescribirá ningún archivo existente."
+                : "No se encuentra el contenedor principal y se detectaron varios temporales cifrados de escrituras interrumpidas. " +
+                  "ProtectedApp no elegirá ninguno automáticamente.",
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        var visibleCandidates = candidates.Take(5).ToArray();
+        foreach (var candidate in visibleCandidates)
+            details.Children.Add(CreateRecoveryFileCard("Temporal cifrado",
+                $"{candidate.LastWriteUtc.ToLocalTime():dd/MM/yyyy HH:mm} · {VaultRecoveryItem.FormatBytes(candidate.SizeBytes)}"));
+        if (candidates.Count > visibleCandidates.Length)
+            details.Children.Add(new TextBlock
+            {
+                Text = $"Y {candidates.Count - visibleCandidates.Length} temporales más.",
+                TextWrapping = TextWrapping.Wrap
+            });
+
+        if (backupInfo.BackupExists)
+        {
+            details.Children.Add(CreateRecoveryFileCard("Copia cifrada anterior",
+                VaultRecoveryItem.FormatBytes(backupInfo.BackupSizeBytes),
+                backupInfo.BackupEnvelopeValid ? "Estructura reconocida" : "Estructura no reconocida"));
+            details.Children.Add(new TextBlock
+            {
+                Text = single
+                    ? "También puedes usar la copia cifrada anterior. Se comprobará con la contraseña antes de restaurarla."
+                    : "Puedes usar la copia cifrada anterior, que se comprobará con la contraseña, o cancelar para revisar los temporales manualmente.",
+                Foreground = (Brush)Application.Current.Resources["MutedTextBrush"],
+                TextWrapping = TextWrapping.Wrap
+            });
+        }
+        else if (!single)
+            details.Children.Add(new TextBlock
+            {
+                Text = "No hay una copia cifrada anterior. Conserva los archivos y revisa los temporales manualmente.",
+                Foreground = (Brush)Application.Current.Resources["MutedTextBrush"],
+                TextWrapping = TextWrapping.Wrap
+            });
+        return details;
+    }
+
+    private static Border CreateRecoveryFileCard(string title, params string[] lines)
+    {
+        var content = new StackPanel { Spacing = 2 };
+        content.Children.Add(new TextBlock
+        {
+            Text = title,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap
+        });
+        foreach (var line in lines)
+            content.Children.Add(new TextBlock
+            {
+                Text = line,
+                Foreground = (Brush)Application.Current.Resources["MutedTextBrush"],
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap
+            });
+        return new Border
+        {
+            Background = (Brush)Application.Current.Resources["ControlSurfaceBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeBrush"],
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(9, 6, 9, 6),
+            Child = content
+        };
+    }
+
     private async void RefreshVaultRecoveryButton_Click(object sender, RoutedEventArgs e)
     {
         await RefreshVaultRecoveryItemsAsync();
@@ -1451,12 +1532,7 @@ public sealed partial class MainWindow
                 if (backupInfo.BackupExists)
                 {
                     var backupDialog = CreateDialog("Varios temporales detectados",
-                        new TextBlock
-                        {
-                            Text = $"Se detectaron {writeRecoveryCandidates.Count} temporales cifrados para esta bóveda. " +
-                                "ProtectedApp no elegirá ninguno automáticamente. Puedes usar la copia cifrada anterior, que se comprobará con la contraseña, o cancelar para revisar los temporales manualmente.",
-                            TextWrapping = TextWrapping.Wrap
-                        },
+                        CreatePendingWriteRecoveryDetails(writeRecoveryCandidates, backupInfo),
                         "Usar copia anterior", "Cancelar");
                     if (await backupDialog.ShowAsync() == ContentDialogResult.Primary)
                         // Deliberately NOT deleted yet: the backup still has to be
@@ -1468,23 +1544,17 @@ public sealed partial class MainWindow
                 }
                 else
                 {
-                await ShowMessageAsync("Recuperación manual necesaria",
-                    $"Se detectaron {writeRecoveryCandidates.Count} temporales cifrados para esta bóveda. " +
-                    "ProtectedApp no elegirá uno automáticamente. Conserva los archivos y restaura una copia anterior o revisa los temporales manualmente.");
-                return;
+                    await CreateDialog("Recuperación manual necesaria",
+                        CreatePendingWriteRecoveryDetails(writeRecoveryCandidates, backupInfo),
+                        "Entendido", null).ShowAsync();
+                    return;
                 }
             }
             var restorePendingWrite = false;
             if (!primaryExists && pendingWriteRecovery is not null)
             {
                 var recoveryDialog = CreateDialog("Escritura interrumpida detectada",
-                    new TextBlock
-                    {
-                        Text = $"No se encuentra el contenedor principal, pero se detectó un temporal cifrado candidato creado el " +
-                            $"{pendingWriteRecovery.LastWriteUtc.ToLocalTime():dd/MM/yyyy HH:mm}. " +
-                            "Solo se restaurará tras comprobar su contraseña y que pertenece a esta bóveda. No sobrescribirá ningún archivo existente.",
-                        TextWrapping = TextWrapping.Wrap
-                    },
+                    CreatePendingWriteRecoveryDetails([pendingWriteRecovery], backupInfo),
                     "Restaurar temporal", "Cancelar");
                 if (backupInfo.BackupExists) recoveryDialog.SecondaryButtonText = "Usar copia anterior";
                 var recoveryResult = await recoveryDialog.ShowAsync();
@@ -1531,21 +1601,32 @@ public sealed partial class MainWindow
 
             string? mountPath = null;
             string? recoverableBackupPassword = null;
+            string? pendingWriteRecoveryFailure = null;
             VaultBackupValidation? recoverableBackup = null;
             VaultFormatV3.OpenedVault? authenticatedVirtualMount = null;
             var restoredPendingWrite = false;
-            var unlock = new UnlockWindow(vault.Name, "Introduce la contraseña para abrir la bóveda", async candidatePassword =>
+            // The subtitle is a single trimmed line; the progress of the (possibly long)
+            // integrity check is reported under the password instead.
+            var unlock = new UnlockWindow(vault.Name, restorePendingWrite
+                ? "Introduce la contraseña para restaurar la bóveda"
+                : "Introduce la contraseña para abrir la bóveda", async (candidatePassword, status, cancellationToken) =>
             {
                 authenticatedVirtualMount?.Dispose();
                 authenticatedVirtualMount = null;
                 recoverableBackupPassword = null;
                 recoverableBackup = null;
+                pendingWriteRecoveryFailure = null;
                 VaultContainer? imported = null;
                 var valid = false;
                 if (!primaryExists && restorePendingWrite && pendingWriteRecovery is not null)
                 {
-                    restoredPendingWrite = await _vaultService.RestorePendingWriteAsync(vault, pendingWriteRecovery,
-                        candidatePassword);
+                    var recovery = await _vaultService.RestorePendingWriteAsync(vault, pendingWriteRecovery,
+                        candidatePassword,
+                        new Progress<int>(percent => status.Report($"Comprobando la integridad del temporal: {percent} %")),
+                        cancellationToken);
+                    restoredPendingWrite = recovery.Restored;
+                    if (recovery.PasswordVerified && !recovery.Restored)
+                        pendingWriteRecoveryFailure = recovery.Error;
                     // Mutates a variable captured by this closure; safe today only because
                     // nothing computed before the callback (useReadOnlyVirtual above) is
                     // re-read afterwards on this same retry. See the note by useReadOnlyVirtual.
@@ -1597,6 +1678,8 @@ public sealed partial class MainWindow
                         return accepted.Attempt;
                     }
                 }
+                if (pendingWriteRecoveryFailure is not null)
+                    return new UnlockAttemptResult(false, pendingWriteRecoveryFailure);
                 var throttle = _localAuthenticationThrottle.Verify($"vault:{vault.Id:N}", valid,
                     "Contraseña incorrecta.");
                 RecordLocalAuthenticationActivity(vault.Name, throttle,

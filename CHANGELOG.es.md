@@ -26,6 +26,15 @@ firma.
   temporales una vez que la copia se ha autenticado y restaurado de verdad,
   nunca al pulsar el botón. Buscar una recuperación de escritura pendiente al
   abrir una bóveda ya no bloquea la interfaz.
+- Restaurar un temporal de escritura interrumpida autentica ahora también todos
+  los bloques cifrados antes de moverlo; un temporal dañado se conserva y se
+  informa en lugar de restaurarse. La comprobación muestra su progreso en la
+  ventana de contraseña y puede cancelarse sin tocar el temporal. Un índice
+  cifrado dañado se notifica ahora como daño y no como contraseña incorrecta (se
+  detecta después de que la contraseña haya desenvuelto la clave de datos), y
+  ese fallo ya no cuenta como intento de contraseña fallido. Los diálogos de
+  recuperación muestran la fecha y el tamaño de cada temporal y el estado de la
+  copia anterior, y están traducidos por completo.
 - Se añadió un corpus determinista de regresión para corrupción y recuperación
   de bóvedas PAVLT003/4: las cabeceras, índices cifrados, bloques de archivo,
   contenedores truncados, diarios delta y copias cifradas dañados deben

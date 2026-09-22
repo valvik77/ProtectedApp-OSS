@@ -110,6 +110,11 @@
                        FontSize="11"
                        TextWrapping="Wrap"
                        Visibility="Collapsed" />
+            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="StatusText"
+                       Foreground="{ThemeResource MutedTextBrush}"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed" />
         </StackPanel>
 
         <Button x:Name="WindowsHelloButton"

@@ -25,6 +25,15 @@ candidate** is not a public release and must not be distributed as one; see
   backup has actually been authenticated and restored, never on the button
   click itself. Scanning for a pending write recovery when opening a vault no
   longer blocks the interface.
+- Restoring an interrupted-write temporary now also authenticates every
+  encrypted block before moving it into place; a damaged temporary is kept and
+  reported instead of being restored. The check shows its progress in the
+  password window and can be cancelled without touching the temporary. A
+  damaged encrypted index is now reported as damage rather than as an incorrect
+  password (it is detected after the password has unwrapped the data key), and
+  such a failure no longer counts as a failed password attempt. The recovery
+  dialogs now list each temporary's date and size and the state of the previous
+  backup, and are fully translated.
 - Added a deterministic corruption-and-recovery regression corpus for PAVLT003/4
   vaults: damaged headers, encrypted indexes, file chunks, truncated containers,
   delta journals and encrypted backups must be rejected without altering the
