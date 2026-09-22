@@ -21,7 +21,11 @@ firma.
   al abrir la bóveda. Nunca elige entre varios temporales, no sobrescribe un
   principal que haya reaparecido, rechaza enlaces y candidatos malformados, y
   exige tanto la contraseña como la identidad cifrada de la bóveda antes de
-  mover el temporal de forma atómica.
+  mover el temporal de forma atómica. Elegir usar la copia anterior desde ese
+  diálogo ahora funciona (el botón antes no respondía) y solo descarta los
+  temporales una vez que la copia se ha autenticado y restaurado de verdad,
+  nunca al pulsar el botón. Buscar una recuperación de escritura pendiente al
+  abrir una bóveda ya no bloquea la interfaz.
 - Se añadió un corpus determinista de regresión para corrupción y recuperación
   de bóvedas PAVLT003/4: las cabeceras, índices cifrados, bloques de archivo,
   contenedores truncados, diarios delta y copias cifradas dañados deben

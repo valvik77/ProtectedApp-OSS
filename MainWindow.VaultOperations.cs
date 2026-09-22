@@ -263,10 +263,9 @@ public sealed partial class MainWindow
                 _vaultService.FindPendingWriteRecovery(vault).Count));
             VaultRecoveryItems.Clear();
             foreach (var item in items) VaultRecoveryItems.Add(item);
-            VaultRecoveryPanel.Visibility = items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            VaultRecoveryCountText.Text = items.Count == 1
-                ? "1 trabajo conservado"
-                : $"{items.Count} trabajos conservados";
+            VaultRecoveryPanel.Visibility = items.Count > 0 || pendingWriteCount > 0
+                ? Visibility.Visible : Visibility.Collapsed;
+            VaultRecoveryCountText.Text = BuildVaultRecoverySummaryText(items.Count, pendingWriteCount);
             if ((items.Count > 0 || pendingWriteCount > 0) && !_state.VaultRecoveryWarningPending)
             {
                 var listedPaths = string.Join(Environment.NewLine, items.Take(5)
@@ -289,6 +288,20 @@ public sealed partial class MainWindow
             VaultRecoveryPanel.Visibility = Visibility.Collapsed;
             AddActivity("ProtectedApp", "No se pudo revisar la recuperación de bóvedas.");
         }
+    }
+
+    // VaultRecoveryItems only lists preserved working directories; pending write
+    // temporaries (pendingWriteCount) have no entry there, so the summary text must
+    // account for both instead of assuming workingDirectoryCount alone explains why
+    // the panel is visible.
+    private static string BuildVaultRecoverySummaryText(int workingDirectoryCount, int pendingWriteCount)
+    {
+        if (workingDirectoryCount > 0 && pendingWriteCount > 0)
+            return $"{(workingDirectoryCount == 1 ? "1 trabajo conservado" : $"{workingDirectoryCount} trabajos conservados")} " +
+                $"y {(pendingWriteCount == 1 ? "1 temporal de escritura" : $"{pendingWriteCount} temporales de escritura")}";
+        if (pendingWriteCount > 0)
+            return pendingWriteCount == 1 ? "1 temporal de escritura pendiente" : $"{pendingWriteCount} temporales de escritura pendientes";
+        return workingDirectoryCount == 1 ? "1 trabajo conservado" : $"{workingDirectoryCount} trabajos conservados";
     }
 
     private async void RefreshVaultRecoveryButton_Click(object sender, RoutedEventArgs e)
@@ -1426,7 +1439,7 @@ public sealed partial class MainWindow
             var backupInfo = _vaultService.InspectVaultBackup(vault);
             IReadOnlyList<VaultWriteRecoveryCandidate> writeRecoveryCandidates = primaryExists
                 ? []
-                : _vaultService.FindPendingWriteRecovery(vault);
+                : await Task.Run(() => _vaultService.FindPendingWriteRecovery(vault));
             VaultWriteRecoveryCandidate? pendingWriteRecovery = writeRecoveryCandidates.Count == 1
                 ? writeRecoveryCandidates[0]
                 : null;
@@ -1446,6 +1459,10 @@ public sealed partial class MainWindow
                         },
                         "Usar copia anterior", "Cancelar");
                     if (await backupDialog.ShowAsync() == ContentDialogResult.Primary)
+                        // Deliberately NOT deleted yet: the backup still has to be
+                        // authenticated and actually restored (see the
+                        // RestoreDetectedVaultBackupAsync call below) before these
+                        // temporaries stop being the only recovery path.
                         writeRecoveryCandidates = [];
                     else return;
                 }
@@ -1468,7 +1485,8 @@ public sealed partial class MainWindow
                             "Solo se restaurará tras comprobar su contraseña y que pertenece a esta bóveda. No sobrescribirá ningún archivo existente.",
                         TextWrapping = TextWrapping.Wrap
                     },
-                    "Restaurar temporal", backupInfo.BackupExists ? "Usar copia anterior" : "Cancelar");
+                    "Restaurar temporal", "Cancelar");
+                if (backupInfo.BackupExists) recoveryDialog.SecondaryButtonText = "Usar copia anterior";
                 var recoveryResult = await recoveryDialog.ShowAsync();
                 if (recoveryResult == ContentDialogResult.Primary) restorePendingWrite = true;
                 else if (recoveryResult != ContentDialogResult.Secondary || !backupInfo.BackupExists) return;
@@ -1481,6 +1499,12 @@ public sealed partial class MainWindow
 
             // El doble clic debe ofrecer el comportamiento habitual de una bóveda: abrirla para editar.
             // La consulta sin escritura continúa disponible desde el panel principal.
+            // NOTA: si primaryExists es false aquí (recuperación de escritura pendiente),
+            // esta expresión da false y el diálogo "Ver/Editar archivos" de abajo tampoco se
+            // muestra, así que una recuperación exitosa dentro del callback de abajo siempre
+            // abre en modo edición. Es el comportamiento actual esperado, pero useReadOnlyVirtual
+            // NO se recalcula tras restoredPendingWrite: cualquier futura decisión que dependa
+            // de "hay un contenedor primario" debe tenerlo en cuenta explícitamente.
             var useReadOnlyVirtual = directActivation && _state.OpenVaultsReadOnlyByDefault
                 && primaryExists && VaultFormatV3.IsFormat(vault.VaultFilePath);
             if (!directActivation && primaryExists && VaultFormatV3.IsFormat(vault.VaultFilePath))
@@ -1522,6 +1546,9 @@ public sealed partial class MainWindow
                 {
                     restoredPendingWrite = await _vaultService.RestorePendingWriteAsync(vault, pendingWriteRecovery,
                         candidatePassword);
+                    // Mutates a variable captured by this closure; safe today only because
+                    // nothing computed before the callback (useReadOnlyVirtual above) is
+                    // re-read afterwards on this same retry. See the note by useReadOnlyVirtual.
                     if (restoredPendingWrite) primaryExists = true;
                 }
                 if (primaryExists)
@@ -1602,6 +1629,10 @@ public sealed partial class MainWindow
                     await SaveAsync();
                 }
                 if (!await RestoreDetectedVaultBackupAsync(vault, recoverableBackupPassword, recoverableBackup)) return;
+                // Only now is the previous backup confirmed authenticated and actually
+                // in place as the primary container; any stale write temporaries this
+                // vault had are genuinely superseded, so it's safe to discard them.
+                VaultFormatV3.DeleteStaleWriteTemporaries(vault.VaultFilePath);
                 if (useReadOnlyVirtual && !VaultFormatV3.IsFormat(vault.VaultFilePath))
                     useReadOnlyVirtual = false;
                 mountPath = useReadOnlyVirtual

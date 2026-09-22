@@ -278,6 +278,7 @@ public sealed class VaultService : IDisposable
         {
             return Directory.EnumerateFiles(directory, $".{fileName}.*.v3tmp", SearchOption.TopDirectoryOnly)
                 .Concat(Directory.EnumerateFiles(directory, $".{fileName}.*.index.tmp", SearchOption.TopDirectoryOnly))
+                .Concat(Directory.EnumerateFiles(directory, $".{fileName}.*.password.tmp", SearchOption.TopDirectoryOnly))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Where(IsSafeWriteTemporary)
                 .Where(VaultFormatV3.HasStructurallyValidEnvelope)
@@ -286,7 +287,7 @@ public sealed class VaultService : IDisposable
                 .OrderByDescending(item => item.LastWriteUtc)
                 .ToArray();
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (IsVaultDataException(ex))
         {
             LastError = ex.Message;
             return [];
@@ -322,8 +323,7 @@ public sealed class VaultService : IDisposable
             UpdateRuntimeMetadata(vault, targetPath);
             return true;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
-                                   or CryptographicException or ArgumentException)
+        catch (Exception ex) when (IsVaultDataException(ex))
         {
             LastError = ex.Message;
             return false;
@@ -1922,7 +1922,8 @@ public sealed class VaultService : IDisposable
                 || !temporaryName.StartsWith($".{targetName}.", StringComparison.OrdinalIgnoreCase))
                 return false;
             return temporaryName.EndsWith(".v3tmp", StringComparison.OrdinalIgnoreCase)
-                || temporaryName.EndsWith(".index.tmp", StringComparison.OrdinalIgnoreCase);
+                || temporaryName.EndsWith(".index.tmp", StringComparison.OrdinalIgnoreCase)
+                || temporaryName.EndsWith(".password.tmp", StringComparison.OrdinalIgnoreCase);
         }
         catch { return false; }
     }

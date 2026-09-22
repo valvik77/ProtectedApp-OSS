@@ -19,7 +19,12 @@ candidate** is not a public release and must not be distributed as one; see
   vault is opened. It never chooses between multiple temporaries, never
   overwrites a reappearing primary file, rejects links and malformed candidates,
   and requires both the vault password and the encrypted vault identity to
-  match before moving the temporary atomically into place.
+  match before moving the temporary atomically into place. Choosing to fall
+  back to the previous backup instead now works from that dialog (the button
+  was previously inert) and only discards the stale temporaries after the
+  backup has actually been authenticated and restored, never on the button
+  click itself. Scanning for a pending write recovery when opening a vault no
+  longer blocks the interface.
 - Added a deterministic corruption-and-recovery regression corpus for PAVLT003/4
   vaults: damaged headers, encrypted indexes, file chunks, truncated containers,
   delta journals and encrypted backups must be rejected without altering the
