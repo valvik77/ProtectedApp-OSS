@@ -156,6 +156,32 @@ public sealed class VaultCorruptionRecoveryTests
         }
     }
 
+    [Fact]
+    public async Task UnsafeVirtualPaths_AreRejected_WithoutReplacingTheExistingVault()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        var originalHash = SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath));
+        try
+        {
+            using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+            foreach (var unsafePath in new[] { "../escape.txt", "folder/../escape.txt", @"C:\outside.txt", "/outside.txt", "." })
+            {
+                var source = new VaultFormatV3.VirtualEntrySource(unsafePath, false, 0,
+                    DateTime.UtcNow, DateTime.UtcNow,
+                    () => Task.FromResult<Stream>(Stream.Null));
+                await Assert.ThrowsAsync<InvalidDataException>(() => VaultFormatV3.WriteFromVirtualEntriesAsync(
+                    opened.Vault, [source], fixture.VaultPath, opened.PasswordKey, opened.Salt, opened.DataKey,
+                    opened.TpmBinding, createRecoveryBackup: false));
+            }
+
+            Assert.Equal(originalHash, SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath)));
+            Assert.Empty(Directory.EnumerateFiles(fixture.DirectoryPath, ".vault.pavault.*.v3tmp"));
+            using var service = new VaultService();
+            Assert.True(await service.VerifyVaultPasswordAsync(fixture.VaultPath, VaultPassword));
+        }
+        finally { CryptographicOperations.ZeroMemory(originalHash); }
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {

@@ -20,6 +20,8 @@ firma.
   la bóveda y cada bloque de archivo antes de leerse.
   Una escritura virtual interrumpida también debe conservar el contenedor
   previo byte a byte y eliminar su archivo temporal incompleto.
+  Las entradas virtuales con traversal o rutas absolutas deben rechazarse antes
+  de que puedan sustituir una bóveda existente.
 
 ## 1.4.211 — 2026-09-22 (pre-release de desarrollo)
 
