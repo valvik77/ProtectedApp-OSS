@@ -208,6 +208,53 @@ public sealed class VaultCorruptionRecoveryTests
         finally { CryptographicOperations.ZeroMemory(originalHash); }
     }
 
+    [Fact]
+    public async Task PendingWriteRecovery_RestoresOnlyTheAuthenticatedMatchingTemporary()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        var temporaryPath = fixture.PathFor(".vault.pavault.interrupted.v3tmp");
+        File.Move(fixture.VaultPath, temporaryPath);
+
+        using var service = new VaultService();
+        var vault = await service.LoadVaultAsync(temporaryPath, VaultPassword);
+        Assert.NotNull(vault);
+        vault.VaultFilePath = fixture.VaultPath;
+
+        var candidates = service.FindPendingWriteRecovery(vault);
+        var candidate = Assert.Single(candidates);
+        Assert.Equal(temporaryPath, candidate.TemporaryPath, ignoreCase: true);
+        Assert.False(await service.RestorePendingWriteAsync(vault, candidate, VaultPassword + "wrong"));
+        Assert.False(File.Exists(fixture.VaultPath));
+        Assert.True(File.Exists(temporaryPath));
+
+        var otherVault = new VaultContainer { Id = Guid.NewGuid(), VaultFilePath = fixture.VaultPath };
+        Assert.False(await service.RestorePendingWriteAsync(otherVault, candidate, VaultPassword));
+        Assert.False(File.Exists(fixture.VaultPath));
+        Assert.True(File.Exists(temporaryPath));
+
+        Assert.True(await service.RestorePendingWriteAsync(vault, candidate, VaultPassword), service.LastError);
+        Assert.True(File.Exists(fixture.VaultPath));
+        Assert.False(File.Exists(temporaryPath));
+        Assert.True(await service.VerifyVaultPasswordAsync(fixture.VaultPath, VaultPassword));
+    }
+
+    [Fact]
+    public async Task PendingWriteRecovery_IgnoresInvalidAndNonMissingCandidates()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var service = new VaultService();
+        var vault = await service.LoadVaultAsync(fixture.VaultPath, VaultPassword);
+        Assert.NotNull(vault);
+        vault.VaultFilePath = fixture.VaultPath;
+
+        var invalidPath = fixture.PathFor(".vault.pavault.invalid.v3tmp");
+        await File.WriteAllBytesAsync(invalidPath, RandomNumberGenerator.GetBytes(128));
+        Assert.Empty(service.FindPendingWriteRecovery(vault));
+
+        File.Delete(fixture.VaultPath);
+        Assert.Empty(service.FindPendingWriteRecovery(vault));
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {

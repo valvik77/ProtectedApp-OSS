@@ -258,6 +258,79 @@ public sealed class VaultService : IDisposable
         await LoadVaultAsync(vaultFilePath, password) is not null;
 
     /// <summary>
+    /// Finds complete PAVLT write temporaries only when their destination is missing.
+    /// Discovery is deliberately non-destructive: authentication and an explicit user
+    /// decision are both required before <see cref="RestorePendingWriteAsync"/> moves one.
+    /// </summary>
+    public IReadOnlyList<VaultWriteRecoveryCandidate> FindPendingWriteRecovery(VaultContainer vault)
+    {
+        if (vault is null || vault.Id == Guid.Empty || string.IsNullOrWhiteSpace(vault.VaultFilePath)) return [];
+        string targetPath;
+        try { targetPath = Path.GetFullPath(vault.VaultFilePath); }
+        catch (Exception) { return []; }
+        if (File.Exists(targetPath)) return [];
+
+        var directory = Path.GetDirectoryName(targetPath);
+        var fileName = Path.GetFileName(targetPath);
+        if (string.IsNullOrWhiteSpace(directory) || string.IsNullOrWhiteSpace(fileName)) return [];
+
+        try
+        {
+            return Directory.EnumerateFiles(directory, $".{fileName}.*.v3tmp", SearchOption.TopDirectoryOnly)
+                .Concat(Directory.EnumerateFiles(directory, $".{fileName}.*.index.tmp", SearchOption.TopDirectoryOnly))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Where(IsSafeWriteTemporary)
+                .Where(VaultFormatV3.HasStructurallyValidEnvelope)
+                .Select(path => new FileInfo(path))
+                .Select(info => new VaultWriteRecoveryCandidate(targetPath, info.FullName, info.Length, info.LastWriteTimeUtc))
+                .OrderByDescending(item => item.LastWriteUtc)
+                .ToArray();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            LastError = ex.Message;
+            return [];
+        }
+    }
+
+    public async Task<bool> RestorePendingWriteAsync(VaultContainer vault, VaultWriteRecoveryCandidate candidate,
+        string password)
+    {
+        LastError = null;
+        if (vault is null || candidate is null || vault.Id == Guid.Empty || string.IsNullOrWhiteSpace(password))
+        {
+            LastError = "La recuperación temporal no es válida.";
+            return false;
+        }
+
+        try
+        {
+            var targetPath = Path.GetFullPath(vault.VaultFilePath ?? string.Empty);
+            var temporaryPath = Path.GetFullPath(candidate.TemporaryPath);
+            if (!PathsEqual(targetPath, candidate.TargetPath) || File.Exists(targetPath)
+                || !IsKnownWriteTemporary(targetPath, temporaryPath) || !IsSafeWriteTemporary(temporaryPath))
+                throw new InvalidDataException("El temporal ya no es un candidato seguro para recuperar.");
+
+            using var opened = await VaultFormatV3.OpenAsync(temporaryPath, password);
+            if (opened.Vault.Id != vault.Id)
+                throw new InvalidDataException("El temporal pertenece a otra bóveda.");
+            if (File.Exists(targetPath))
+                throw new IOException("El contenedor principal volvió a aparecer; no se sobrescribió.");
+
+            File.Move(temporaryPath, targetPath, overwrite: false);
+            VaultFormatV3.DeleteStaleWriteTemporaries(targetPath);
+            UpdateRuntimeMetadata(vault, targetPath);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                   or CryptographicException or ArgumentException)
+        {
+            LastError = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Authenticates a current-format vault once and retains the validated
     /// session for the immediately following virtual mount. Pending recovery
     /// journals deliberately use the normal recovery path instead.
@@ -1815,6 +1888,36 @@ public sealed class VaultService : IDisposable
     private static bool PathsEqual(string left, string right)
     {
         try { return string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase); }
+        catch { return false; }
+    }
+
+    private static bool IsKnownWriteTemporary(string targetPath, string temporaryPath)
+    {
+        try
+        {
+            var targetDirectory = Path.GetDirectoryName(Path.GetFullPath(targetPath));
+            var temporaryDirectory = Path.GetDirectoryName(Path.GetFullPath(temporaryPath));
+            var targetName = Path.GetFileName(targetPath);
+            var temporaryName = Path.GetFileName(temporaryPath);
+            if (string.IsNullOrWhiteSpace(targetDirectory) || string.IsNullOrWhiteSpace(temporaryDirectory)
+                || string.IsNullOrWhiteSpace(targetName) || string.IsNullOrWhiteSpace(temporaryName)
+                || !string.Equals(targetDirectory, temporaryDirectory, StringComparison.OrdinalIgnoreCase)
+                || !temporaryName.StartsWith($".{targetName}.", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return temporaryName.EndsWith(".v3tmp", StringComparison.OrdinalIgnoreCase)
+                || temporaryName.EndsWith(".index.tmp", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
+    private static bool IsSafeWriteTemporary(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return false;
+            var attributes = File.GetAttributes(path);
+            return (attributes & FileAttributes.ReparsePoint) == 0 && new FileInfo(path).Length > 0;
+        }
         catch { return false; }
     }
 

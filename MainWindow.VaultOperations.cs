@@ -259,13 +259,15 @@ public sealed partial class MainWindow
         {
             var vaults = Vaults.ToArray();
             var items = await Task.Run(() => _vaultService.FindPendingRecoveryWork(vaults));
+            var pendingWriteCount = await Task.Run(() => vaults.Sum(vault =>
+                _vaultService.FindPendingWriteRecovery(vault).Count));
             VaultRecoveryItems.Clear();
             foreach (var item in items) VaultRecoveryItems.Add(item);
             VaultRecoveryPanel.Visibility = items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             VaultRecoveryCountText.Text = items.Count == 1
                 ? "1 trabajo conservado"
                 : $"{items.Count} trabajos conservados";
-            if (items.Count > 0 && !_state.VaultRecoveryWarningPending)
+            if ((items.Count > 0 || pendingWriteCount > 0) && !_state.VaultRecoveryWarningPending)
             {
                 var listedPaths = string.Join(Environment.NewLine, items.Take(5)
                     .Select(item => $"• {item.DisplayName}: {item.WorkingDirectory}"));
@@ -274,9 +276,10 @@ public sealed partial class MainWindow
                     : string.Empty;
                 _state.VaultRecoveryWarningPending = true;
                 _state.VaultRecoveryWarningMessage =
-                    $"ProtectedApp ha detectado {items.Count} carpeta(s) de trabajo conservadas. " +
-                    $"Revísalas para guardar sus cambios o descartarlas de forma segura.{Environment.NewLine}{Environment.NewLine}{listedPaths}{remainder}";
-                AddActivity("ProtectedApp", $"Detectados {items.Count} trabajo(s) de bóveda pendientes de recuperación");
+                    $"ProtectedApp ha detectado {items.Count} carpeta(s) de trabajo conservadas y " +
+                    $"{pendingWriteCount} temporal(es) de escritura cifrada. Revísalos para guardar sus cambios o decidir su recuperación de forma segura." +
+                    (string.IsNullOrWhiteSpace(listedPaths) ? string.Empty : $"{Environment.NewLine}{Environment.NewLine}{listedPaths}{remainder}");
+                AddActivity("ProtectedApp", $"Detectados {items.Count} trabajo(s) y {pendingWriteCount} temporal(es) de bóveda pendientes de recuperación");
             }
         }
         catch (ObjectDisposedException) { }
@@ -1421,10 +1424,56 @@ public sealed partial class MainWindow
             }
             var primaryExists = File.Exists(vault.VaultFilePath);
             var backupInfo = _vaultService.InspectVaultBackup(vault);
+            IReadOnlyList<VaultWriteRecoveryCandidate> writeRecoveryCandidates = primaryExists
+                ? []
+                : _vaultService.FindPendingWriteRecovery(vault);
+            VaultWriteRecoveryCandidate? pendingWriteRecovery = writeRecoveryCandidates.Count == 1
+                ? writeRecoveryCandidates[0]
+                : null;
             var hasDuplicatePathReferences = Vaults.Count(candidate => candidate.VaultFilePath is not null
                 && PathsEqual(candidate.VaultFilePath, vault.VaultFilePath)) > 1;
             var repairedDuplicatePathReferences = false;
-            if (!primaryExists && !backupInfo.BackupExists)
+            if (!primaryExists && writeRecoveryCandidates.Count > 1)
+            {
+                if (backupInfo.BackupExists)
+                {
+                    var backupDialog = CreateDialog("Varios temporales detectados",
+                        new TextBlock
+                        {
+                            Text = $"Se detectaron {writeRecoveryCandidates.Count} temporales cifrados para esta bóveda. " +
+                                "ProtectedApp no elegirá ninguno automáticamente. Puedes usar la copia cifrada anterior, que se comprobará con la contraseña, o cancelar para revisar los temporales manualmente.",
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        "Usar copia anterior", "Cancelar");
+                    if (await backupDialog.ShowAsync() == ContentDialogResult.Primary)
+                        writeRecoveryCandidates = [];
+                    else return;
+                }
+                else
+                {
+                await ShowMessageAsync("Recuperación manual necesaria",
+                    $"Se detectaron {writeRecoveryCandidates.Count} temporales cifrados para esta bóveda. " +
+                    "ProtectedApp no elegirá uno automáticamente. Conserva los archivos y restaura una copia anterior o revisa los temporales manualmente.");
+                return;
+                }
+            }
+            var restorePendingWrite = false;
+            if (!primaryExists && pendingWriteRecovery is not null)
+            {
+                var recoveryDialog = CreateDialog("Escritura interrumpida detectada",
+                    new TextBlock
+                    {
+                        Text = $"No se encuentra el contenedor principal, pero se detectó un temporal cifrado candidato creado el " +
+                            $"{pendingWriteRecovery.LastWriteUtc.ToLocalTime():dd/MM/yyyy HH:mm}. " +
+                            "Solo se restaurará tras comprobar su contraseña y que pertenece a esta bóveda. No sobrescribirá ningún archivo existente.",
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    "Restaurar temporal", backupInfo.BackupExists ? "Usar copia anterior" : "Cancelar");
+                var recoveryResult = await recoveryDialog.ShowAsync();
+                if (recoveryResult == ContentDialogResult.Primary) restorePendingWrite = true;
+                else if (recoveryResult != ContentDialogResult.Secondary || !backupInfo.BackupExists) return;
+            }
+            if (!primaryExists && !backupInfo.BackupExists && !restorePendingWrite)
             {
                 await ShowMessageAsync("No se encuentra la bóveda", "El archivo cifrado fue movido o eliminado y no existe una copia anterior recuperable.");
                 return;
@@ -1460,6 +1509,7 @@ public sealed partial class MainWindow
             string? recoverableBackupPassword = null;
             VaultBackupValidation? recoverableBackup = null;
             VaultFormatV3.OpenedVault? authenticatedVirtualMount = null;
+            var restoredPendingWrite = false;
             var unlock = new UnlockWindow(vault.Name, "Introduce la contraseña para abrir la bóveda", async candidatePassword =>
             {
                 authenticatedVirtualMount?.Dispose();
@@ -1468,6 +1518,12 @@ public sealed partial class MainWindow
                 recoverableBackup = null;
                 VaultContainer? imported = null;
                 var valid = false;
+                if (!primaryExists && restorePendingWrite && pendingWriteRecovery is not null)
+                {
+                    restoredPendingWrite = await _vaultService.RestorePendingWriteAsync(vault, pendingWriteRecovery,
+                        candidatePassword);
+                    if (restoredPendingWrite) primaryExists = true;
+                }
                 if (primaryExists)
                 {
                     if (importIdentityFromContainer || hasDuplicatePathReferences)
@@ -1577,6 +1633,8 @@ public sealed partial class MainWindow
             await RefreshVaultRecoveryItemsAsync();
             AddActivity(vault.Name, journalRecovered
                 ? "Cambios recuperados de una sesión interrumpida; guarda y bloquea la bóveda para consolidarlos"
+                : restoredPendingWrite
+                    ? "Contenedor temporal autenticado y restaurado tras una escritura interrumpida"
                 : useReadOnlyVirtual
                     ? $"Consulta segura abierta durante {vault.AutoLockMinutes} min"
                     : "Bóveda abierta para editar; guarda y bloquea antes de cerrar");

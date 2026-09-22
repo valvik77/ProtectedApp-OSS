@@ -11,6 +11,12 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Security
 
+- If a power loss leaves a candidate PAVLT write temporary and the primary
+  container is missing, ProtectedApp now offers an explicit recovery when the
+  vault is opened. It never chooses between multiple temporaries, never
+  overwrites a reappearing primary file, rejects links and malformed candidates,
+  and requires both the vault password and the encrypted vault identity to
+  match before moving the temporary atomically into place.
 - Added a deterministic corruption-and-recovery regression corpus for PAVLT003/4
   vaults: damaged headers, encrypted indexes, file chunks, truncated containers,
   delta journals and encrypted backups must be rejected without altering the

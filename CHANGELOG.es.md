@@ -12,6 +12,12 @@ firma.
 
 ### Seguridad
 
+- Si un corte de energía deja un temporal candidato de escritura PAVLT y falta
+  el contenedor principal, ProtectedApp ofrece ahora una recuperación explícita
+  al abrir la bóveda. Nunca elige entre varios temporales, no sobrescribe un
+  principal que haya reaparecido, rechaza enlaces y candidatos malformados, y
+  exige tanto la contraseña como la identidad cifrada de la bóveda antes de
+  mover el temporal de forma atómica.
 - Se añadió un corpus determinista de regresión para corrupción y recuperación
   de bóvedas PAVLT003/4: las cabeceras, índices cifrados, bloques de archivo,
   contenedores truncados, diarios delta y copias cifradas dañados deben
