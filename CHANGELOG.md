@@ -27,7 +27,8 @@ candidate** is not a public release and must not be distributed as one; see
   incomplete temporary file. Virtual entries with traversal or absolute paths
   must be rejected before they can replace an existing vault. Case-insensitive
   duplicate virtual paths are now rejected before a temporary container is
-  created.
+  created. The exact 20,000-entry limit is accepted, while the next entry is
+  rejected before any temporary container is created.
 
 ## 1.4.211 — 2026-09-22 (development pre-release)
 

@@ -209,6 +209,34 @@ public sealed class VaultCorruptionRecoveryTests
     }
 
     [Fact]
+    public async Task VirtualEntryLimit_AcceptsTwentyThousandAndRejectsTheNextBeforeWriting()
+    {
+        const int maximumEntries = 20_000;
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+        var timestamp = DateTime.UtcNow;
+        var accepted = Enumerable.Range(0, maximumEntries)
+            .Select(index => new VaultFormatV3.VirtualEntrySource($"directory-{index:D5}", true, 0,
+                timestamp, timestamp, null!))
+            .ToArray();
+        var acceptedPath = fixture.PathFor("limit-accepted.pavault");
+
+        await VaultFormatV3.WriteFromVirtualEntriesAsync(opened.Vault, accepted, acceptedPath,
+            opened.PasswordKey, opened.Salt, opened.DataKey, opened.TpmBinding, createRecoveryBackup: false);
+        using (var verified = await VaultFormatV3.OpenAsync(acceptedPath, VaultPassword))
+            Assert.Equal(maximumEntries, verified.Index.Entries.Count);
+
+        var rejected = accepted.Append(new VaultFormatV3.VirtualEntrySource("directory-20000", true, 0,
+            timestamp, timestamp, null!)).ToArray();
+        var rejectedPath = fixture.PathFor("limit-rejected.pavault");
+        await Assert.ThrowsAsync<InvalidDataException>(() => VaultFormatV3.WriteFromVirtualEntriesAsync(
+            opened.Vault, rejected, rejectedPath, opened.PasswordKey, opened.Salt, opened.DataKey,
+            opened.TpmBinding, createRecoveryBackup: false));
+        Assert.False(File.Exists(rejectedPath));
+        Assert.Empty(Directory.EnumerateFiles(fixture.DirectoryPath, ".limit-rejected.pavault.*.v3tmp"));
+    }
+
+    [Fact]
     public async Task PendingWriteRecovery_RestoresOnlyTheAuthenticatedMatchingTemporary()
     {
         await using var fixture = await VaultFixture.CreateAsync();
