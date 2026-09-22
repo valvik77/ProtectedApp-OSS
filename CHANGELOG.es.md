@@ -22,6 +22,8 @@ firma.
   previo byte a byte y eliminar su archivo temporal incompleto.
   Las entradas virtuales con traversal o rutas absolutas deben rechazarse antes
   de que puedan sustituir una bóveda existente.
+  Las rutas virtuales duplicadas sin distinguir mayúsculas también se rechazan
+  antes de crear un contenedor temporal.
 
 ## 1.4.211 — 2026-09-22 (pre-release de desarrollo)
 

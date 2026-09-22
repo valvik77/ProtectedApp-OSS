@@ -227,9 +227,9 @@ internal static class VaultFormatV3
     {
         ValidateKeyMaterial(passwordKey, salt);
         ValidateTpmBinding(tpmBinding);
+        var validatedSources = ValidateVirtualSources(sources);
         ArgumentNullException.ThrowIfNull(existingDataKey);
         if (existingDataKey.Length != KeySize) throw new InvalidDataException("La clave de datos no es válida.");
-        if (sources.Count > MaximumEntries) throw new InvalidDataException("La bóveda contiene demasiados elementos.");
 
         var dataKey = existingDataKey.ToArray();
         var wrapKey = GetWrapKey(passwordKey, tpmBinding);
@@ -249,9 +249,8 @@ internal static class VaultFormatV3
                              FileShare.None, 128 * 1024, FileOptions.Asynchronous))
             {
                 output.Position = headerSize;
-                foreach (var source in sources.OrderBy(item => item.Path, StringComparer.OrdinalIgnoreCase))
+                foreach (var (source, relative) in validatedSources)
                 {
-                    var relative = NormalizeRelativePath(source.Path);
                     var entry = new IndexEntry
                     {
                         Path = relative,
@@ -263,7 +262,6 @@ internal static class VaultFormatV3
                     var entryIndex = index.Entries.Count;
                     index.Entries.Add(entry);
                     if (source.IsDirectory) continue;
-                    if (source.Length < 0) throw new InvalidDataException("La longitud de un archivo no es válida.");
                     expandedBytes = checked(expandedBytes + source.Length);
                     if (expandedBytes > MaximumExpandedBytes)
                         throw new InvalidDataException("El contenido de la bóveda supera 1 GB.");
@@ -946,6 +944,27 @@ internal static class VaultFormatV3
         normalized = string.Join('/', parts);
         if (normalized.Length > 2048) throw new InvalidDataException("Una ruta de la bóveda es demasiado larga.");
         return normalized;
+    }
+
+    private static IReadOnlyList<(VirtualEntrySource Source, string RelativePath)> ValidateVirtualSources(
+        IReadOnlyList<VirtualEntrySource> sources)
+    {
+        ArgumentNullException.ThrowIfNull(sources);
+        if (sources.Count > MaximumEntries) throw new InvalidDataException("La bóveda contiene demasiados elementos.");
+
+        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<(VirtualEntrySource Source, string RelativePath)>(sources.Count);
+        foreach (var source in sources)
+        {
+            if (source is null || source.OpenReadAsync is null)
+                throw new InvalidDataException("La bóveda contiene una entrada virtual no válida.");
+            var relativePath = NormalizeRelativePath(source.Path);
+            if (!paths.Add(relativePath)) throw new InvalidDataException("La bóveda contiene rutas duplicadas.");
+            if (!source.IsDirectory && source.Length < 0)
+                throw new InvalidDataException("La longitud de un archivo no es válida.");
+            result.Add((source, relativePath));
+        }
+        return result.OrderBy(item => item.RelativePath, StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     private static string ResolveExtractionPath(string destinationRoot, string relativePath)

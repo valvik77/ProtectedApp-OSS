@@ -182,6 +182,32 @@ public sealed class VaultCorruptionRecoveryTests
         finally { CryptographicOperations.ZeroMemory(originalHash); }
     }
 
+    [Fact]
+    public async Task CollidingVirtualPaths_AreRejectedBeforeCreatingATemporaryVault()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        var originalHash = SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath));
+        try
+        {
+            using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+            var sources = new[]
+            {
+                new VaultFormatV3.VirtualEntrySource("report.txt", false, 0, DateTime.UtcNow, DateTime.UtcNow,
+                    () => Task.FromResult<Stream>(Stream.Null)),
+                new VaultFormatV3.VirtualEntrySource("REPORT.TXT", false, 0, DateTime.UtcNow, DateTime.UtcNow,
+                    () => Task.FromResult<Stream>(Stream.Null))
+            };
+
+            await Assert.ThrowsAsync<InvalidDataException>(() => VaultFormatV3.WriteFromVirtualEntriesAsync(
+                opened.Vault, sources, fixture.VaultPath, opened.PasswordKey, opened.Salt, opened.DataKey,
+                opened.TpmBinding, createRecoveryBackup: false));
+
+            Assert.Equal(originalHash, SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath)));
+            Assert.Empty(Directory.EnumerateFiles(fixture.DirectoryPath, ".vault.pavault.*.v3tmp"));
+        }
+        finally { CryptographicOperations.ZeroMemory(originalHash); }
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {

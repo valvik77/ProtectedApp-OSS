@@ -19,7 +19,9 @@ candidate** is not a public release and must not be distributed as one; see
   block is authenticated before it is read. An interrupted virtual write is
   also required to preserve the previous container byte-for-byte and remove its
   incomplete temporary file. Virtual entries with traversal or absolute paths
-  must be rejected before they can replace an existing vault.
+  must be rejected before they can replace an existing vault. Case-insensitive
+  duplicate virtual paths are now rejected before a temporary container is
+  created.
 
 ## 1.4.211 — 2026-09-22 (development pre-release)
 
