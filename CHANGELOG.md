@@ -9,6 +9,15 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+### Security
+
+- Added a deterministic corruption-and-recovery regression corpus for PAVLT003/4
+  vaults: damaged headers, encrypted indexes, file chunks, truncated containers,
+  delta journals and encrypted backups must be rejected without altering the
+  original vault. The tests also make the intended lazy verification boundary
+  explicit: the envelope is authenticated when opening a vault and each file
+  block is authenticated before it is read.
+
 ## 1.4.211 — 2026-09-22 (development pre-release)
 
 ### Fixed

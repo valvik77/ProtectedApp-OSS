@@ -10,6 +10,15 @@ firma.
 
 ## Pendiente de publicación
 
+### Seguridad
+
+- Se añadió un corpus determinista de regresión para corrupción y recuperación
+  de bóvedas PAVLT003/4: las cabeceras, índices cifrados, bloques de archivo,
+  contenedores truncados, diarios delta y copias cifradas dañados deben
+  rechazarse sin modificar la bóveda original. Las pruebas también dejan
+  explícito el límite de verificación diferida: el sobre se autentica al abrir
+  la bóveda y cada bloque de archivo antes de leerse.
+
 ## 1.4.211 — 2026-09-22 (pre-release de desarrollo)
 
 ### Corregido
