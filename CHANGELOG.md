@@ -11,6 +11,9 @@ candidate** is not a public release and must not be distributed as one; see
 
 ### Security
 
+- Scheduled vault backups now compute the source SHA-256 while copying and
+  compare it with the fully flushed destination. A mismatched, structurally
+  invalid or failed copy is deleted before it can enter backup retention.
 - If a power loss leaves a candidate PAVLT write temporary and the primary
   container is missing, ProtectedApp now offers an explicit recovery when the
   vault is opened. It never chooses between multiple temporaries, never

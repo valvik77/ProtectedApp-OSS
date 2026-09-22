@@ -595,10 +595,27 @@ public sealed class VaultService : IDisposable
             Directory.CreateDirectory(vaultFolder);
             var fileName = Path.GetFileNameWithoutExtension(sourcePath);
             var targetPath = Path.Combine(vaultFolder, $"{fileName}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.pavault");
-            await CopyFileDurablyAsync(sourcePath, targetPath);
-            if (new FileInfo(targetPath).Length != new FileInfo(sourcePath).Length
-                || !HasStructurallyValidVaultEnvelope(targetPath))
-                throw new IOException("La copia creada no superó la verificación estructural.");
+            byte[]? sourceHash = null;
+            byte[]? targetHash = null;
+            try
+            {
+                sourceHash = await CopyFileDurablyAsync(sourcePath, targetPath, calculateHash: true);
+                targetHash = await ComputeFileHashAsync(targetPath);
+                if (sourceHash is null || new FileInfo(targetPath).Length != new FileInfo(sourcePath).Length
+                    || !CryptographicOperations.FixedTimeEquals(sourceHash, targetHash)
+                    || !HasStructurallyValidVaultEnvelope(targetPath))
+                    throw new IOException("La copia creada no superó la verificación de integridad.");
+            }
+            catch
+            {
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                throw;
+            }
+            finally
+            {
+                if (sourceHash is not null) CryptographicOperations.ZeroMemory(sourceHash);
+                if (targetHash is not null) CryptographicOperations.ZeroMemory(targetHash);
+            }
 
             retentionCount = Math.Clamp(retentionCount, 1, 20);
             foreach (var obsolete in Directory.EnumerateFiles(vaultFolder, "*.pavault", SearchOption.TopDirectoryOnly)
@@ -1975,15 +1992,36 @@ public sealed class VaultService : IDisposable
         catch { return false; }
     }
 
-    private static async Task CopyFileDurablyAsync(string sourcePath, string destinationPath)
+    private static async Task<byte[]?> CopyFileDurablyAsync(string sourcePath, string destinationPath,
+        bool calculateHash = false)
     {
         await using var source = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read,
             64 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await using var destination = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
             64 * 1024, FileOptions.Asynchronous | FileOptions.WriteThrough);
-        await source.CopyToAsync(destination);
-        await destination.FlushAsync();
-        destination.Flush(flushToDisk: true);
+        using var hash = calculateHash ? IncrementalHash.CreateHash(HashAlgorithmName.SHA256) : null;
+        var buffer = new byte[128 * 1024];
+        try
+        {
+            while (true)
+            {
+                var read = await source.ReadAsync(buffer);
+                if (read == 0) break;
+                hash?.AppendData(buffer, 0, read);
+                await destination.WriteAsync(buffer.AsMemory(0, read));
+            }
+            await destination.FlushAsync();
+            destination.Flush(flushToDisk: true);
+            return hash?.GetHashAndReset();
+        }
+        finally { CryptographicOperations.ZeroMemory(buffer); }
+    }
+
+    private static async Task<byte[]> ComputeFileHashAsync(string path)
+    {
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            128 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        return await SHA256.HashDataAsync(stream);
     }
 
     private static string CreateUniquePreservedPath(string primaryPath, string label)

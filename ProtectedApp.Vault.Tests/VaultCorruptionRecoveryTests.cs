@@ -283,6 +283,28 @@ public sealed class VaultCorruptionRecoveryTests
         Assert.Empty(service.FindPendingWriteRecovery(vault));
     }
 
+    [Fact]
+    public async Task ScheduledBackup_IsByteIdenticalAndAuthenticatesAfterCreation()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+        var vault = opened.Vault;
+        vault.VaultFilePath = fixture.VaultPath;
+        var backupRoot = fixture.PathFor("scheduled-backups");
+        using var service = new VaultService();
+
+        var result = await service.CreateScheduledBackupAsync(vault, backupRoot, retentionCount: 2);
+        Assert.True(result.Success, result.Error);
+        var version = Assert.Single(service.ListScheduledBackups(vault, backupRoot));
+        Assert.True(version.EnvelopeValid);
+        Assert.Equal(SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath)),
+            SHA256.HashData(await File.ReadAllBytesAsync(version.Path)));
+
+        var validation = await service.ValidateScheduledBackupAsync(vault, version.Path, VaultPassword);
+        Assert.True(validation.BackupValid, validation.Message);
+        Assert.True(validation.PrimaryValid, validation.Message);
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {

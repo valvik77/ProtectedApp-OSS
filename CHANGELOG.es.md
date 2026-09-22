@@ -12,6 +12,10 @@ firma.
 
 ### Seguridad
 
+- Las copias programadas de bóvedas calculan ahora el SHA-256 del origen durante
+  la copia y lo comparan con el destino ya sincronizado. Una copia que no
+  coincida, no sea estructuralmente válida o falle se elimina antes de entrar
+  en la retención de versiones.
 - Si un corte de energía deja un temporal candidato de escritura PAVLT y falta
   el contenedor principal, ProtectedApp ofrece ahora una recuperación explícita
   al abrir la bóveda. Nunca elige entre varios temporales, no sobrescribe un
