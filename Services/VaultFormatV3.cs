@@ -139,10 +139,11 @@ internal static class VaultFormatV3
                 {
                     var root = Path.GetFullPath(sourceDirectory);
                     if (!Directory.Exists(root)) throw new DirectoryNotFoundException("La carpeta de trabajo no existe.");
-                    foreach (var sourcePath in EnumerateSafePaths(root))
+                    var sourcePaths = EnumerateSafePaths(root);
+                    if (sourcePaths.Count > MaximumEntries)
+                        throw new InvalidDataException("La bóveda contiene demasiados elementos.");
+                    foreach (var sourcePath in sourcePaths)
                     {
-                        if (index.Entries.Count >= MaximumEntries)
-                            throw new InvalidDataException("La bóveda contiene demasiados elementos.");
                         var relative = NormalizeRelativePath(Path.GetRelativePath(root, sourcePath));
                         var isDirectory = Directory.Exists(sourcePath);
                         var entry = new IndexEntry
@@ -227,9 +228,9 @@ internal static class VaultFormatV3
     {
         ValidateKeyMaterial(passwordKey, salt);
         ValidateTpmBinding(tpmBinding);
-        var validatedSources = ValidateVirtualSources(sources);
         ArgumentNullException.ThrowIfNull(existingDataKey);
         if (existingDataKey.Length != KeySize) throw new InvalidDataException("La clave de datos no es válida.");
+        var validatedSources = ValidateVirtualSources(sources);
 
         var dataKey = existingDataKey.ToArray();
         var wrapKey = GetWrapKey(passwordKey, tpmBinding);
@@ -878,8 +879,7 @@ internal static class VaultFormatV3
         var chunks = 0;
         foreach (var entry in index.Entries)
         {
-            entry.Path = NormalizeRelativePath(entry.Path);
-            if (!paths.Add(entry.Path)) throw new InvalidDataException("El índice contiene rutas duplicadas.");
+            entry.Path = NormalizeAndRegisterUniquePath(paths, entry.Path, "El índice contiene rutas duplicadas.");
             if (entry.Length < 0 || entry.IsDirectory && (entry.Length != 0 || entry.Chunks.Count != 0))
                 throw new InvalidDataException("Una entrada del índice no es válida.");
             if (entry.IsDirectory) continue;
@@ -913,8 +913,11 @@ internal static class VaultFormatV3
             throw new InvalidDataException("La zona de datos cifrados no coincide con el índice.");
     }
 
-    private static IEnumerable<string> EnumerateSafePaths(string root)
+    private static IReadOnlyList<string> EnumerateSafePaths(string root)
     {
+        // Already a full, eager walk of the tree (attributes are checked and
+        // every entry collected before this returns), so callers can read
+        // Count to enforce MaximumEntries up front instead of mid-loop.
         var result = new List<string>();
         var stack = new Stack<string>();
         stack.Push(root);
@@ -930,7 +933,7 @@ internal static class VaultFormatV3
                 if ((attributes & FileAttributes.Directory) != 0) stack.Push(path);
             }
         }
-        return result.OrderBy(path => Path.GetRelativePath(root, path), StringComparer.OrdinalIgnoreCase);
+        return result.OrderBy(path => Path.GetRelativePath(root, path), StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     private static string NormalizeRelativePath(string path)
@@ -946,6 +949,20 @@ internal static class VaultFormatV3
         return normalized;
     }
 
+    /// <summary>
+    /// Normalizes <paramref name="path"/> and registers it in <paramref name="seenPaths"/>,
+    /// throwing <paramref name="duplicatePathMessage"/> if it was already present. Shared by
+    /// every validator that must reject duplicate vault entry paths, so the dedup rule can't
+    /// drift between the write-time (caller input) and load-time (on-disk index) checks.
+    /// </summary>
+    private static string NormalizeAndRegisterUniquePath(HashSet<string> seenPaths, string path,
+        string duplicatePathMessage)
+    {
+        var normalized = NormalizeRelativePath(path);
+        if (!seenPaths.Add(normalized)) throw new InvalidDataException(duplicatePathMessage);
+        return normalized;
+    }
+
     private static IReadOnlyList<(VirtualEntrySource Source, string RelativePath)> ValidateVirtualSources(
         IReadOnlyList<VirtualEntrySource> sources)
     {
@@ -956,15 +973,18 @@ internal static class VaultFormatV3
         var result = new List<(VirtualEntrySource Source, string RelativePath)>(sources.Count);
         foreach (var source in sources)
         {
-            if (source is null || source.OpenReadAsync is null)
+            if (source is null) throw new InvalidDataException("La bóveda contiene una entrada virtual no válida.");
+            // OpenReadAsync is only ever invoked for files below; directory placeholders
+            // legitimately have none, so don't demand one here.
+            if (!source.IsDirectory && source.OpenReadAsync is null)
                 throw new InvalidDataException("La bóveda contiene una entrada virtual no válida.");
-            var relativePath = NormalizeRelativePath(source.Path);
-            if (!paths.Add(relativePath)) throw new InvalidDataException("La bóveda contiene rutas duplicadas.");
+            var relativePath = NormalizeAndRegisterUniquePath(paths, source.Path, "La bóveda contiene rutas duplicadas.");
             if (!source.IsDirectory && source.Length < 0)
                 throw new InvalidDataException("La longitud de un archivo no es válida.");
             result.Add((source, relativePath));
         }
-        return result.OrderBy(item => item.RelativePath, StringComparer.OrdinalIgnoreCase).ToArray();
+        result.Sort((left, right) => string.Compare(left.RelativePath, right.RelativePath, StringComparison.OrdinalIgnoreCase));
+        return result;
     }
 
     private static string ResolveExtractionPath(string destinationRoot, string relativePath)
