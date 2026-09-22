@@ -126,6 +126,36 @@ public sealed class VaultCorruptionRecoveryTests
         finally { CryptographicOperations.ZeroMemory(backup); }
     }
 
+    [Fact]
+    public async Task InterruptedVirtualWrite_PreservesThePreviousVault_AndRemovesItsTemporaryFile()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        var original = await File.ReadAllBytesAsync(fixture.VaultPath);
+        var originalHash = SHA256.HashData(original);
+        try
+        {
+            using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+            var source = new VaultFormatV3.VirtualEntrySource("interrupted.bin", false, 128,
+                DateTime.UtcNow, DateTime.UtcNow,
+                () => Task.FromResult<Stream>(new MemoryStream(new byte[64], writable: false)));
+
+            await Assert.ThrowsAsync<IOException>(() => VaultFormatV3.WriteFromVirtualEntriesAsync(
+                opened.Vault, [source], fixture.VaultPath, opened.PasswordKey, opened.Salt, opened.DataKey,
+                opened.TpmBinding, createRecoveryBackup: false));
+
+            Assert.Equal(originalHash, SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath)));
+            Assert.Empty(Directory.EnumerateFiles(fixture.DirectoryPath, ".vault.pavault.*.v3tmp"));
+
+            using var service = new VaultService();
+            Assert.True(await service.VerifyVaultPasswordAsync(fixture.VaultPath, VaultPassword));
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(original);
+            CryptographicOperations.ZeroMemory(originalHash);
+        }
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {
@@ -156,6 +186,7 @@ public sealed class VaultCorruptionRecoveryTests
     {
         private readonly string _root;
         public string VaultPath { get; }
+        public string DirectoryPath => _root;
 
         private VaultFixture(string root, string vaultPath) => (_root, VaultPath) = (root, vaultPath);
 

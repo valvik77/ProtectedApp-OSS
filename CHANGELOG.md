@@ -16,7 +16,9 @@ candidate** is not a public release and must not be distributed as one; see
   delta journals and encrypted backups must be rejected without altering the
   original vault. The tests also make the intended lazy verification boundary
   explicit: the envelope is authenticated when opening a vault and each file
-  block is authenticated before it is read.
+  block is authenticated before it is read. An interrupted virtual write is
+  also required to preserve the previous container byte-for-byte and remove its
+  incomplete temporary file.
 
 ## 1.4.211 — 2026-09-22 (development pre-release)
 

@@ -18,6 +18,8 @@ firma.
   rechazarse sin modificar la bóveda original. Las pruebas también dejan
   explícito el límite de verificación diferida: el sobre se autentica al abrir
   la bóveda y cada bloque de archivo antes de leerse.
+  Una escritura virtual interrumpida también debe conservar el contenedor
+  previo byte a byte y eliminar su archivo temporal incompleto.
 
 ## 1.4.211 — 2026-09-22 (pre-release de desarrollo)
 
