@@ -408,6 +408,11 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory)
             { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
             var children = _children.TryGetValue(path, out var existingChildren) ? existingChildren : [];
+            // The recycle area is ProtectedApp's own bookkeeping, not user
+            // content: hide it from the mounted drive so it cannot be browsed,
+            // renamed or deleted piecemeal by the application being used.
+            if (path.Length == 0)
+                children = children.Where(child => !IsRecyclePath(child.Path)).ToList();
             if (string.IsNullOrWhiteSpace(pattern))
             {
                 if (!_unfilteredDirectoryEntries.TryGetValue(path, out var entries))
@@ -430,11 +435,89 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     {
         if (!_nodes.TryGetValue(path, out var node) || node.IsDirectory != directory) return;
         if (directory && _nodes.Keys.Any(candidate => GetParent(candidate).Equals(path, StringComparison.OrdinalIgnoreCase))) return;
+        if (TryRecycle(path, node))
+        {
+            RebuildChildren();
+            MarkChanged();
+            return;
+        }
         ClearBlocks(node);
         _nodes.Remove(path);
         RebuildChildren();
         MarkChanged();
     }
+
+    /// <summary>
+    /// Moves a deleted entry into the vault's recycle area instead of dropping
+    /// it, so a deletion inside a virtual drive stays recoverable until the
+    /// user empties it.
+    /// </summary>
+    /// <remarks>
+    /// The entry keeps its encrypted blocks and simply changes path, so this
+    /// costs no re-encryption and the existing journal and commit paths carry
+    /// it unchanged. Entries already inside the recycle area are deleted for
+    /// real, which is what makes emptying it possible.
+    /// </remarks>
+    private bool TryRecycle(string path, Node node)
+    {
+        if (!RecycleEnabled || IsRecyclePath(path)) return false;
+        // A directory is recycled only as a whole, and it is empty by the time
+        // we get here, so its children never need rewriting.
+        var stamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+        var name = GetName(path);
+        var target = $"{RecycleFolderName}/{stamp} {name}";
+        // Two deletions can land in the same millisecond, and deleting the same
+        // name twice is ordinary (save, delete, recreate, delete). Falling back
+        // to a real delete on a collision would silently lose the file, so
+        // disambiguate instead.
+        for (var attempt = 2; _nodes.ContainsKey(target) && attempt < 1_000; attempt++)
+            target = $"{RecycleFolderName}/{stamp} ({attempt}) {name}";
+        if (_nodes.ContainsKey(target)) return false;
+        EnsureParents(target);
+        _nodes.Remove(path);
+        // Only the path changes; the node keeps its kind, blocks and timestamps.
+        node.Path = target;
+        _nodes[target] = node;
+        return true;
+    }
+
+    /// <summary>Permanently removes everything in the recycle area.</summary>
+    public int EmptyRecycleBin()
+    {
+        lock (_sync)
+        {
+            var removed = 0;
+            var cleared = 0;
+            foreach (var path in _nodes.Keys.Where(IsRecyclePath).ToArray())
+            {
+                if (!_nodes.TryGetValue(path, out var node)) continue;
+                ClearBlocks(node);
+                _nodes.Remove(path);
+                cleared++;
+                // Report what the user deleted, not the container folders that
+                // held it: "2 entries" for one recycled file would be wrong.
+                if (!node.IsDirectory) removed++;
+            }
+            if (cleared == 0) return 0;
+            RebuildChildren();
+            MarkChanged();
+            return removed;
+        }
+    }
+
+    /// <summary>How many recoverable entries the recycle area currently holds.</summary>
+    public int CountRecycledEntries()
+    {
+        lock (_sync) return _nodes.Keys.Count(path => IsRecyclePath(path) && !_nodes[path].IsDirectory);
+    }
+
+    private static bool IsRecyclePath(string path) =>
+        path.Equals(RecycleFolderName, StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith(RecycleFolderName + "/", StringComparison.OrdinalIgnoreCase);
+
+    internal const string RecycleFolderName = ".ProtectedApp.Recycle";
+    /// <summary>Set false for a mount that must delete outright, such as a repair pass.</summary>
+    public bool RecycleEnabled { get; set; } = true;
 
     private void MarkChanged()
     {

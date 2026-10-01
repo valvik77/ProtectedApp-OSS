@@ -1,0 +1,147 @@
+using DokanNet;
+using ProtectedApp.Models;
+using ProtectedApp.Services;
+using Xunit;
+
+namespace ProtectedApp.Vault.Tests;
+
+/// <summary>
+/// Deleting a file inside an editable vault must stay recoverable until the
+/// user empties the recycle area, and the area itself must never be visible
+/// to the applications working on the mounted drive.
+/// </summary>
+public sealed class VaultRecycleBinTests
+{
+    [Fact]
+    public async Task ADeletedFileIsRecoverableAndHiddenFromTheMountedDrive()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            Assert.Equal(NtStatus.Success, overlay.DeleteFile("\\notes.txt", Info()));
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+
+            // Gone from the drive the user sees...
+            Assert.Equal(NtStatus.Success, overlay.FindFiles("\\", out var listing, null!));
+            Assert.DoesNotContain(listing, item => item.FileName == "notes.txt");
+            // ...but still inside the vault, and the recycle folder itself is
+            // not browsable, so an application cannot tamper with it.
+            Assert.Equal(1, overlay.CountRecycledEntries());
+            Assert.DoesNotContain(listing,
+                item => item.FileName == VaultReadWriteFileSystem.RecycleFolderName);
+
+            // The retained copy must survive a commit, not just live in memory.
+            var snapshot = overlay.CreateSnapshot();
+            Assert.Contains(snapshot, source =>
+                source.Path.StartsWith(VaultReadWriteFileSystem.RecycleFolderName + "/",
+                    StringComparison.Ordinal));
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task EmptyingTheRecycleAreaDiscardsTheRetainedCopies()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+            Assert.Equal(1, overlay.CountRecycledEntries());
+
+            Assert.Equal(1, overlay.EmptyRecycleBin());
+
+            Assert.Equal(0, overlay.CountRecycledEntries());
+            Assert.DoesNotContain(overlay.CreateSnapshot(), source =>
+                source.Path.StartsWith(VaultReadWriteFileSystem.RecycleFolderName,
+                    StringComparison.Ordinal));
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task DeletingTheSameNameTwiceKeepsBothCopies()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+
+            // Recreate the file and delete it again; neither copy may be lost.
+            Assert.Equal(NtStatus.Success, overlay.CreateFile("\\notes.txt", DokanNet.FileAccess.WriteData,
+                FileShare.None, FileMode.Create, FileOptions.None, FileAttributes.Normal, Info()));
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+
+            // Both copies must survive even when the two deletions share a
+            // timestamp, which is what happens in a fast loop like this one.
+            Assert.Equal(2, overlay.CountRecycledEntries());
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task RecyclingCanBeTurnedOffForAMountThatMustDeleteOutright()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.RecycleEnabled = false;
+
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+
+            Assert.Equal(0, overlay.CountRecycledEntries());
+            Assert.DoesNotContain(overlay.CreateSnapshot(), source => source.Path == "notes.txt");
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task AWriteProtectedMountNeverRecyclesAnything()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            Assert.Equal(NtStatus.AccessDenied, overlay.DeleteFile("\\notes.txt", Info()));
+            Assert.Equal(0, overlay.CountRecycledEntries());
+            await Task.CompletedTask;
+        }, writeProtected: true);
+    }
+
+    private static IDokanFileInfo Info(bool deletePending = false) =>
+        new TestFileInfo { DeletePending = deletePending };
+
+    private static async Task WithVaultAsync(Func<VaultReadWriteFileSystem, Task> body,
+        bool writeProtected = false)
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp-Recycle-" + Guid.NewGuid().ToString("N"));
+        var sourceRoot = Path.Combine(root, "source");
+        var vaultPath = Path.Combine(root, "test.pavault");
+        Directory.CreateDirectory(sourceRoot);
+        await File.WriteAllTextAsync(Path.Combine(sourceRoot, "notes.txt"), "recoverable content");
+        var vault = new VaultContainer { Id = Guid.NewGuid(), Name = "Recycle", AutoLockMinutes = 5 };
+        const string password = "ProtectedApp-Recycle-Bin";
+        try
+        {
+            await VaultFormatV3.WriteNewAsync(vault, vaultPath, password, sourceRoot,
+                createRecoveryBackup: false);
+            using var opened = await VaultFormatV3.OpenAsync(vaultPath, password);
+            using var overlay = new VaultReadWriteFileSystem(opened, writeProtected: writeProtected);
+            await body(overlay);
+        }
+        finally
+        {
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch (IOException) { }
+        }
+    }
+
+    private sealed class TestFileInfo : IDokanFileInfo
+    {
+        public object? Context { get; set; }
+        public bool DeleteOnClose { get; set; }
+        public bool DeletePending { get; set; }
+        public bool IsDirectory { get; set; }
+        public bool NoCache { get; set; }
+        public bool PagingIo { get; set; }
+        public int ProcessId => 0;
+        public bool SynchronousIo { get; set; }
+        public bool WriteToEndOfFile { get; set; }
+        public System.Security.Principal.WindowsIdentity GetRequestor() =>
+            System.Security.Principal.WindowsIdentity.GetCurrent();
+        public bool TryResetTimeout(int milliseconds) => true;
+    }
+}
