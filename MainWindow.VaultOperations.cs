@@ -66,12 +66,19 @@ public sealed partial class MainWindow
                 return;
             }
 
-            // Built in code rather than as a DataTemplate: a template defined
-            // here would need runtime XAML parsing, and the rows are static.
-            var rows = new StackPanel { Spacing = 2 };
+            // Extended gives the Explorer selection behaviour for free: click,
+            // Shift+click for a run, Ctrl+click to toggle, Ctrl+A for all.
+            var list = new ListView
+            {
+                SelectionMode = ListViewSelectionMode.Extended,
+                MaxHeight = 320,
+                IsItemClickEnabled = false
+            };
+            // Rows are built in code rather than from a DataTemplate, which
+            // here would need runtime XAML parsing for a static layout.
             foreach (var entry in entries)
             {
-                var row = new StackPanel { Spacing = 1, Padding = new Thickness(0, 4, 0, 4), Tag = entry };
+                var row = new StackPanel { Spacing = 1, Padding = new Thickness(0, 4, 0, 4) };
                 row.Children.Add(new TextBlock
                 {
                     Text = entry.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
@@ -84,19 +91,7 @@ public sealed partial class MainWindow
                         TextTrimming = TextTrimming.CharacterEllipsis
                     });
                 row.Children.Add(new TextBlock { Text = entry.DeletedLabel, FontSize = 11, Opacity = 0.7 });
-                rows.Children.Add(row);
-            }
-
-            var list = new ListView
-            {
-                SelectionMode = ListViewSelectionMode.Single,
-                MaxHeight = 320,
-                IsItemClickEnabled = false
-            };
-            foreach (var row in rows.Children.OfType<StackPanel>().ToArray())
-            {
-                rows.Children.Remove(row);
-                list.Items.Add(new ListViewItem { Content = row, Tag = row.Tag });
+                list.Items.Add(new ListViewItem { Content = row, Tag = entry });
             }
             list.SelectedIndex = 0;
 
@@ -107,42 +102,87 @@ public sealed partial class MainWindow
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = Application.Current.Resources["MutedTextBrush"] as Brush
             };
+            var hint = new TextBlock
+            {
+                Text = "Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos.",
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Application.Current.Resources["MutedTextBrush"] as Brush
+            };
             var panel = new StackPanel { Spacing = 10 };
             panel.Children.Add(summary);
             panel.Children.Add(list);
+            panel.Children.Add(hint);
 
             var dialog = CreateDialog($"Papelera de {vault.Name}", panel, "Restaurar", "Cerrar");
             dialog.SecondaryButtonText = LocalizationService.T("Eliminar definitivamente");
             var choice = await dialog.ShowAsync();
             if (choice == ContentDialogResult.None) { RefreshVaults(); return; }
-            if ((list.SelectedItem as ListViewItem)?.Tag is not VaultRecycledEntry selected) continue;
+
+            var selected = list.SelectedItems
+                .OfType<ListViewItem>()
+                .Select(item => item.Tag)
+                .OfType<VaultRecycledEntry>()
+                .ToArray();
+            if (selected.Length == 0) continue;
 
             if (choice == ContentDialogResult.Primary)
             {
-                var restored = _vaultService.RestoreRecycledEntry(vault, selected.Id);
-                if (restored is null)
-                {
-                    await ShowMessageAsync("No se pudo restaurar",
-                        _vaultService.LastError ?? "No se pudo restaurar el archivo.");
-                    continue;
-                }
-                AddActivity(vault.Name, $"Archivo restaurado desde la papelera: {restored}");
+                await RestoreRecycledEntriesAsync(vault, selected);
                 continue;
             }
 
-            // Discarding one entry is irreversible once the vault is saved, so
-            // it needs the master password just like emptying the whole bin.
-            if (!await VerifyMasterAsync($"Eliminar {selected.Name} de la papelera")) continue;
-            if (!_vaultService.DiscardRecycledEntry(vault, selected.Id))
-            {
-                await ShowMessageAsync("No se pudo eliminar",
-                    _vaultService.LastError ?? "No se pudo eliminar el archivo.");
-                continue;
-            }
-            AddActivity(vault.Name, $"Archivo eliminado definitivamente de la papelera: {selected.OriginalPath}");
+            // Discarding is irreversible once the vault is saved, so it needs
+            // the master password just like emptying the whole bin.
+            var prompt = selected.Length == 1
+                ? $"Eliminar {selected[0].Name} de la papelera"
+                : $"Eliminar {selected.Length} archivos de la papelera";
+            if (!await VerifyMasterAsync(prompt)) continue;
+            await DiscardRecycledEntriesAsync(vault, selected);
         }
     }
 
+    /// <summary>
+    /// Restores every selected entry, reporting the ones that could not be put
+    /// back rather than stopping at the first failure.
+    /// </summary>
+    private async Task RestoreRecycledEntriesAsync(VaultContainer vault,
+        IReadOnlyList<VaultRecycledEntry> selected)
+    {
+        var restored = 0;
+        var blocked = new List<string>();
+        foreach (var entry in selected)
+        {
+            if (_vaultService.RestoreRecycledEntry(vault, entry.Id) is { } path)
+            {
+                restored++;
+                AddActivity(vault.Name, $"Archivo restaurado desde la papelera: {path}");
+            }
+            else blocked.Add(entry.OriginalPath);
+        }
+
+        if (blocked.Count > 0)
+            await ShowMessageAsync("No se pudieron restaurar todos los archivos",
+                $"Se restauraron {restored} de {selected.Count}. Estos conservan un archivo con la misma ruta en la bóveda:"
+                + Environment.NewLine + string.Join(Environment.NewLine, blocked.Take(10))
+                + (blocked.Count > 10 ? Environment.NewLine + "…" : string.Empty));
+    }
+
+    /// <summary>Permanently discards every selected entry.</summary>
+    private async Task DiscardRecycledEntriesAsync(VaultContainer vault,
+        IReadOnlyList<VaultRecycledEntry> selected)
+    {
+        var discarded = 0;
+        foreach (var entry in selected)
+        {
+            if (!_vaultService.DiscardRecycledEntry(vault, entry.Id)) continue;
+            discarded++;
+            AddActivity(vault.Name, $"Archivo eliminado definitivamente de la papelera: {entry.OriginalPath}");
+        }
+        if (discarded < selected.Count)
+            await ShowMessageAsync("No se pudieron eliminar todos los archivos",
+                _vaultService.LastError ?? $"Se eliminaron {discarded} de {selected.Count}.");
+    }
 
     private async void AddVaultButton_Click(object sender, RoutedEventArgs e)
     {

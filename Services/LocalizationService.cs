@@ -428,6 +428,9 @@ public static class LocalizationService
         ["Reaperturas sin contraseña"] = "Password-free reopenings",
         ["Solo mientras continúe abierta"] = "Only while it remains open",
         ["Papelera de la bóveda"] = "Vault recycle bin",
+        ["Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos."] = "Use Shift to select a range and Ctrl to pick individual files.",
+        ["No se pudieron restaurar todos los archivos"] = "Some files could not be restored",
+        ["No se pudieron eliminar todos los archivos"] = "Some files could not be deleted",
         // Kept for the activity log and backups written before the menu entry
         // was renamed from "Vaciar papelera..." to "Papelera de la bóveda".
         ["Vaciar papelera de la bóveda"] = "Empty the vault's recycle bin",
@@ -1853,6 +1856,14 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Atajo global: (.+)$");
         if (match.Success) return $"Global shortcut: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Eliminar (\d+) archivos de la papelera$");
+        if (match.Success) return $"Delete {match.Groups[1].Value} files from the recycle bin";
+        match = Regex.Match(value, @"^Eliminar (.+) de la papelera$");
+        if (match.Success) return $"Delete {match.Groups[1].Value} from the recycle bin";
+        match = Regex.Match(value, @"^Se restauraron (\d+) de (\d+)\. Estos conservan un archivo con la misma ruta en la bóveda:$");
+        if (match.Success) return $"{match.Groups[1].Value} of {match.Groups[2].Value} were restored. These still have a file at the same path inside the vault:";
+        match = Regex.Match(value, @"^Se eliminaron (\d+) de (\d+)\.$");
+        if (match.Success) return $"{match.Groups[1].Value} of {match.Groups[2].Value} were deleted.";
         match = Regex.Match(value, @"^Papelera de (.+)$");
         if (match.Success) return $"Recycle bin of {match.Groups[1].Value}";
         match = Regex.Match(value, @"^(\d+) archivo\(s\) eliminados se conservan dentro de la bóveda\. El espacio se libera al guardar y bloquear\.$");
@@ -2122,6 +2133,14 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Global shortcut: (.+)$");
         if (match.Success) return $"Atajo global: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Delete (\d+) files from the recycle bin$");
+        if (match.Success) return $"Eliminar {match.Groups[1].Value} archivos de la papelera";
+        match = Regex.Match(value, @"^Delete (.+) from the recycle bin$");
+        if (match.Success) return $"Eliminar {match.Groups[1].Value} de la papelera";
+        match = Regex.Match(value, @"^(\d+) of (\d+) were restored\. These still have a file at the same path inside the vault:$");
+        if (match.Success) return $"Se restauraron {match.Groups[1].Value} de {match.Groups[2].Value}. Estos conservan un archivo con la misma ruta en la bóveda:";
+        match = Regex.Match(value, @"^(\d+) of (\d+) were deleted\.$");
+        if (match.Success) return $"Se eliminaron {match.Groups[1].Value} de {match.Groups[2].Value}.";
         match = Regex.Match(value, @"^Recycle bin of (.+)$");
         if (match.Success) return $"Papelera de {match.Groups[1].Value}";
         match = Regex.Match(value, @"^(\d+) deleted file\(s\) are retained inside the vault\. The space is reclaimed when you save and lock\.$");

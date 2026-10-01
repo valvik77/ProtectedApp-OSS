@@ -6,6 +6,38 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class LocalizationServiceTests
 {
     [Fact]
+    public void Localizes_TheRecycleBinMultipleSelection_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Use Shift to select a range and Ctrl to pick individual files.",
+                LocalizationService.T("Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos."));
+            Assert.Equal("Some files could not be restored",
+                LocalizationService.T("No se pudieron restaurar todos los archivos"));
+            // The counted variant must win over the generic "Eliminar (.+)" one.
+            Assert.Equal("Delete 4 files from the recycle bin",
+                LocalizationService.T("Eliminar 4 archivos de la papelera"));
+            Assert.Equal("Delete notas.txt from the recycle bin",
+                LocalizationService.T("Eliminar notas.txt de la papelera"));
+            Assert.Equal("2 of 5 were deleted.", LocalizationService.T("Se eliminaron 2 de 5."));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Eliminar 4 archivos de la papelera",
+                LocalizationService.T("Delete 4 files from the recycle bin"));
+            Assert.Equal("Eliminar notas.txt de la papelera",
+                LocalizationService.T("Delete notas.txt from the recycle bin"));
+            Assert.Equal("Se eliminaron 2 de 5.", LocalizationService.T("2 of 5 were deleted."));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
     public void Localizes_TheVaultRecycleBinDialog_InBothDirections()
     {
         try
