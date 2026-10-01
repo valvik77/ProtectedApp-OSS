@@ -12,6 +12,59 @@ firma.
 
 Sin cambios todavía.
 
+## 1.4.213 — 2026-10-01 (pre-release de desarrollo)
+
+### Añadido
+
+- El aviso de cierre automático permite ahora elegir cuánto se amplía la
+  sesión, en lugar de ofrecer solo el intervalo configurado de la aplicación.
+  El selector viene preseleccionado con ese intervalo y ofrece además 5, 15, 30
+  y 60 minutos. La elección se aplica únicamente a la sesión en curso: la regla
+  guardada no se modifica, así que el siguiente arranque vuelve a usar su
+  intervalo configurado. Ampliar sigue requiriendo la misma autorización que
+  antes —un token de sesión válido o la contraseña maestra— y la duración
+  solicitada se limita al mismo máximo que admite una regla.
+
+### Corregido
+
+- Una configuración local ilegible ya no se sustituye por una vacía sin
+  explicación. El archivo original se conservaba junto al nuevo, pero nada lo
+  indicaba, por lo que un archivo dañado y un primer arranque resultaban
+  idénticos y el panel aparecía simplemente vacío. ProtectedApp indica ahora
+  dónde está la copia conservada y remite a las copias de configuración.
+- Dos fallos recuperables al escribir una bóveda no dejaban ningún rastro, lo
+  que hacía imposible investigar un problema intermitente de disco o de
+  antivirus. Ambos se registran ahora. Cuando falla restaurar una copia *y*
+  también falla devolver el contenedor original a su sitio, el mensaje nombra
+  el archivo que contiene la bóveda anterior en lugar de informar solo del
+  primer error.
+- Cuatro textos del nuevo selector del aviso de cierre no estaban en el
+  diccionario inglés y habrían permanecido en español con la aplicación en
+  inglés.
+
+### Seguridad
+
+- Cambiar el nombre dentro de una bóveda editable rechaza ahora una ruta no
+  segura en el momento en que se almacenaría, en lugar de depender únicamente
+  de la validación que se realiza al escribir la bóveda. Antes de este cambio
+  ninguna ruta no segura podía llegar al disco.
+- El secreto de instalación de Guardian, de un solo uso, se crea con una ACL
+  restrictiva ya aplicada, en lugar de escribirse primero y endurecerse
+  después.
+
+### Interno
+
+- El proyecto de pruebas de Guardian podía omitirse por completo sin fallar:
+  una compilación `Release` de la solución y un `dotnet test` sin
+  `-p:Platform=x64` discrepaban sobre la ruta de salida, por lo que no se
+  encontraba ningún ensamblado de pruebas y la ejecución terminaba igualmente
+  con éxito. Los comandos documentados en el README en inglés reproducían este
+  comportamiento; la integración continua nunca lo hizo.
+- Ocho pruebas que requieren una instalación real, nombres cortos 8.3 o el
+  subsistema de 32 bits se declaraban superadas cuando faltaba su condición
+  previa. Ahora se informan como omitidas y con su nombre, de modo que una
+  ejecución en verde ya no afirma más de lo que ha verificado.
+
 ## 1.4.212 — 2026-09-22 (pre-release de desarrollo)
 
 ### Seguridad

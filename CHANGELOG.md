@@ -11,6 +11,55 @@ candidate** is not a public release and must not be distributed as one; see
 
 No changes yet.
 
+## 1.4.213 — 2026-10-01 (development pre-release)
+
+### Added
+
+- The automatic-close warning now lets you choose how long to extend the
+  session instead of offering only the application's configured interval. The
+  selector is preselected to that interval and also offers 5, 15, 30 and 60
+  minutes. The choice applies to the current session only: the saved rule is
+  never rewritten, so the next launch uses its configured interval again.
+  Extending still requires the same authorization as before — a valid session
+  token or the master password — and a requested duration is limited to the
+  same maximum a rule accepts.
+
+### Fixed
+
+- An unreadable local configuration is no longer replaced by an empty one
+  without explanation. The original file was already preserved next to the new
+  one, but nothing said so, so a damaged file and a first run looked identical
+  and the panel simply appeared empty. ProtectedApp now reports where the
+  preserved copy is and points to configuration backups.
+- Two recoverable failures while writing a vault left no trace, which made an
+  intermittent disk or antivirus problem impossible to investigate. Both are
+  now recorded. When restoring a backup fails *and* reinstating the original
+  container also fails, the message now names the file that holds the previous
+  vault instead of reporting only the first error.
+- Four labels in the new close-warning selector were missing from the English
+  dictionary and would have remained in Spanish with the application in
+  English.
+
+### Security
+
+- Renaming inside an editable vault now rejects an unsafe path at the point it
+  would be stored, instead of relying only on the validation performed when the
+  vault is written. No unsafe path could reach disk before this change.
+- The single-use Guardian installation secret is created with a restrictive ACL
+  already applied, rather than being written first and hardened afterwards.
+
+### Internal
+
+- The Guardian test project could be skipped in its entirety without failing:
+  a `Release` build of the solution and a `dotnet test` without
+  `-p:Platform=x64` disagreed about the output path, so no test assembly was
+  found and the run still succeeded. The documented build commands in the
+  English README reproduced this; continuous integration never did.
+- Eight tests that require a real installation, 8.3 short names or the 32-bit
+  subsystem reported themselves as passed when their precondition was absent.
+  They are now reported as skipped and named, so a green run no longer claims
+  more than it verified.
+
 ## 1.4.212 — 2026-09-22 (development pre-release)
 
 ### Security
