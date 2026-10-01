@@ -11,12 +11,15 @@ namespace ProtectedApp;
 public sealed partial class MainWindow
 {
     private sealed record TimePolicyEditor(StackPanel Panel, ComboBox TrustBox, TextBox TrustCustom,
-        TextBlock TrustMaximumText, ComboBox CloseMode, ComboBox CloseBox, TextBox CloseCustom, TextBlock CloseMaximumText);
+        TextBlock TrustMaximumText, ComboBox CloseMode, ComboBox CloseBox, TextBox CloseCustom,
+        TextBlock CloseMaximumText, CheckBox ForceWhenUnresponsive, ComboBox QuotaBox, TextBox QuotaCustom,
+        TextBlock QuotaMaximumText);
     private sealed record ScheduleEditor(StackPanel Panel, ComboBox Mode, ToggleButton[] DayButtons,
         TimePicker Start, TimePicker End);
 
     private static TimePolicyEditor CreateTimePolicyEditor(int unlockMinutes, int forceCloseMinutes,
-        int forceCloseAfterInactivityMinutes)
+        int forceCloseAfterInactivityMinutes, bool forceCloseWhenUnresponsive = true,
+        int dailyQuotaMinutes = 0)
     {
         var trustBox = CreateMinutePresetBox("Reaperturas sin contraseña", "Solo mientras continúe abierta", unlockMinutes, out var trustCustom, out var trustCustomHost, out var trustMaximumText);
         var usesInactivity = forceCloseAfterInactivityMinutes > 0;
@@ -33,8 +36,25 @@ public sealed partial class MainWindow
         var trustColumn = new StackPanel { Spacing = 6 }; trustColumn.Children.Add(trustBox); trustColumn.Children.Add(trustCustomHost);
         var closeColumn = new StackPanel { Spacing = 6 }; closeColumn.Children.Add(closeMode); closeColumn.Children.Add(closeBox); closeColumn.Children.Add(closeCustomHost);
         columns.Children.Add(trustColumn); Grid.SetColumn(closeColumn, 1); columns.Children.Add(closeColumn);
-        var panel = new StackPanel { Spacing = 8 }; panel.Children.Add(columns); panel.Children.Add(description);
-        var editor = new TimePolicyEditor(panel, trustBox, trustCustom, trustMaximumText, closeMode, closeBox, closeCustom, closeMaximumText);
+        var forceUnresponsive = new CheckBox
+        {
+            Content = "Forzar el cierre si la aplicación no responde",
+            IsChecked = forceCloseWhenUnresponsive
+        };
+        ToolTipService.SetToolTip(forceUnresponsive, "Desactívalo para que ProtectedApp nunca cierre la aplicación por la fuerza. Si queda un diálogo de guardado sin responder, se deja abierta y se vuelve a pedir el cierre más tarde.");
+        var unresponsiveDescription = new TextBlock { Text = "Si se desactiva, una aplicación con cambios sin guardar permanece abierta en lugar de perderlos.", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Application.Current.Resources["MutedTextBrush"] as Brush };
+        var quotaBox = CreateMinutePresetBox("Tiempo diario máximo", "Sin límite diario", dailyQuotaMinutes, out var quotaCustom, out var quotaCustomHost, out var quotaMaximumText);
+        var quotaDescription = new TextBlock { Text = "Al agotarse, la aplicación se cierra y no puede reabrirse con su contraseña hasta el día siguiente. La contraseña maestra siempre permite anularlo.", FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Application.Current.Resources["MutedTextBrush"] as Brush };
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(columns);
+        panel.Children.Add(description);
+        panel.Children.Add(forceUnresponsive);
+        panel.Children.Add(unresponsiveDescription);
+        panel.Children.Add(quotaBox);
+        panel.Children.Add(quotaCustomHost);
+        panel.Children.Add(quotaDescription);
+        var editor = new TimePolicyEditor(panel, trustBox, trustCustom, trustMaximumText, closeMode, closeBox,
+            closeCustom, closeMaximumText, forceUnresponsive, quotaBox, quotaCustom, quotaMaximumText);
         closeMode.SelectionChanged += (_, _) => UpdateTimePolicyConstraints(editor); closeBox.SelectionChanged += (_, _) => UpdateTimePolicyConstraints(editor); closeCustom.TextChanged += (_, _) => UpdateTimePolicyConstraints(editor); UpdateTimePolicyConstraints(editor);
         return editor;
     }
@@ -163,8 +183,16 @@ public sealed partial class MainWindow
     }
 
     private static bool TryReadTimePolicy(TimePolicyEditor editor, out int unlockMinutes,
-        out int forceCloseMinutes, out int forceCloseAfterInactivityMinutes, out string error)
+        out int forceCloseMinutes, out int forceCloseAfterInactivityMinutes, out string error) =>
+        TryReadTimePolicy(editor, out unlockMinutes, out forceCloseMinutes,
+            out forceCloseAfterInactivityMinutes, out _, out _, out error);
+
+    private static bool TryReadTimePolicy(TimePolicyEditor editor, out int unlockMinutes,
+        out int forceCloseMinutes, out int forceCloseAfterInactivityMinutes,
+        out bool forceCloseWhenUnresponsive, out int dailyQuotaMinutes, out string error)
     {
+        forceCloseWhenUnresponsive = editor.ForceWhenUnresponsive.IsChecked == true;
+        dailyQuotaMinutes = 0;
         if (!TryReadMinutes(editor.TrustBox, editor.TrustCustom, out unlockMinutes))
         {
             forceCloseMinutes = forceCloseAfterInactivityMinutes = 0;
@@ -186,6 +214,17 @@ public sealed partial class MainWindow
         if (closeLimit > 0 && unlockMinutes > closeLimit)
         {
             error = "El periodo de confianza no puede superar el tiempo de cierre automático.";
+            return false;
+        }
+        if (!TryReadMinutes(editor.QuotaBox, editor.QuotaCustom, out dailyQuotaMinutes))
+        {
+            error = "Indica un número entero de minutos para el tiempo diario máximo (entre 1 y 1.440).";
+            return false;
+        }
+        if (dailyQuotaMinutes > 1_440)
+        {
+            // A quota longer than a day can never be reached before the reset.
+            error = "El tiempo diario máximo no puede superar 1.440 min (24 h).";
             return false;
         }
         error = string.Empty;

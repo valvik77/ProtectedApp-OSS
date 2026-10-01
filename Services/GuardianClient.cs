@@ -263,6 +263,8 @@ public sealed class GuardianClient
             UnlockGraceMinutes = app.UnlockGraceMinutes,
             ForceCloseAfterMinutes = app.ForceCloseAfterMinutes,
             ForceCloseAfterInactivityMinutes = app.ForceCloseAfterInactivityMinutes,
+            ForceCloseWhenUnresponsive = app.ForceCloseWhenUnresponsive,
+            DailyQuotaMinutes = app.DailyQuotaMinutes,
             ScheduleEnabled = app.ScheduleEnabled,
             ScheduleDays = app.ScheduleDays,
             ScheduleStartMinutes = app.ScheduleStartMinutes,

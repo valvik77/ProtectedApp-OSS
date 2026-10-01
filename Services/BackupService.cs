@@ -154,6 +154,7 @@ public static class BackupService
             var unlockGrace = Math.Clamp(application.UnlockGraceMinutes, 0, 10_080);
             var closeLimit = Math.Max(forcedClose, inactiveClose);
             if (closeLimit > 0 && unlockGrace > closeLimit) unlockGrace = closeLimit;
+            var dailyQuota = Math.Clamp(application.DailyQuotaMinutes, 0, 1_440);
             var scheduleDays = application.ScheduleDays & (int)ScheduleDays.EveryDay;
             if (application.ScheduleEnabled && scheduleDays == 0)
                 throw new InvalidDataException("La copia contiene un horario sin días seleccionados.");
@@ -174,6 +175,8 @@ public static class BackupService
                 UnlockGraceMinutes = unlockGrace,
                 ForceCloseAfterMinutes = forcedClose,
                 ForceCloseAfterInactivityMinutes = inactiveClose,
+                ForceCloseWhenUnresponsive = application.ForceCloseWhenUnresponsive,
+                DailyQuotaMinutes = dailyQuota,
                 ScheduleEnabled = application.ScheduleEnabled,
                 ScheduleDays = scheduleDays,
                 ScheduleStartMinutes = Math.Clamp(application.ScheduleStartMinutes, 0, 1_439),

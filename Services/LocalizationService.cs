@@ -428,6 +428,14 @@ public static class LocalizationService
         ["Reaperturas sin contraseña"] = "Password-free reopenings",
         ["Solo mientras continúe abierta"] = "Only while it remains open",
         ["Cierre automático"] = "Automatic closing",
+        ["Forzar el cierre si la aplicación no responde"] = "Force the application closed if it does not respond",
+        ["Desactívalo para que ProtectedApp nunca cierre la aplicación por la fuerza. Si queda un diálogo de guardado sin responder, se deja abierta y se vuelve a pedir el cierre más tarde."] = "Turn this off so ProtectedApp never forces the application closed. If a save dialog is left unanswered, the application stays open and the close request is repeated later.",
+        ["Si se desactiva, una aplicación con cambios sin guardar permanece abierta en lugar de perderlos."] = "When turned off, an application with unsaved changes stays open instead of losing them.",
+        ["Tiempo diario máximo"] = "Maximum time per day",
+        ["Sin límite diario"] = "No daily limit",
+        ["Al agotarse, la aplicación se cierra y no puede reabrirse con su contraseña hasta el día siguiente. La contraseña maestra siempre permite anularlo."] = "Once it runs out, the application is closed and cannot be reopened with its own password until the next day. The master password always overrides it.",
+        ["El tiempo diario máximo no puede superar 1.440 min (24 h)."] = "The maximum time per day cannot exceed 1,440 min (24 h).",
+        ["Indica un número entero de minutos para el tiempo diario máximo (entre 1 y 1.440)."] = "Enter a whole number of minutes for the maximum time per day (between 1 and 1,440).",
         ["Desactivado"] = "Disabled",
         ["Tras tiempo de uso"] = "After usage time",
         ["Tras inactividad"] = "After inactivity",
@@ -1886,6 +1894,12 @@ public static class LocalizationService
         if (match.Success) return $"Encrypted backup exported with {match.Groups[1].Value} applications and {match.Groups[2].Value} folders";
         match = Regex.Match(value, @"^Cierre automático ampliado (\d+) min$");
         if (match.Success) return $"Automatic closing extended by {match.Groups[1].Value} min";
+        // The longer variant must be tested first: the shorter pattern is a
+        // prefix of it and would otherwise leave the override hint untranslated.
+        match = Regex.Match(value, @"^(.+) ha agotado su tiempo diario de (\d+) min\. Usa la contraseña maestra para anularlo\.$");
+        if (match.Success) return $"{match.Groups[1].Value} has used up its daily allowance of {match.Groups[2].Value} min. Use the master password to override it.";
+        match = Regex.Match(value, @"^(.+) ha agotado su tiempo diario de (\d+) min\.$");
+        if (match.Success) return $"{match.Groups[1].Value} has used up its daily allowance of {match.Groups[2].Value} min.";
         match = Regex.Match(value, @"^Quedan (\d+) componentes que requieren revisión\.$");
         if (match.Success) return $"{match.Groups[1].Value} component(s) still require review.";
         match = Regex.Match(value, @"^Se han exportado (\d+) eventos visibles\. La búsqueda y el filtro actuales se han respetado\.$");
@@ -2083,6 +2097,10 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Global shortcut: (.+)$");
         if (match.Success) return $"Atajo global: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\. Use the master password to override it\.$");
+        if (match.Success) return $"{match.Groups[1].Value} ha agotado su tiempo diario de {match.Groups[2].Value} min. Usa la contraseña maestra para anularlo.";
+        match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\.$");
+        if (match.Success) return $"{match.Groups[1].Value} ha agotado su tiempo diario de {match.Groups[2].Value} min.";
         match = Regex.Match(value, @"^Could not prepare the original folder for deletion\. No files were deleted\. Close applications using it and check its permissions:\r?\n(.+)$");
         if (match.Success) return $"No se pudo preparar la carpeta original para eliminarla. No se eliminó ningún archivo. Cierra las aplicaciones que la usen y revisa sus permisos:{Environment.NewLine}{match.Groups[1].Value}";
         match = Regex.Match(value, @"^The original folder was moved to a cleanup location before its contents were deleted, but Windows did not complete the operation\. The encrypted vault has already been verified\. Review and remove the remaining folder manually:\r?\n(.+)$");

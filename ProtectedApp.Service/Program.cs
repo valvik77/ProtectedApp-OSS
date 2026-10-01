@@ -37,6 +37,7 @@ builder.Services.AddSingleton(new GuardianOptions(ResolveAppPath(args),
     args.Any(value => value.Equals("--diagnostic-console", StringComparison.OrdinalIgnoreCase))));
 builder.Services.AddSingleton<GuardianPolicyStore>();
 builder.Services.AddSingleton<AuthenticationThrottle>();
+builder.Services.AddSingleton<DailyQuotaTracker>();
 builder.Services.AddSingleton<ExecutionGateManager>();
 builder.Services.AddSingleton<FolderProtectionService>();
 builder.Services.AddSingleton<GuardianEnforcer>();

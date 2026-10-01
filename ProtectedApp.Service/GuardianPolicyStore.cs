@@ -136,6 +136,9 @@ internal sealed class GuardianPolicyStore
             rule.UnlockGraceMinutes = Math.Clamp(rule.UnlockGraceMinutes, 0, 10_080);
             rule.ForceCloseAfterMinutes = Math.Clamp(rule.ForceCloseAfterMinutes, 0, 10_080);
             rule.ForceCloseAfterInactivityMinutes = Math.Clamp(rule.ForceCloseAfterInactivityMinutes, 0, 10_080);
+            // A quota longer than a day can never be reached before the daily
+            // reset, which would silently disable the feature.
+            rule.DailyQuotaMinutes = Math.Clamp(rule.DailyQuotaMinutes, 0, 1_440);
             if (rule.ForceCloseAfterMinutes > 0) rule.ForceCloseAfterInactivityMinutes = 0;
             var closeLimit = Math.Max(rule.ForceCloseAfterMinutes, rule.ForceCloseAfterInactivityMinutes);
             if (closeLimit > 0 && rule.UnlockGraceMinutes > closeLimit)
@@ -222,6 +225,8 @@ internal sealed class GuardianPolicyStore
             UnlockGraceMinutes = rule.UnlockGraceMinutes,
             ForceCloseAfterMinutes = rule.ForceCloseAfterMinutes,
             ForceCloseAfterInactivityMinutes = rule.ForceCloseAfterInactivityMinutes,
+            ForceCloseWhenUnresponsive = rule.ForceCloseWhenUnresponsive,
+            DailyQuotaMinutes = rule.DailyQuotaMinutes,
             ScheduleEnabled = rule.ScheduleEnabled,
             ScheduleDays = rule.ScheduleDays,
             ScheduleStartMinutes = rule.ScheduleStartMinutes,

@@ -83,6 +83,9 @@ public sealed class GuardianResponse
     public int RetryAfterSeconds { get; set; }
     public int FailureCount { get; set; }
     public bool PolicyConfigured { get; set; }
+    /// <summary>Set when a launch was refused because the rule's daily quota is spent.</summary>
+    public bool DailyQuotaExhausted { get; set; }
+    public int DailyQuotaMinutes { get; set; }
     public bool? GateHealthy { get; set; }
     public bool? HealthTaskHealthy { get; set; }
     public string? HealthTaskDetail { get; set; }
@@ -150,6 +153,21 @@ public sealed class GuardianRule
     public int UnlockGraceMinutes { get; set; }
     public int ForceCloseAfterMinutes { get; set; }
     public int ForceCloseAfterInactivityMinutes { get; set; }
+    /// <summary>
+    /// False keeps an application that ignored the graceful close request
+    /// running instead of terminating it, so an unanswered "save your changes?"
+    /// dialog can never cost the user their work. The request is repeated
+    /// periodically. Defaults to true, which is the behaviour of every rule
+    /// created before this setting existed.
+    /// </summary>
+    public bool ForceCloseWhenUnresponsive { get; set; } = true;
+    /// <summary>
+    /// Minutes of accumulated foreground use allowed per day, or 0 for no
+    /// quota. The application is closed and may not be reopened with its own
+    /// password until the next daily reset; the master password always
+    /// overrides, so a quota can never lock its owner out.
+    /// </summary>
+    public int DailyQuotaMinutes { get; set; }
     public bool ScheduleEnabled { get; set; }
     public int ScheduleDays { get; set; } = 127;
     public int ScheduleStartMinutes { get; set; } = 9 * 60;

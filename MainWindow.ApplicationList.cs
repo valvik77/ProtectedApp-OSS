@@ -33,7 +33,7 @@ public sealed partial class MainWindow
             password.Visibility = visible;
             confirmation.Visibility = visible;
         };
-        var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes);
+        var timePolicy = CreateTimePolicyEditor(app.UnlockGraceMinutes, app.ForceCloseAfterMinutes, app.ForceCloseAfterInactivityMinutes, app.ForceCloseWhenUnresponsive, app.DailyQuotaMinutes);
         var schedule = CreateScheduleEditor(app.ScheduleEnabled, app.ScheduleDays, app.ScheduleStartMinutes, app.ScheduleEndMinutes, app.BlockOutsideSchedule);
         var error = new TextBlock { Foreground = ThemeBrush(Windows.UI.Color.FromArgb(255, 255, 85, 85), Windows.UI.Color.FromArgb(255, 248, 81, 73)), FontSize = 12 };
         var passwordHint = new TextBlock
@@ -90,10 +90,13 @@ public sealed partial class MainWindow
         if (await dialog.ShowAsync(ContentDialogPlacement.InPlace) != ContentDialogResult.Primary || !valid) return;
         app.Name = name.Text.Trim();
         app.Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim();
-        TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _);
+        TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes,
+            out var forceWhenUnresponsive, out var dailyQuotaMinutes, out _);
         app.UnlockGraceMinutes = unlockMinutes;
         app.ForceCloseAfterMinutes = forceCloseMinutes;
         app.ForceCloseAfterInactivityMinutes = inactiveCloseMinutes;
+        app.ForceCloseWhenUnresponsive = forceWhenUnresponsive;
+        app.DailyQuotaMinutes = dailyQuotaMinutes;
         TryReadSchedule(schedule, out var scheduleEnabled, out var scheduleDays, out var scheduleStart, out var scheduleEnd, out var blockOutsideSchedule, out _);
         app.ScheduleEnabled = scheduleEnabled; app.ScheduleDays = scheduleDays; app.ScheduleStartMinutes = scheduleStart; app.ScheduleEndMinutes = scheduleEnd; app.BlockOutsideSchedule = blockOutsideSchedule;
         var selectedMode = (passwordMode.SelectedItem as ComboBoxItem)?.Tag?.ToString();
@@ -258,8 +261,8 @@ public sealed partial class MainWindow
         var valid = false;
         dialog.PrimaryButtonClick += (dialogSender, args) => { if (string.IsNullOrWhiteSpace(name.Text)) { error.Text = LocalizationService.T("Indica un nombre."); args.Cancel = true; return; } if (password.Password != confirmation.Password) { error.Text = LocalizationService.T("Las contraseñas no coinciden."); args.Cancel = true; return; } if (password.Password.Length is > 0 and < PasswordService.MinimumPasswordLength) { error.Text = LocalizationService.T("La contraseña propia debe tener al menos 12 caracteres."); args.Cancel = true; return; } if (!TryReadTimePolicy(timePolicy, out _, out _, out _, out var timeError)) { error.Text = LocalizationService.T(timeError); args.Cancel = true; return; } if (!TryReadSchedule(schedule, out _, out _, out _, out _, out _, out var scheduleError)) { error.Text = LocalizationService.T(scheduleError); args.Cancel = true; return; } valid = true; };
         if (await dialog.ShowAsync(ContentDialogPlacement.InPlace) != ContentDialogResult.Primary || !valid) return;
-        TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out _); TryReadSchedule(schedule, out var scheduleEnabled, out var scheduleDays, out var scheduleStart, out var scheduleEnd, out var blockOutsideSchedule, out _);
-        var app = new ProtectedApplication { Name = name.Text.Trim(), Path = executablePath, Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim(), UnlockGraceMinutes = unlockMinutes, ForceCloseAfterMinutes = forceCloseMinutes, ForceCloseAfterInactivityMinutes = inactiveCloseMinutes, ScheduleEnabled = scheduleEnabled, ScheduleDays = scheduleDays, ScheduleStartMinutes = scheduleStart, ScheduleEndMinutes = scheduleEnd, BlockOutsideSchedule = blockOutsideSchedule };
+        TryReadTimePolicy(timePolicy, out var unlockMinutes, out var forceCloseMinutes, out var inactiveCloseMinutes, out var forceWhenUnresponsive, out var dailyQuotaMinutes, out _); TryReadSchedule(schedule, out var scheduleEnabled, out var scheduleDays, out var scheduleStart, out var scheduleEnd, out var blockOutsideSchedule, out _);
+        var app = new ProtectedApplication { Name = name.Text.Trim(), Path = executablePath, Category = string.IsNullOrWhiteSpace(category.Text) ? "General" : category.Text.Trim(), UnlockGraceMinutes = unlockMinutes, ForceCloseAfterMinutes = forceCloseMinutes, ForceCloseAfterInactivityMinutes = inactiveCloseMinutes, ForceCloseWhenUnresponsive = forceWhenUnresponsive, DailyQuotaMinutes = dailyQuotaMinutes, ScheduleEnabled = scheduleEnabled, ScheduleDays = scheduleDays, ScheduleStartMinutes = scheduleStart, ScheduleEndMinutes = scheduleEnd, BlockOutsideSchedule = blockOutsideSchedule };
         if (!string.IsNullOrEmpty(password.Password)) { var hashed = PasswordService.Hash(password.Password); app.PasswordHash = hashed.Hash; app.PasswordSalt = hashed.Salt; }
         app.PropertyChanged += Rule_PropertyChanged; await PrepareProtectedApplicationIconsAsync([app]); Applications.Add(app); await SaveAsync(); RefreshCategoryChips(); RefreshVisibleApps(); AddActivity(app.Name, "Protección añadida");
     }

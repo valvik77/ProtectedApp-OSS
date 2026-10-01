@@ -6,6 +6,40 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class LocalizationServiceTests
 {
     [Fact]
+    public void Localizes_TheUnresponsiveCloseAndDailyQuotaSettings_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Force the application closed if it does not respond",
+                LocalizationService.T("Forzar el cierre si la aplicación no responde"));
+            Assert.Equal("Maximum time per day", LocalizationService.T("Tiempo diario máximo"));
+            Assert.Equal("No daily limit", LocalizationService.T("Sin límite diario"));
+            // The longer runtime message must not be truncated by the shorter
+            // pattern it starts with.
+            Assert.Equal("Notepad has used up its daily allowance of 120 min. Use the master password to override it.",
+                LocalizationService.T("Notepad ha agotado su tiempo diario de 120 min. Usa la contraseña maestra para anularlo."));
+            Assert.Equal("Notepad has used up its daily allowance of 120 min.",
+                LocalizationService.T("Notepad ha agotado su tiempo diario de 120 min."));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Forzar el cierre si la aplicación no responde",
+                LocalizationService.T("Force the application closed if it does not respond"));
+            Assert.Equal("Tiempo diario máximo", LocalizationService.T("Maximum time per day"));
+            Assert.Equal("Notepad ha agotado su tiempo diario de 120 min. Usa la contraseña maestra para anularlo.",
+                LocalizationService.T("Notepad has used up its daily allowance of 120 min. Use the master password to override it."));
+            Assert.Equal("Notepad ha agotado su tiempo diario de 120 min.",
+                LocalizationService.T("Notepad has used up its daily allowance of 120 min."));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
     public void Localizes_TheCloseWarningExtensionSelector_InBothDirections()
     {
         try
