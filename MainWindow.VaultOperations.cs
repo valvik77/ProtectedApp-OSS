@@ -11,10 +11,61 @@ namespace ProtectedApp;
 
 public sealed partial class MainWindow
 {
+    private const string RecycleBinMenuTag = "vault-recycle-bin";
+
     private void VaultActionsFlyout_Opening(object sender, object e)
     {
         if (sender is not MenuFlyout menu) return;
+        // The recycle area lives inside the encrypted container, so it can only
+        // be counted or emptied while the vault is mounted for editing. Show
+        // how many files are recoverable instead of offering a dead command.
+        // Identified by its tag rather than its text, which localization and
+        // the retained count both rewrite.
+        var recycleItem = menu.Items.OfType<MenuFlyoutItem>()
+            .FirstOrDefault(item => item.Tag as string == RecycleBinMenuTag);
+        if (recycleItem is not null)
+        {
+            var retained = recycleItem.CommandParameter is VaultContainer vault
+                ? _vaultService.CountRecycledEntries(vault)
+                : 0;
+            recycleItem.IsEnabled = retained > 0;
+            // The count goes in the tooltip: the label itself must stay a
+            // stable, translatable string for LocalizationService.
+            ToolTipService.SetToolTip(recycleItem, retained > 0
+                ? LocalizationService.T("Archivos eliminados que todavía pueden recuperarse") + $": {retained}"
+                : LocalizationService.T("La bóveda no conserva archivos eliminados"));
+        }
         LocalizationService.TranslateFlyout(menu);
+    }
+
+    private async void EmptyVaultRecycleBin_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetVaultFromSender(sender) is not { } vault) return;
+        var retained = _vaultService.CountRecycledEntries(vault);
+        if (retained <= 0)
+        {
+            await ShowMessageAsync("Papelera vacía",
+                "Esta bóveda no conserva archivos eliminados. La papelera solo puede consultarse mientras la bóveda está abierta para edición.");
+            return;
+        }
+
+        // Emptying is what finally makes a deletion irreversible, so it needs
+        // the master password and a confirmation that names the count.
+        if (!await VerifyMasterAsync($"Vaciar la papelera de {vault.Name}")) return;
+        var dialog = CreateDialog("Vaciar papelera de la bóveda",
+            $"Se descartarán definitivamente {retained} archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda.",
+            "Vaciar", "Cancelar");
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var removed = _vaultService.EmptyRecycleBin(vault);
+        if (removed < 0)
+        {
+            await ShowMessageAsync("No se pudo vaciar la papelera",
+                _vaultService.LastError ?? "La bóveda debe estar abierta para edición.");
+            return;
+        }
+        AddActivity(vault.Name, $"Papelera vaciada: {removed} archivo(s) descartados");
+        RefreshVaults();
     }
 
     private async void AddVaultButton_Click(object sender, RoutedEventArgs e)

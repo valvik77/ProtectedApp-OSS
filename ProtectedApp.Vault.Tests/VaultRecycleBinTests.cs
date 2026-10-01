@@ -101,6 +101,20 @@ public sealed class VaultRecycleBinTests
         }, writeProtected: true);
     }
 
+    [Fact]
+    public void TheServiceReportsNoRecycledEntriesForAVaultThatIsNotMounted()
+    {
+        using var service = new VaultService();
+        var vault = new VaultContainer { Id = Guid.NewGuid(), Name = "Unmounted" };
+
+        // The recycle area lives inside the encrypted container, so it cannot
+        // be counted without the data key. The UI relies on this to disable the
+        // command instead of offering one that cannot work.
+        Assert.Equal(0, service.CountRecycledEntries(vault));
+        Assert.Equal(-1, service.EmptyRecycleBin(vault));
+        Assert.False(string.IsNullOrWhiteSpace(service.LastError));
+    }
+
     private static IDokanFileInfo Info(bool deletePending = false) =>
         new TestFileInfo { DeletePending = deletePending };
 

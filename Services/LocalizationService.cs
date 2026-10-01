@@ -427,6 +427,14 @@ public static class LocalizationService
         ["Conserva una copia de seguridad de las bóvedas importantes y no olvides la contraseña maestra: está diseñada para proteger tu información, por lo que ProtectedApp no puede recuperarla por ti."] = "Keep a backup of important vaults and do not forget the master password: it protects your information, so ProtectedApp cannot recover it for you.",
         ["Reaperturas sin contraseña"] = "Password-free reopenings",
         ["Solo mientras continúe abierta"] = "Only while it remains open",
+        ["Vaciar papelera de la bóveda"] = "Empty the vault's recycle bin",
+        ["Papelera vacía"] = "Recycle bin is empty",
+        ["Vaciar"] = "Empty",
+        ["No se pudo vaciar la papelera"] = "Could not empty the recycle bin",
+        ["Archivos eliminados que todavía pueden recuperarse"] = "Deleted files that can still be recovered",
+        ["La bóveda no conserva archivos eliminados"] = "This vault retains no deleted files",
+        ["Esta bóveda no conserva archivos eliminados. La papelera solo puede consultarse mientras la bóveda está abierta para edición."] = "This vault retains no deleted files. The recycle bin can only be inspected while the vault is open for editing.",
+        ["La bóveda debe estar abierta para edición."] = "The vault must be open for editing.",
         ["Cierre automático"] = "Automatic closing",
         ["Forzar el cierre si la aplicación no responde"] = "Force the application closed if it does not respond",
         ["Desactívalo para que ProtectedApp nunca cierre la aplicación por la fuerza. Si queda un diálogo de guardado sin responder, se deja abierta y se vuelve a pedir el cierre más tarde."] = "Turn this off so ProtectedApp never forces the application closed. If a save dialog is left unanswered, the application stays open and the close request is repeated later.",
@@ -1840,6 +1848,10 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Atajo global: (.+)$");
         if (match.Success) return $"Global shortcut: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Se descartarán definitivamente (\d+) archivo\(s\) eliminados que todavía podían recuperarse\. El espacio se libera al guardar y bloquear la bóveda\.$");
+        if (match.Success) return $"{match.Groups[1].Value} deleted file(s) that could still be recovered will be discarded permanently. The space is reclaimed when the vault is saved and locked.";
+        match = Regex.Match(value, @"^Papelera vaciada: (\d+) archivo\(s\) descartados$");
+        if (match.Success) return $"Recycle bin emptied: {match.Groups[1].Value} file(s) discarded";
         match = Regex.Match(value, @"^No se pudo preparar la carpeta original para eliminarla\. No se eliminó ningún archivo\. Cierra las aplicaciones que la usen y revisa sus permisos:\r?\n(.+)$");
         if (match.Success) return $"Could not prepare the original folder for deletion. No files were deleted. Close applications using it and check its permissions:{Environment.NewLine}{match.Groups[1].Value}";
         match = Regex.Match(value, @"^La carpeta original se movió a una ubicación de limpieza antes de borrar su contenido, pero Windows no terminó la operación\. La bóveda cifrada ya fue verificada\. Revisa y elimina manualmente la carpeta restante:\r?\n(.+)$");
@@ -2097,6 +2109,10 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Global shortcut: (.+)$");
         if (match.Success) return $"Atajo global: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) deleted file\(s\) that could still be recovered will be discarded permanently\. The space is reclaimed when the vault is saved and locked\.$");
+        if (match.Success) return $"Se descartarán definitivamente {match.Groups[1].Value} archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda.";
+        match = Regex.Match(value, @"^Recycle bin emptied: (\d+) file\(s\) discarded$");
+        if (match.Success) return $"Papelera vaciada: {match.Groups[1].Value} archivo(s) descartados";
         match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\. Use the master password to override it\.$");
         if (match.Success) return $"{match.Groups[1].Value} ha agotado su tiempo diario de {match.Groups[2].Value} min. Usa la contraseña maestra para anularlo.";
         match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\.$");

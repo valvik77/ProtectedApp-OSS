@@ -1600,6 +1600,44 @@ public sealed class VaultService : IDisposable
         && _virtualSessions.TryGetValue(vault.Id, out var session)
         && session.HasPendingChanges;
 
+    /// <summary>
+    /// How many deleted files the vault's recycle area holds, or 0 when the
+    /// vault is not mounted for editing.
+    /// </summary>
+    /// <remarks>
+    /// The recycle area lives inside the encrypted container, so it can only be
+    /// read while the vault is open: there is no way to count or empty it
+    /// without the data key.
+    /// </remarks>
+    public int CountRecycledEntries(VaultContainer vault) =>
+        vault is not null
+        && _virtualSessions.TryGetValue(vault.Id, out var session)
+        && session.IsWritable
+            ? session.CountRecycledEntries()
+            : 0;
+
+    /// <summary>
+    /// Permanently discards the deleted files retained inside <paramref name="vault"/>
+    /// and returns how many were removed, or -1 when the vault is not mounted
+    /// for editing.
+    /// </summary>
+    /// <remarks>
+    /// This only marks the overlay as changed. The space is reclaimed when the
+    /// vault is saved and locked, which is also the point at which the removal
+    /// becomes irreversible; until then the usual journal recovery still
+    /// applies.
+    /// </remarks>
+    public int EmptyRecycleBin(VaultContainer vault)
+    {
+        LastError = null;
+        if (vault is null || !_virtualSessions.TryGetValue(vault.Id, out var session) || !session.IsWritable)
+        {
+            LastError = "La bóveda debe estar abierta para edición.";
+            return -1;
+        }
+        return session.EmptyRecycleBin();
+    }
+
     public VaultPermanentDeleteResult DeleteVaultPermanently(VaultContainer vault, bool deleteCopies,
         string? scheduledBackupRoot)
     {
@@ -2411,6 +2449,8 @@ public sealed class VaultService : IDisposable
         public string MountPoint { get; } = mountPoint;
         public bool IsWritable => writableOperations is not null;
         public bool HasPendingChanges => writableOperations?.HasChanges == true;
+        public int CountRecycledEntries() => writableOperations?.CountRecycledEntries() ?? 0;
+        public int EmptyRecycleBin() => writableOperations?.EmptyRecycleBin() ?? 0;
         public bool IsRunning
         {
             get
