@@ -175,6 +175,8 @@ dotnet test ProtectedApp.Guardian.Tests\ProtectedApp.Guardian.Tests.csproj -p:Pl
 dotnet test ProtectedApp.Vault.Tests\ProtectedApp.Vault.Tests.csproj -p:Platform=x64
 ```
 
+Mantén `-p:Platform=x64` en todos los comandos, también en los de pruebas: es lo que hace que la compilación y la ejecución de pruebas coincidan en la misma ruta de salida `bin\x64`. Un `dotnet test` que no encuentra su ensamblado termina igualmente con código 0, así que quitar el argumento informa de un éxito sin haber ejecutado las pruebas.
+
 La compilación de `ProtectedApp.csproj` individual ya selecciona `win-x64` por defecto. La referencia de las pruebas de bóveda conserva las mismas propiedades globales que la solución, por lo que MSBuild reutiliza una única compilación de la aplicación WinUI y puede ejecutar la solución en paralelo sin competir por sus archivos intermedios XAML.
 
 ## Crear el instalador
