@@ -78,7 +78,18 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
                 await Task.Delay(250).ConfigureAwait(false);
                 await SaveJournalAsync().ConfigureAwait(false);
             }
-            catch { /* The durable flush/final lock will retry the journal. */ }
+            catch (Exception ex)
+            {
+                // Recoverable by design: NeedsJournal stays set, so
+                // FlushFileBuffers and the final lock both retry, and a failure
+                // there is surfaced to the user instead of being swallowed.
+                // Record it anyway - a journal that only ever succeeds on the
+                // retry is invisible otherwise, which makes an intermittent
+                // disk or antivirus problem impossible to investigate.
+                AppDiagnosticLog.Append("vault-journal.log",
+                    $"{DateTimeOffset.Now:O} No se pudo guardar el diario en segundo plano " +
+                    $"({ex.GetType().Name}: {ex.Message}). Se reintentará al vaciar o al bloquear.{Environment.NewLine}");
+            }
             finally { Interlocked.Exchange(ref _journalSaveQueued, 0); }
         });
     }

@@ -802,7 +802,21 @@ public sealed class VaultService : IDisposable
                 if (replacementInstalled && File.Exists(primaryPath)) File.Delete(primaryPath);
                 if (primaryMoved && preservedPath is not null && File.Exists(preservedPath)) File.Move(preservedPath, primaryPath);
             }
-            catch { }
+            catch (Exception rollbackFailure)
+            {
+                // The restore failed and putting the original container back
+                // failed too, so the vault now lives at preservedPath only. The
+                // caller reports the original error, which would leave the user
+                // with no idea where their vault went; name the file that holds
+                // it, and keep the detail in the log.
+                AppDiagnosticLog.Append("vault-restore.log",
+                    $"{DateTimeOffset.Now:O} No se pudo deshacer la restauración de {primaryPath} " +
+                    $"({rollbackFailure.GetType().Name}: {rollbackFailure.Message}). " +
+                    $"La bóveda original se conserva en {preservedPath}.{Environment.NewLine}");
+                LastError = $"{ex.Message} Además, no se pudo restaurar el contenedor original: " +
+                    $"conserva «{preservedPath}», que contiene la bóveda anterior.";
+                return new(false, preservedPath, LastError);
+            }
             LastError = ex.Message;
             return new(false, preservedPath, ex.Message);
         }
