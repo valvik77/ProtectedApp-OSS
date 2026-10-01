@@ -15,11 +15,10 @@ public class ProcessWorkingDirectoryTests
     public void ReadsTheDirectoryOfAnotherProcess() =>
         AssertReadsTheStartDirectory(Path.Combine(Environment.SystemDirectory, "cmd.exe"));
 
-    [Fact]
+    [Wow64Fact]
     public void ReadsTheDirectoryOfA32BitProcess()
     {
         var wow64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), "cmd.exe");
-        if (!File.Exists(wow64)) return; // no 32-bit subsystem on this machine
         AssertReadsTheStartDirectory(wow64);
     }
 

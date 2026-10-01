@@ -50,8 +50,19 @@
             </Button>
         </Grid>
 
-        <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="MessageText" Grid.Row="2" Foreground="{ThemeResource PrimaryTextBrush}"
-                   FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+        <StackPanel Grid.Row="2" Spacing="10" VerticalAlignment="Center">
+            <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="MessageText" Foreground="{ThemeResource PrimaryTextBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <Grid x:Name="ExtensionPanel" Visibility="Collapsed" ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBlock FontFamily="{StaticResource PrototypeSansFont}" x:Name="ExtensionLabel" VerticalAlignment="Center"
+                           Text="Ampliar esta vez" Foreground="{ThemeResource MutedTextBrush}" FontSize="12"
+                           TextTrimming="CharacterEllipsis" />
+                <ComboBox x:Name="ExtensionMinutesCombo" Grid.Column="1" MinWidth="128"
+                          AutomationProperties.Name="Minutos de ampliación"
+                          SelectionChanged="ExtensionMinutesCombo_SelectionChanged" />
+            </Grid>
+        </StackPanel>
 
         <Grid Grid.Row="4" ColumnSpacing="10">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>

@@ -459,15 +459,19 @@ internal sealed class GuardianIpcServer(
                 var hasMasterAuthorization = ValidateToken(request.Token, callerSid, callerPid);
                 if (!hasTimedSessionAuthorization && !hasMasterAuthorization)
                     return Fail("La autorización para ampliar esta sesión ya no es válida.");
-                if (!enforcer.ExtendTimedSession(callerSid, callerSessionId, request.RuleId.Value, out var extensionError))
+                if (!enforcer.ExtendTimedSession(callerSid, callerSessionId, request.RuleId.Value,
+                        out var extensionError, request.ExtensionMinutes))
                     return Fail(extensionError ?? "No se pudo ampliar el cierre automático.");
                 var extendedPolicy = policyStore.GetPolicy(callerSid);
                 var extendedRule = extendedPolicy?.Rules.FirstOrDefault(item => item.Id == request.RuleId.Value);
                 return new GuardianResponse
                 {
                     Success = true,
+                    // The token must outlive the extension it authorizes, so it
+                    // follows the granted interval rather than the rule's.
                     TimedSessionToken = CreateTimedSessionToken(callerSid, callerPid, request.RuleId.Value,
-                        extendedRule?.ForceCloseAfterMinutes ?? 1)
+                        (int)GuardianEnforcer.ResolveCloseInterval(
+                            extendedRule?.ForceCloseAfterMinutes ?? 1, request.ExtensionMinutes).TotalMinutes)
                 };
 
             case GuardianProtocol.ReportApplicationActivity:
@@ -492,7 +496,8 @@ internal sealed class GuardianIpcServer(
                 var hasInactiveMasterAuthorization = ValidateToken(request.Token, callerSid, callerPid);
                 if (!hasInactiveSessionAuthorization && !hasInactiveMasterAuthorization)
                     return Fail("La autorización para ampliar esta sesión ya no es válida.");
-                if (!enforcer.ExtendInactiveSession(callerSid, callerSessionId, request.RuleId.Value, out var inactiveExtensionError))
+                if (!enforcer.ExtendInactiveSession(callerSid, callerSessionId, request.RuleId.Value,
+                        out var inactiveExtensionError, request.ExtensionMinutes))
                     return Fail(inactiveExtensionError ?? "No se pudo ampliar el cierre por inactividad.");
                 var inactivePolicy = policyStore.GetPolicy(callerSid);
                 var inactiveRule = inactivePolicy?.Rules.FirstOrDefault(item => item.Id == request.RuleId.Value);
@@ -500,7 +505,9 @@ internal sealed class GuardianIpcServer(
                 {
                     Success = true,
                     TimedSessionToken = CreateTimedSessionToken(callerSid, callerPid, request.RuleId.Value,
-                        inactiveRule?.ForceCloseAfterInactivityMinutes ?? 1)
+                        (int)GuardianEnforcer.ResolveCloseInterval(
+                            inactiveRule?.ForceCloseAfterInactivityMinutes ?? 1,
+                            request.ExtensionMinutes).TotalMinutes)
                 };
 
             default:
@@ -627,9 +634,18 @@ internal sealed class GuardianIpcServer(
             using var process = Process.GetProcessById(processId);
             var path = process.MainModule?.FileName;
             var installedGate = Path.Combine(GuardianConstants.StateFolder, "ProtectedApp.Gate.exe");
-            return !string.IsNullOrWhiteSpace(path)
-                && string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(installedGate),
-                    StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(path)
+                || !string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(installedGate),
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+            // Hashing the image would compare the installed Gate against
+            // itself, since the check above already pins the caller to that
+            // exact path. The trust therefore rests on the state folder ACL
+            // (SYSTEM and Administrators only, inheritance disabled), which is
+            // what stops an unprivileged user from putting their own binary
+            // there. RegisterBlockedAttempt, the only command reaching this
+            // check, grants no privilege and discloses no protected data.
+            return true;
         }
         catch { return false; }
     }

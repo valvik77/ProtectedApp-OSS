@@ -194,6 +194,59 @@ public sealed class VaultPasswordChangeTests
     }
 
     [Fact]
+    public async Task StateStoreLoad_ReportsThePreservedCopyWhenTheStateCannotBeRead()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));
+        var previousRoot = Environment.GetEnvironmentVariable("PROTECTEDAPP_DATA_DIR");
+        try
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", root);
+            await new StateStore().SaveAsync(new AppState { MasterPasswordHash = "will-be-damaged" });
+            var path = Path.Combine(root, "state.dat");
+            await File.WriteAllBytesAsync(path, "not a protected payload"u8.ToArray());
+
+            var store = new StateStore();
+            var loaded = await store.LoadAsync();
+
+            // An empty state must be distinguishable from a genuine first run,
+            // so the caller can tell the user the configuration was preserved.
+            Assert.Null(loaded.MasterPasswordHash);
+            Assert.NotNull(store.RecoveredFromCorruptStatePath);
+            Assert.True(File.Exists(store.RecoveredFromCorruptStatePath));
+            Assert.Single(Directory.EnumerateFiles(root, "*.corrupt-*"));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", previousRoot);
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch { }
+        }
+    }
+
+    [Fact]
+    public async Task StateStoreLoad_ReportsNoRecoveryOnAGenuineFirstRun()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));
+        var previousRoot = Environment.GetEnvironmentVariable("PROTECTEDAPP_DATA_DIR");
+        try
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", root);
+            var store = new StateStore();
+
+            var loaded = await store.LoadAsync();
+
+            Assert.Null(loaded.MasterPasswordHash);
+            Assert.Null(store.RecoveredFromCorruptStatePath);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PROTECTEDAPP_DATA_DIR", previousRoot);
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch { }
+        }
+    }
+
+    [Fact]
     public async Task StateStoreLoad_DoesNotResetStateWhenFileIsTemporarilyLocked()
     {
         var root = Path.Combine(Path.GetTempPath(), "ProtectedApp.State.Tests", Guid.NewGuid().ToString("N"));

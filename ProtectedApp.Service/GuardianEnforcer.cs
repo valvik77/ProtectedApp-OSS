@@ -393,7 +393,8 @@ internal sealed class GuardianEnforcer(
         }
     }
 
-    public bool ExtendTimedSession(string userSid, int sessionId, Guid ruleId, out string? error)
+    public bool ExtendTimedSession(string userSid, int sessionId, Guid ruleId, out string? error,
+        int? extensionMinutes = null)
     {
         error = null;
         var policy = policyStore.GetPolicy(userSid);
@@ -419,9 +420,12 @@ internal sealed class GuardianEnforcer(
             PasswordSalt = credential.Salt,
             WarningIssued = false,
             WarningIssuedUtc = null,
-            GracefulCloseRequestedUtc = null
+            GracefulCloseRequestedUtc = null,
+            ExtensionMinutes = extensionMinutes ?? session.ExtensionMinutes
         };
-        logger.LogInformation("Cierre automático ampliado para {Rule}, sesión {SessionId}.", rule.Name, sessionId);
+        logger.LogInformation("Cierre automático ampliado {Minutes} min para {Rule}, sesión {SessionId}.",
+            (int)ResolveCloseInterval(rule.ForceCloseAfterMinutes, extensionMinutes ?? session.ExtensionMinutes)
+                .TotalMinutes, rule.Name, sessionId);
         return true;
     }
 
@@ -448,7 +452,8 @@ internal sealed class GuardianEnforcer(
         return true;
     }
 
-    public bool ExtendInactiveSession(string userSid, int sessionId, Guid ruleId, out string? error)
+    public bool ExtendInactiveSession(string userSid, int sessionId, Guid ruleId, out string? error,
+        int? extensionMinutes = null)
     {
         error = null;
         var policy = policyStore.GetPolicy(userSid);
@@ -474,9 +479,12 @@ internal sealed class GuardianEnforcer(
             PasswordSalt = credential.Salt,
             WarningIssued = false,
             WarningIssuedUtc = null,
-            GracefulCloseRequestedUtc = null
+            GracefulCloseRequestedUtc = null,
+            ExtensionMinutes = extensionMinutes ?? session.ExtensionMinutes
         };
-        logger.LogInformation("Cierre por inactividad ampliado para {Rule}, sesión {SessionId}.", rule.Name, sessionId);
+        logger.LogInformation("Cierre por inactividad ampliado {Minutes} min para {Rule}, sesión {SessionId}.",
+            (int)ResolveCloseInterval(rule.ForceCloseAfterInactivityMinutes,
+                extensionMinutes ?? session.ExtensionMinutes).TotalMinutes, rule.Name, sessionId);
         return true;
     }
 
@@ -1407,7 +1415,7 @@ internal sealed class GuardianEnforcer(
                 continue;
             }
 
-            var closeInterval = TimeSpan.FromMinutes(rule.ForceCloseAfterInactivityMinutes);
+            var closeInterval = ResolveCloseInterval(rule.ForceCloseAfterInactivityMinutes, session.ExtensionMinutes);
             var expiresUtc = session.LastActivityUtc + closeInterval;
             if (policy!.CloseWarningNotificationsEnabled && !session.WarningIssued && expiresUtc > now
                 && expiresUtc - now <= GetAutomaticCloseWarningLead(closeInterval)
@@ -1481,7 +1489,7 @@ internal sealed class GuardianEnforcer(
                 continue;
             }
 
-            var closeInterval = TimeSpan.FromMinutes(rule.ForceCloseAfterMinutes);
+            var closeInterval = ResolveCloseInterval(rule.ForceCloseAfterMinutes, session.ExtensionMinutes);
             var expiresUtc = session.GrantedUtc + closeInterval;
             if (policy!.CloseWarningNotificationsEnabled && !session.WarningIssued && expiresUtc > now
                 && expiresUtc - now <= GetAutomaticCloseWarningLead(closeInterval)
@@ -1547,6 +1555,19 @@ internal sealed class GuardianEnforcer(
         if (closeInterval <= TimeSpan.Zero) return TimeSpan.Zero;
         return TimeSpan.FromSeconds(Math.Clamp(closeInterval.TotalSeconds / 4d, 10d, 60d));
     }
+
+    /// <summary>The interval this session runs on: its one-off extension if it has one, otherwise the rule's.</summary>
+    /// <remarks>
+    /// The requested value is clamped to the same 1..10080 minute range the
+    /// policy store enforces for a configured interval, so a crafted request
+    /// cannot turn a timed session into a permanent one.
+    /// </remarks>
+    internal static TimeSpan ResolveCloseInterval(int configuredMinutes, int? extensionMinutes) =>
+        TimeSpan.FromMinutes(extensionMinutes is { } requested
+            ? Math.Clamp(requested, 1, MaximumCloseMinutes)
+            : configuredMinutes);
+
+    internal const int MaximumCloseMinutes = 10_080;
 
     internal static bool ShouldIgnoreActivityAfterWarning(DateTimeOffset? warningIssuedUtc,
         DateTimeOffset now) => warningIssuedUtc is { } issued
@@ -1790,14 +1811,18 @@ internal sealed class GuardianEnforcer(
     private sealed record SessionIdentity(string Sid, DateTimeOffset ExpiresUtc);
     private sealed record TrustedAuthorization(DateTimeOffset GrantedUtc, DateTimeOffset ExpiresUtc,
         int GraceMinutes, string? PasswordHash, string? PasswordSalt);
+    // ExtensionMinutes applies to the current session only and is deliberately
+    // not written back to the rule: extending from the warning window must not
+    // silently reconfigure the application. It is lost when the session ends,
+    // so the next launch uses the configured interval again.
     private sealed record TimedSession(DateTimeOffset GrantedUtc, string UserSid, int SessionId,
         Guid RuleId, string Path, string Name, string? PasswordHash, string? PasswordSalt,
         bool WarningIssued = false, DateTimeOffset? WarningIssuedUtc = null,
-        DateTimeOffset? GracefulCloseRequestedUtc = null);
+        DateTimeOffset? GracefulCloseRequestedUtc = null, int? ExtensionMinutes = null);
     private sealed record InactiveSession(DateTimeOffset LastActivityUtc, string UserSid, int SessionId,
         Guid RuleId, string Path, string Name, string? PasswordHash, string? PasswordSalt,
         bool WarningIssued = false, DateTimeOffset? WarningIssuedUtc = null,
-        DateTimeOffset? GracefulCloseRequestedUtc = null);
+        DateTimeOffset? GracefulCloseRequestedUtc = null, int? ExtensionMinutes = null);
     private sealed record ScriptHostAuthorization(string UserSid, int SessionId, DateTime StartUtc,
         DateTimeOffset GraceExpiresUtc, string[] HostPaths);
     internal readonly record struct ProcessCloseSummary(int GracefulCloseCount, int ForcedTerminationCount)

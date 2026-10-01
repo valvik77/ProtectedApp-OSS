@@ -61,41 +61,37 @@ public class ScriptMatchingTests
         Assert.True(ProtectedTarget.CommandLineReferences(
             "python \"..\\my tools\\backup.py\"", @"C:\my tools\backup.py", @"C:\work"));
 
-    [Fact]
+    [EightDotThreeFact]
     public void RecognizesAnExistingEightDotThreePath()
     {
-        using var files = EightDotThreeFiles.TryCreate();
-        if (files is null) return; // 8.3 names are disabled on this volume: nothing to exercise.
+        using var files = EightDotThreeFiles.TryCreate()!;
 
         Assert.True(ProtectedTarget.CommandLineReferences(
             "python " + WindowsCommandLine.Quote(files.ShortScript), files.Script, workingDirectory: null));
     }
 
-    [Fact]
+    [EightDotThreeFact]
     public void RecognizesAnEightDotThreeNameRelativeToTheWorkingDirectory()
     {
-        using var files = EightDotThreeFiles.TryCreate();
-        if (files is null) return;
+        using var files = EightDotThreeFiles.TryCreate()!;
 
         Assert.True(ProtectedTarget.CommandLineReferences(
             "python " + Path.GetFileName(files.ShortScript), files.Script, files.Directory));
     }
 
-    [Fact]
+    [EightDotThreeFact]
     public void RecognizesAnEightDotThreeNameInsideAShellString()
     {
-        using var files = EightDotThreeFiles.TryCreate();
-        if (files is null) return;
+        using var files = EightDotThreeFiles.TryCreate()!;
 
         Assert.True(ProtectedTarget.CommandLineReferences(
             $"cmd.exe /c \"python {files.ShortScript}\"", files.Script, workingDirectory: null));
     }
 
-    [Fact]
+    [EightDotThreeFact]
     public void AnEightDotThreeAliasOfAnotherFileDoesNotMatch()
     {
-        using var files = EightDotThreeFiles.TryCreate();
-        if (files is null) return;
+        using var files = EightDotThreeFiles.TryCreate()!;
 
         Assert.False(ProtectedTarget.CommandLineReferences(
             "python " + files.ShortOtherScript, files.Script, workingDirectory: null));

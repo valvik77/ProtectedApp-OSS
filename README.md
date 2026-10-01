@@ -115,10 +115,15 @@ for virtual-drive tests:
 
 ```powershell
 dotnet restore
-dotnet build ProtectedApp.sln -c Release -warnaserror
-dotnet test ProtectedApp.Guardian.Tests\ProtectedApp.Guardian.Tests.csproj -c Release --no-restore
-dotnet test ProtectedApp.Vault.Tests\ProtectedApp.Vault.Tests.csproj -c Release --no-restore
+dotnet build ProtectedApp.sln -c Release -p:Platform=x64 -warnaserror
+dotnet test ProtectedApp.Guardian.Tests\ProtectedApp.Guardian.Tests.csproj -c Release -p:Platform=x64 --no-restore
+dotnet test ProtectedApp.Vault.Tests\ProtectedApp.Vault.Tests.csproj -c Release -p:Platform=x64 --no-restore
 ```
+
+Keep `-p:Platform=x64` on every command, including the test ones. It is what
+makes the build and the test run agree on the same `bin\x64` output path; a
+`dotnet test` that cannot find its assembly still exits 0, so dropping the
+argument reports success without running the tests.
 
 To create a local development installer:
 

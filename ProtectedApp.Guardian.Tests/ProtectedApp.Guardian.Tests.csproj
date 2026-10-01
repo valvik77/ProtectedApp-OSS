@@ -5,6 +5,12 @@
     <IsTestProject>true</IsTestProject>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Platforms must match the solution so a Release build of the solution
+         and a later `dotnet test` agree on bin\x64\Release. With only
+         PlatformTarget set, the solution wrote to bin\x64 while `dotnet test`
+         looked in bin, found no assembly and still exited 0 - reporting
+         success without running a single test. -->
+    <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 

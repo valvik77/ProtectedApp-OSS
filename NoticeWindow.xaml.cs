@@ -18,9 +18,19 @@ public sealed partial class NoticeWindow : Window
     private readonly DispatcherTimer? _autoCloseTimer;
     private bool _hasBeenActivated;
     private bool _actionRequested;
+    // The extension selector needs one more row than a plain notice.
+    private const int Width = 450;
+    private int _height = 220;
+
+    /// <summary>
+    /// The minutes chosen in the extension selector, or null when the notice had
+    /// none. Only meaningful once <see cref="ShowAsync"/> has returned true.
+    /// </summary>
+    public int? SelectedExtensionMinutes { get; private set; }
 
     public NoticeWindow(string applicationName, string message, bool isError = false,
-        string? actionLabel = null, string? subtitle = null, TimeSpan? autoCloseAfter = null)
+        string? actionLabel = null, string? subtitle = null, TimeSpan? autoCloseAfter = null,
+        IReadOnlyList<int>? extensionChoices = null, int? defaultExtensionMinutes = null)
     {
         InitializeComponent();
         LocalizationService.LanguageChanged += RefreshLanguage;
@@ -38,9 +48,28 @@ public sealed partial class NoticeWindow : Window
             AcceptButton.Content = LocalizationService.T(AcceptButton, "Content", "No ampliar");
         }
 
+        if (extensionChoices is { Count: > 0 } && !string.IsNullOrWhiteSpace(actionLabel))
+        {
+            var selected = defaultExtensionMinutes ?? extensionChoices[0];
+            foreach (var minutes in extensionChoices)
+            {
+                ExtensionMinutesCombo.Items.Add(new ComboBoxItem
+                {
+                    Content = LocalizationService.T(FormatExtensionChoice(minutes)),
+                    Tag = minutes
+                });
+                if (minutes == selected) ExtensionMinutesCombo.SelectedIndex = ExtensionMinutesCombo.Items.Count - 1;
+            }
+            if (ExtensionMinutesCombo.SelectedIndex < 0) ExtensionMinutesCombo.SelectedIndex = 0;
+            SelectedExtensionMinutes = (int)((ComboBoxItem)ExtensionMinutesCombo.SelectedItem).Tag;
+            ExtensionLabel.Text = LocalizationService.T(ExtensionLabel, "Text", "Ampliar esta vez");
+            ExtensionPanel.Visibility = Visibility.Visible;
+            _height = 268;
+        }
+
         _hwnd = WindowNative.GetWindowHandle(this);
         _appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(_hwnd));
-        _appWindow.Resize(new Windows.Graphics.SizeInt32(450, 220));
+        _appWindow.Resize(new Windows.Graphics.SizeInt32(Width, _height));
         _appWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "ProtectedApp.ico"));
         if (_appWindow.Presenter is OverlappedPresenter presenter)
         {
@@ -150,12 +179,24 @@ public sealed partial class NoticeWindow : Window
     private void CenterWindow()
     {
         var area = GetActiveDisplayArea();
-        const int width = 450;
-        const int height = 220;
         _appWindow.Move(new Windows.Graphics.PointInt32(
-            area.WorkArea.X + (area.WorkArea.Width - width) / 2,
-            area.WorkArea.Y + (area.WorkArea.Height - height) / 2));
+            area.WorkArea.X + (area.WorkArea.Width - Width) / 2,
+            area.WorkArea.Y + (area.WorkArea.Height - _height) / 2));
     }
+
+    private void ExtensionMinutesCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ExtensionMinutesCombo.SelectedItem is ComboBoxItem { Tag: int minutes })
+            SelectedExtensionMinutes = minutes;
+    }
+
+    /// <summary>Renders a choice the way the rest of the app writes durations.</summary>
+    private static string FormatExtensionChoice(int minutes) => minutes switch
+    {
+        60 => "1 hora",
+        120 => "2 horas",
+        _ => $"{minutes} min"
+    };
 
     private static DisplayArea GetActiveDisplayArea()
     {

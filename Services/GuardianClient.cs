@@ -182,21 +182,23 @@ public sealed class GuardianClient
     });
 
     public Task<GuardianResponse> ExtendTimedSessionAsync(Guid ruleId, string? timedSessionToken,
-        string? authorizationToken = null) => SendAsync(new GuardianRequest
+        string? authorizationToken = null, int? extensionMinutes = null) => SendAsync(new GuardianRequest
         {
             Type = GuardianProtocol.ExtendTimedSession,
             RuleId = ruleId,
             TimedSessionToken = timedSessionToken,
-            Token = authorizationToken
+            Token = authorizationToken,
+            ExtensionMinutes = extensionMinutes
         });
 
     public Task<GuardianResponse> ExtendInactiveSessionAsync(Guid ruleId, string? timedSessionToken,
-        string? authorizationToken = null) => SendAsync(new GuardianRequest
+        string? authorizationToken = null, int? extensionMinutes = null) => SendAsync(new GuardianRequest
         {
             Type = GuardianProtocol.ExtendInactiveSession,
             RuleId = ruleId,
             TimedSessionToken = timedSessionToken,
-            Token = authorizationToken
+            Token = authorizationToken,
+            ExtensionMinutes = extensionMinutes
         });
 
     public Task<GuardianResponse> ReportApplicationActivityAsync(Guid ruleId) => SendAsync(new GuardianRequest

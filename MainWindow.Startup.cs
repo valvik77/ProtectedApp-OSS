@@ -200,6 +200,17 @@ public sealed partial class MainWindow
                 break;
         }
 
+        // An unreadable configuration is preserved rather than discarded, but the
+        // panel then looks empty. Say so, and where the original is, instead of
+        // letting the user conclude their rules were lost.
+        if (_store.RecoveredFromCorruptStatePath is { } corruptStatePath && _sessionUnlocked)
+            await ShowMessageAsync(
+                LocalizationService.T("No se pudo leer la configuración"),
+                LocalizationService.T("ProtectedApp no pudo leer su configuración guardada y ha empezado con una vacía. "
+                    + "No se ha eliminado nada: el archivo original se conserva en")
+                + $"\n\n{corruptStatePath}\n\n"
+                + LocalizationService.T("Si tienes una copia de seguridad de configuración, restáurala desde Ajustes."));
+
         if (interactiveLaunch && _sessionUnlocked && !_skipAutomaticServiceInstall)
             await EnsureGuardianInstalledAutomaticallyAsync();
 

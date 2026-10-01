@@ -486,6 +486,10 @@ public static class LocalizationService
         ["Entendido"] = "OK",
         ["Ahora no"] = "Not now",
         ["No ampliar"] = "Do not extend",
+        ["Ampliar"] = "Extend",
+        ["Ampliar esta vez"] = "Extend this time",
+        ["Minutos de ampliación"] = "Extension minutes",
+        ["2 horas"] = "2 hours",
         ["Autoriza el desbloqueo de"] = "Authorize unlocking",
         ["Autorización no concedida."] = "Authorization was not granted."
         ,
