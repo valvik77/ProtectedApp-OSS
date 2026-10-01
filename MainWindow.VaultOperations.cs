@@ -41,32 +41,108 @@ public sealed partial class MainWindow
     private async void EmptyVaultRecycleBin_Click(object sender, RoutedEventArgs e)
     {
         if (GetVaultFromSender(sender) is not { } vault) return;
-        var retained = _vaultService.CountRecycledEntries(vault);
-        if (retained <= 0)
+        if (_vaultService.CountRecycledEntries(vault) <= 0)
         {
             await ShowMessageAsync("Papelera vacía",
                 "Esta bóveda no conserva archivos eliminados. La papelera solo puede consultarse mientras la bóveda está abierta para edición.");
             return;
         }
-
-        // Emptying is what finally makes a deletion irreversible, so it needs
-        // the master password and a confirmation that names the count.
-        if (!await VerifyMasterAsync($"Vaciar la papelera de {vault.Name}")) return;
-        var dialog = CreateDialog("Vaciar papelera de la bóveda",
-            $"Se descartarán definitivamente {retained} archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda.",
-            "Vaciar", "Cancelar");
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
-
-        var removed = _vaultService.EmptyRecycleBin(vault);
-        if (removed < 0)
-        {
-            await ShowMessageAsync("No se pudo vaciar la papelera",
-                _vaultService.LastError ?? "La bóveda debe estar abierta para edición.");
-            return;
-        }
-        AddActivity(vault.Name, $"Papelera vaciada: {removed} archivo(s) descartados");
-        RefreshVaults();
+        await ShowVaultRecycleBinAsync(vault);
     }
+
+    /// <summary>
+    /// Lists what the vault still retains and lets the user restore or discard
+    /// it. Reopens itself after each action so the listing stays current.
+    /// </summary>
+    private async Task ShowVaultRecycleBinAsync(VaultContainer vault)
+    {
+        while (true)
+        {
+            var entries = _vaultService.ListRecycledEntries(vault);
+            if (entries.Count == 0)
+            {
+                await ShowMessageAsync("Papelera vacía", "Esta bóveda no conserva archivos eliminados.");
+                RefreshVaults();
+                return;
+            }
+
+            // Built in code rather than as a DataTemplate: a template defined
+            // here would need runtime XAML parsing, and the rows are static.
+            var rows = new StackPanel { Spacing = 2 };
+            foreach (var entry in entries)
+            {
+                var row = new StackPanel { Spacing = 1, Padding = new Thickness(0, 4, 0, 4), Tag = entry };
+                row.Children.Add(new TextBlock
+                {
+                    Text = entry.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis
+                });
+                if (!string.IsNullOrEmpty(entry.Folder))
+                    row.Children.Add(new TextBlock
+                    {
+                        Text = entry.Folder, FontSize = 11, Opacity = 0.7,
+                        TextTrimming = TextTrimming.CharacterEllipsis
+                    });
+                row.Children.Add(new TextBlock { Text = entry.DeletedLabel, FontSize = 11, Opacity = 0.7 });
+                rows.Children.Add(row);
+            }
+
+            var list = new ListView
+            {
+                SelectionMode = ListViewSelectionMode.Single,
+                MaxHeight = 320,
+                IsItemClickEnabled = false
+            };
+            foreach (var row in rows.Children.OfType<StackPanel>().ToArray())
+            {
+                rows.Children.Remove(row);
+                list.Items.Add(new ListViewItem { Content = row, Tag = row.Tag });
+            }
+            list.SelectedIndex = 0;
+
+            var summary = new TextBlock
+            {
+                Text = $"{entries.Count} archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear.",
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Application.Current.Resources["MutedTextBrush"] as Brush
+            };
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(summary);
+            panel.Children.Add(list);
+
+            var dialog = CreateDialog($"Papelera de {vault.Name}", panel, "Restaurar", "Cerrar");
+            dialog.SecondaryButtonText = LocalizationService.T("Eliminar definitivamente");
+            var choice = await dialog.ShowAsync();
+            if (choice == ContentDialogResult.None) { RefreshVaults(); return; }
+            if ((list.SelectedItem as ListViewItem)?.Tag is not VaultRecycledEntry selected) continue;
+
+            if (choice == ContentDialogResult.Primary)
+            {
+                var restored = _vaultService.RestoreRecycledEntry(vault, selected.Id);
+                if (restored is null)
+                {
+                    await ShowMessageAsync("No se pudo restaurar",
+                        _vaultService.LastError ?? "No se pudo restaurar el archivo.");
+                    continue;
+                }
+                AddActivity(vault.Name, $"Archivo restaurado desde la papelera: {restored}");
+                continue;
+            }
+
+            // Discarding one entry is irreversible once the vault is saved, so
+            // it needs the master password just like emptying the whole bin.
+            if (!await VerifyMasterAsync($"Eliminar {selected.Name} de la papelera")) continue;
+            if (!_vaultService.DiscardRecycledEntry(vault, selected.Id))
+            {
+                await ShowMessageAsync("No se pudo eliminar",
+                    _vaultService.LastError ?? "No se pudo eliminar el archivo.");
+                continue;
+            }
+            AddActivity(vault.Name, $"Archivo eliminado definitivamente de la papelera: {selected.OriginalPath}");
+        }
+    }
+
 
     private async void AddVaultButton_Click(object sender, RoutedEventArgs e)
     {

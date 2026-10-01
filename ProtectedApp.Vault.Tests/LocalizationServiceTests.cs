@@ -6,6 +6,36 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class LocalizationServiceTests
 {
     [Fact]
+    public void Localizes_TheVaultRecycleBinDialog_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Vault recycle bin", LocalizationService.T("Papelera de la bóveda"));
+            Assert.Equal("Restore", LocalizationService.T("Restaurar"));
+            Assert.Equal("Delete permanently", LocalizationService.T("Eliminar definitivamente"));
+            Assert.Equal("Recycle bin of Documentos", LocalizationService.T("Papelera de Documentos"));
+            Assert.Equal(
+                "3 deleted file(s) are retained inside the vault. The space is reclaimed when you save and lock.",
+                LocalizationService.T("3 archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear."));
+            Assert.Equal("File restored from the recycle bin: sub/deep.txt",
+                LocalizationService.T("Archivo restaurado desde la papelera: sub/deep.txt"));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Papelera de la bóveda", LocalizationService.T("Vault recycle bin"));
+            Assert.Equal("Papelera de Documentos", LocalizationService.T("Recycle bin of Documentos"));
+            Assert.Equal("Archivo restaurado desde la papelera: sub/deep.txt",
+                LocalizationService.T("File restored from the recycle bin: sub/deep.txt"));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
     public void Localizes_TheVaultRecycleBinCommand_InBothDirections()
     {
         try

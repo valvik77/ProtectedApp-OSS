@@ -427,7 +427,12 @@ public static class LocalizationService
         ["Conserva una copia de seguridad de las bóvedas importantes y no olvides la contraseña maestra: está diseñada para proteger tu información, por lo que ProtectedApp no puede recuperarla por ti."] = "Keep a backup of important vaults and do not forget the master password: it protects your information, so ProtectedApp cannot recover it for you.",
         ["Reaperturas sin contraseña"] = "Password-free reopenings",
         ["Solo mientras continúe abierta"] = "Only while it remains open",
+        ["Papelera de la bóveda"] = "Vault recycle bin",
+        // Kept for the activity log and backups written before the menu entry
+        // was renamed from "Vaciar papelera..." to "Papelera de la bóveda".
         ["Vaciar papelera de la bóveda"] = "Empty the vault's recycle bin",
+        ["Restaurar"] = "Restore",
+        ["Eliminar definitivamente"] = "Delete permanently",
         ["Papelera vacía"] = "Recycle bin is empty",
         ["Vaciar"] = "Empty",
         ["No se pudo vaciar la papelera"] = "Could not empty the recycle bin",
@@ -1848,6 +1853,14 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Atajo global: (.+)$");
         if (match.Success) return $"Global shortcut: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Papelera de (.+)$");
+        if (match.Success) return $"Recycle bin of {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) archivo\(s\) eliminados se conservan dentro de la bóveda\. El espacio se libera al guardar y bloquear\.$");
+        if (match.Success) return $"{match.Groups[1].Value} deleted file(s) are retained inside the vault. The space is reclaimed when you save and lock.";
+        match = Regex.Match(value, @"^Archivo restaurado desde la papelera: (.+)$");
+        if (match.Success) return $"File restored from the recycle bin: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Archivo eliminado definitivamente de la papelera: (.+)$");
+        if (match.Success) return $"File permanently deleted from the recycle bin: {match.Groups[1].Value}";
         match = Regex.Match(value, @"^Se descartarán definitivamente (\d+) archivo\(s\) eliminados que todavía podían recuperarse\. El espacio se libera al guardar y bloquear la bóveda\.$");
         if (match.Success) return $"{match.Groups[1].Value} deleted file(s) that could still be recovered will be discarded permanently. The space is reclaimed when the vault is saved and locked.";
         match = Regex.Match(value, @"^Papelera vaciada: (\d+) archivo\(s\) descartados$");
@@ -2109,6 +2122,14 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Global shortcut: (.+)$");
         if (match.Success) return $"Atajo global: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Recycle bin of (.+)$");
+        if (match.Success) return $"Papelera de {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) deleted file\(s\) are retained inside the vault\. The space is reclaimed when you save and lock\.$");
+        if (match.Success) return $"{match.Groups[1].Value} archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear.";
+        match = Regex.Match(value, @"^File restored from the recycle bin: (.+)$");
+        if (match.Success) return $"Archivo restaurado desde la papelera: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^File permanently deleted from the recycle bin: (.+)$");
+        if (match.Success) return $"Archivo eliminado definitivamente de la papelera: {match.Groups[1].Value}";
         match = Regex.Match(value, @"^(\d+) deleted file\(s\) that could still be recovered will be discarded permanently\. The space is reclaimed when the vault is saved and locked\.$");
         if (match.Success) return $"Se descartarán definitivamente {match.Groups[1].Value} archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda.";
         match = Regex.Match(value, @"^Recycle bin emptied: (\d+) file\(s\) discarded$");

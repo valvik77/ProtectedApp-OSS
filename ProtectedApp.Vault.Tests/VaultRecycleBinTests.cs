@@ -102,6 +102,85 @@ public sealed class VaultRecycleBinTests
     }
 
     [Fact]
+    public async Task AListedEntryRemembersWhereItWasDeletedFrom()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\sub\\deep.txt", Info(deletePending: true));
+
+            var entry = Assert.Single(overlay.ListRecycledEntries());
+            // The original path must survive the commit and the next unlock, so
+            // it is encoded in the recycled name rather than held in memory.
+            Assert.Equal("sub/deep.txt", entry.OriginalPath);
+            Assert.Equal("deep.txt", entry.Name);
+            Assert.Equal("sub", entry.Folder);
+            Assert.True(entry.DeletedUtc > DateTime.MinValue);
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task RestoringPutsTheFileBackWhereItCameFrom()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\sub\\deep.txt", Info(deletePending: true));
+            var entry = Assert.Single(overlay.ListRecycledEntries());
+
+            Assert.Equal("sub/deep.txt", overlay.RestoreRecycledEntry(entry.Id));
+
+            Assert.Empty(overlay.ListRecycledEntries());
+            Assert.Contains(overlay.CreateSnapshot(), source => source.Path == "sub/deep.txt");
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task RestoringRefusesToOverwriteAFileRecreatedSince()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+            var entry = Assert.Single(overlay.ListRecycledEntries());
+            Assert.Equal(NtStatus.Success, overlay.CreateFile("\\notes.txt", DokanNet.FileAccess.WriteData,
+                FileShare.None, FileMode.Create, FileOptions.None, FileAttributes.Normal, Info()));
+
+            // The recreated file is the one the user is working on now.
+            Assert.Null(overlay.RestoreRecycledEntry(entry.Id));
+            Assert.Single(overlay.ListRecycledEntries());
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task DiscardingOneEntryLeavesTheOthers()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+            overlay.Cleanup("\\sub\\deep.txt", Info(deletePending: true));
+            var first = overlay.ListRecycledEntries()[0];
+
+            Assert.True(overlay.DiscardRecycledEntry(first.Id));
+
+            var remaining = Assert.Single(overlay.ListRecycledEntries());
+            Assert.NotEqual(first.Id, remaining.Id);
+            await Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task AWriteProtectedMountCannotRestoreOrDiscard()
+    {
+        await WithVaultAsync(async overlay =>
+        {
+            Assert.Null(overlay.RestoreRecycledEntry("anything"));
+            Assert.False(overlay.DiscardRecycledEntry("anything"));
+            await Task.CompletedTask;
+        }, writeProtected: true);
+    }
+
+    [Fact]
     public void TheServiceReportsNoRecycledEntriesForAVaultThatIsNotMounted()
     {
         using var service = new VaultService();
@@ -126,6 +205,8 @@ public sealed class VaultRecycleBinTests
         var vaultPath = Path.Combine(root, "test.pavault");
         Directory.CreateDirectory(sourceRoot);
         await File.WriteAllTextAsync(Path.Combine(sourceRoot, "notes.txt"), "recoverable content");
+        Directory.CreateDirectory(Path.Combine(sourceRoot, "sub"));
+        await File.WriteAllTextAsync(Path.Combine(sourceRoot, "sub", "deep.txt"), "nested content");
         var vault = new VaultContainer { Id = Guid.NewGuid(), Name = "Recycle", AutoLockMinutes = 5 };
         const string password = "ProtectedApp-Recycle-Bin";
         try

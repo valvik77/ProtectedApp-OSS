@@ -1627,6 +1627,47 @@ public sealed class VaultService : IDisposable
     /// becomes irreversible; until then the usual journal recovery still
     /// applies.
     /// </remarks>
+    /// <summary>
+    /// The files retained in <paramref name="vault"/>'s recycle area, newest
+    /// deletion first, or an empty list when it is not mounted for editing.
+    /// </summary>
+    public IReadOnlyList<VaultRecycledEntry> ListRecycledEntries(VaultContainer vault) =>
+        vault is not null
+        && _virtualSessions.TryGetValue(vault.Id, out var session)
+        && session.IsWritable
+            ? session.ListRecycledEntries()
+            : [];
+
+    /// <summary>
+    /// Moves one retained file back to where it was deleted from, returning
+    /// that path, or null when it is gone or its original location is taken.
+    /// </summary>
+    public string? RestoreRecycledEntry(VaultContainer vault, string id)
+    {
+        LastError = null;
+        if (vault is null || !_virtualSessions.TryGetValue(vault.Id, out var session) || !session.IsWritable)
+        {
+            LastError = "La bóveda debe estar abierta para edición.";
+            return null;
+        }
+        var restored = session.RestoreRecycledEntry(id);
+        if (restored is null)
+            LastError = "No se pudo restaurar el archivo; puede que ya exista otro con la misma ruta.";
+        return restored;
+    }
+
+    /// <summary>Permanently discards one retained file.</summary>
+    public bool DiscardRecycledEntry(VaultContainer vault, string id)
+    {
+        LastError = null;
+        if (vault is null || !_virtualSessions.TryGetValue(vault.Id, out var session) || !session.IsWritable)
+        {
+            LastError = "La bóveda debe estar abierta para edición.";
+            return false;
+        }
+        return session.DiscardRecycledEntry(id);
+    }
+
     public int EmptyRecycleBin(VaultContainer vault)
     {
         LastError = null;
@@ -2451,6 +2492,10 @@ public sealed class VaultService : IDisposable
         public bool HasPendingChanges => writableOperations?.HasChanges == true;
         public int CountRecycledEntries() => writableOperations?.CountRecycledEntries() ?? 0;
         public int EmptyRecycleBin() => writableOperations?.EmptyRecycleBin() ?? 0;
+        public IReadOnlyList<VaultRecycledEntry> ListRecycledEntries() =>
+            writableOperations?.ListRecycledEntries() ?? [];
+        public string? RestoreRecycledEntry(string id) => writableOperations?.RestoreRecycledEntry(id);
+        public bool DiscardRecycledEntry(string id) => writableOperations?.DiscardRecycledEntry(id) == true;
         public bool IsRunning
         {
             get

@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.IO.Enumeration;
+using System.Text;
 using System.Security.AccessControl;
 using DokanNet;
 using DokanFileAccess = DokanNet.FileAccess;
@@ -463,15 +465,20 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (!RecycleEnabled || IsRecyclePath(path)) return false;
         // A directory is recycled only as a whole, and it is empty by the time
         // we get here, so its children never need rewriting.
+        // The original path is encoded into the recycled name rather than kept
+        // in a field: it has to survive the commit and the next unlock, and the
+        // vault index stores only paths. '/' is not a legal path character here
+        // (NormalizePath splits on it), so it is escaped.
         var stamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-        var name = GetName(path);
-        var target = $"{RecycleFolderName}/{stamp} {name}";
+        var encodedOrigin = path.Replace(OriginSeparator, OriginSeparator + OriginSeparator)
+            .Replace("/", OriginSeparator + "s");
+        var target = $"{RecycleFolderName}/{stamp}{OriginSeparator}{encodedOrigin}";
         // Two deletions can land in the same millisecond, and deleting the same
         // name twice is ordinary (save, delete, recreate, delete). Falling back
         // to a real delete on a collision would silently lose the file, so
         // disambiguate instead.
         for (var attempt = 2; _nodes.ContainsKey(target) && attempt < 1_000; attempt++)
-            target = $"{RecycleFolderName}/{stamp} ({attempt}) {name}";
+            target = $"{RecycleFolderName}/{stamp}-{attempt}{OriginSeparator}{encodedOrigin}";
         if (_nodes.ContainsKey(target)) return false;
         EnsureParents(target);
         _nodes.Remove(path);
@@ -510,6 +517,98 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     {
         lock (_sync) return _nodes.Keys.Count(path => IsRecyclePath(path) && !_nodes[path].IsDirectory);
     }
+
+    /// <summary>Everything currently recoverable, most recently deleted first.</summary>
+    public IReadOnlyList<VaultRecycledEntry> ListRecycledEntries()
+    {
+        lock (_sync)
+        {
+            return _nodes
+                .Where(pair => IsRecyclePath(pair.Key) && !pair.Value.IsDirectory
+                    && !pair.Key.Equals(RecycleFolderName, StringComparison.OrdinalIgnoreCase))
+                .Select(pair => new VaultRecycledEntry(pair.Key, DecodeOriginalPath(pair.Key),
+                    pair.Value.Length, pair.Value.LastWriteUtc, DecodeDeletedUtc(pair.Key)))
+                .OrderByDescending(entry => entry.DeletedUtc)
+                .ThenBy(entry => entry.OriginalPath, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+    }
+
+    /// <summary>
+    /// Moves one recycled entry back to where it was deleted from. Returns the
+    /// path it was restored to, or null when it is gone or the original
+    /// location is occupied again.
+    /// </summary>
+    public string? RestoreRecycledEntry(string id)
+    {
+        if (_writeProtected) return null;
+        lock (_sync)
+        {
+            if (!IsRecyclePath(id) || !_nodes.TryGetValue(id, out var node) || node.IsDirectory) return null;
+            var target = DecodeOriginalPath(id);
+            if (target.Length == 0 || target.StartsWith('\0')) return null;
+            // Never overwrite a file the user recreated after deleting this one.
+            if (_nodes.ContainsKey(target)) return null;
+            EnsureParents(target);
+            _nodes.Remove(id);
+            node.Path = target;
+            _nodes[target] = node;
+            RebuildChildren();
+            MarkChanged();
+            return target;
+        }
+    }
+
+    /// <summary>Permanently discards one recycled entry. True when it was removed.</summary>
+    public bool DiscardRecycledEntry(string id)
+    {
+        if (_writeProtected) return false;
+        lock (_sync)
+        {
+            if (!IsRecyclePath(id) || !_nodes.TryGetValue(id, out var node) || node.IsDirectory) return false;
+            ClearBlocks(node);
+            _nodes.Remove(id);
+            RebuildChildren();
+            MarkChanged();
+            return true;
+        }
+    }
+
+    private static string DecodeOriginalPath(string recycledPath)
+    {
+        var name = GetName(recycledPath);
+        var separator = name.IndexOf(OriginSeparator, StringComparison.Ordinal);
+        if (separator < 0) return name;
+        var encoded = name[(separator + OriginSeparator.Length)..];
+        var result = new StringBuilder(encoded.Length);
+        for (var index = 0; index < encoded.Length; index++)
+        {
+            if (encoded[index] != OriginSeparator[0] || index + 1 >= encoded.Length)
+            {
+                result.Append(encoded[index]);
+                continue;
+            }
+            // An escape is either a literal separator or an encoded '/'.
+            index++;
+            result.Append(encoded[index] == 's' ? '/' : encoded[index]);
+        }
+        return NormalizePath(result.ToString());
+    }
+
+    private static DateTime DecodeDeletedUtc(string recycledPath)
+    {
+        var name = GetName(recycledPath);
+        var stamp = name.Length >= 17 ? name[..17] : name;
+        return DateTime.TryParseExact(stamp, "yyyyMMddHHmmssfff",
+            CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out var parsed)
+            ? parsed
+            : DateTime.MinValue;
+    }
+
+    // Chosen because NormalizePath rejects ':' and splits on '/', so neither
+    // can appear in a vault path and be confused with this marker.
+    private const string OriginSeparator = "~";
 
     private static bool IsRecyclePath(string path) =>
         path.Equals(RecycleFolderName, StringComparison.OrdinalIgnoreCase)
