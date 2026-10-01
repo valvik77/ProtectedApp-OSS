@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ProtectedApp.Models;
@@ -578,7 +580,7 @@ public sealed partial class MainWindow
             if (bootstrapSecretFile is not null)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(bootstrapSecretFile)!);
-                File.WriteAllText(bootstrapSecretFile, bootstrapSecret!, System.Text.Encoding.ASCII);
+                WriteBootstrapSecretFile(bootstrapSecretFile, bootstrapSecret!);
             }
             var startInfo = new ProcessStartInfo("powershell.exe")
             {
@@ -686,6 +688,36 @@ public sealed partial class MainWindow
             if (bootstrapSecretFile is not null) try { File.Delete(bootstrapSecretFile); } catch { }
             RefreshGuardianStatus();
         }
+    }
+
+    /// <summary>
+    /// Writes the single-use Guardian bootstrap secret with an explicit ACL.
+    /// The file lives in LocalApplicationData only until the elevated installer
+    /// has read it, so it grants the current user, SYSTEM and Administrators and
+    /// nobody else, instead of inheriting whatever the profile allows.
+    /// </summary>
+    private static void WriteBootstrapSecretFile(string path, string secret)
+    {
+        var security = new FileSecurity();
+        security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        var owner = WindowsIdentity.GetCurrent().User;
+        if (owner is not null)
+            security.AddAccessRule(new FileSystemAccessRule(owner, FileSystemRights.FullControl,
+                AccessControlType.Allow));
+        foreach (var sid in new[]
+                 {
+                     new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                     new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null)
+                 })
+            security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl,
+                AccessControlType.Allow));
+        // Create the file with the ACL already applied; writing first and
+        // hardening afterwards would leave the secret readable for a moment.
+        using var stream = FileSystemAclExtensions.Create(new FileInfo(path), FileMode.Create,
+            FileSystemRights.WriteData, FileShare.None, 4096, FileOptions.None, security);
+        var bytes = System.Text.Encoding.ASCII.GetBytes(secret);
+        try { stream.Write(bytes, 0, bytes.Length); }
+        finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(bytes); }
     }
 
     private List<ProtectedFolder> GetGuardianIncompatibleFolders()

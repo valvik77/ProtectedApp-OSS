@@ -627,9 +627,18 @@ internal sealed class GuardianIpcServer(
             using var process = Process.GetProcessById(processId);
             var path = process.MainModule?.FileName;
             var installedGate = Path.Combine(GuardianConstants.StateFolder, "ProtectedApp.Gate.exe");
-            return !string.IsNullOrWhiteSpace(path)
-                && string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(installedGate),
-                    StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(path)
+                || !string.Equals(SafePath.GetFullPath(path), SafePath.GetFullPath(installedGate),
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+            // Hashing the image would compare the installed Gate against
+            // itself, since the check above already pins the caller to that
+            // exact path. The trust therefore rests on the state folder ACL
+            // (SYSTEM and Administrators only, inheritance disabled), which is
+            // what stops an unprivileged user from putting their own binary
+            // there. RegisterBlockedAttempt, the only command reaching this
+            // check, grants no privilege and discloses no protected data.
+            return true;
         }
         catch { return false; }
     }

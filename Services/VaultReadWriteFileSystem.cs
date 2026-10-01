@@ -299,6 +299,13 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         {
             var oldPath = NormalizePath(oldName);
             var newPath = NormalizePath(newName);
+            // Renaming is the only operation that stores a normalized path as a
+            // key instead of just looking one up, so reject the unsafe-path
+            // sentinel here as CreateFile and the journal restore already do.
+            // The commit path validates entry paths again, but that invariant
+            // lives in another file and must not be the only thing holding.
+            if (newPath.Length == 0 || newPath.StartsWith('\0') || oldPath.StartsWith('\0'))
+                return NtStatus.ObjectNameInvalid;
             if (!_nodes.TryGetValue(oldPath, out var node)) return NtStatus.ObjectNameNotFound;
             if (_nodes.ContainsKey(newPath) && !replace) return NtStatus.ObjectNameCollision;
             if (_nodes.ContainsKey(newPath)) _nodes.Remove(newPath);
