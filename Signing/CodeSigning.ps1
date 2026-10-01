@@ -44,8 +44,30 @@ function Get-ProtectedAppSigningCertificate {
     if ($certificate.NotBefore -gt $now -or $certificate.NotAfter -le $now) {
         throw "El certificado no es válido en este momento ($($certificate.NotBefore)-$($certificate.NotAfter))."
     }
-    if (-not $AllowDevelopmentCertificate -and $certificate.Subject -eq $certificate.Issuer) {
+    $isSelfSigned = $certificate.Subject -eq $certificate.Issuer
+    if (-not $AllowDevelopmentCertificate -and $isSelfSigned) {
         throw 'Los certificados autofirmados solo se admiten con -AllowDevelopmentCertificate y nunca deben publicarse como una versión de producción.'
+    }
+    # A publicly trusted certificate must chain to a root this machine trusts.
+    # Without this a revoked or incompletely installed certificate would sign
+    # happily here and only fail on the user's computer, after publication.
+    if (-not $isSelfSigned) {
+        $chain = [System.Security.Cryptography.X509Certificates.X509Chain]::new()
+        $chain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::Online
+        $chain.ChainPolicy.RevocationFlag = [System.Security.Cryptography.X509Certificates.X509RevocationFlag]::ExcludeRoot
+        try {
+            if (-not $chain.Build($certificate)) {
+                $reasons = ($chain.ChainStatus | ForEach-Object { $_.StatusInformation.Trim() }) -join '; '
+                throw "La cadena de confianza del certificado de firma no es válida: $reasons"
+            }
+        }
+        finally { $chain.Dispose() }
+    }
+    # Authenticode keeps verifying after expiry thanks to the timestamp, but a
+    # certificate about to expire cannot sign the release after that date.
+    $daysLeft = [int]($certificate.NotAfter - $now).TotalDays
+    if ($daysLeft -le 30) {
+        Write-Warning "El certificado de firma caduca en $daysLeft día(s) ($($certificate.NotAfter)). Renuévalo antes de la próxima versión."
     }
     return $certificate
 }
