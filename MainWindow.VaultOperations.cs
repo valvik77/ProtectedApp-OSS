@@ -11,10 +11,177 @@ namespace ProtectedApp;
 
 public sealed partial class MainWindow
 {
+    private const string RecycleBinMenuTag = "vault-recycle-bin";
+
     private void VaultActionsFlyout_Opening(object sender, object e)
     {
         if (sender is not MenuFlyout menu) return;
+        // The recycle area lives inside the encrypted container, so it can only
+        // be counted or emptied while the vault is mounted for editing. Show
+        // how many files are recoverable instead of offering a dead command.
+        // Identified by its tag rather than its text, which localization and
+        // the retained count both rewrite.
+        var recycleItem = menu.Items.OfType<MenuFlyoutItem>()
+            .FirstOrDefault(item => item.Tag as string == RecycleBinMenuTag);
+        if (recycleItem is not null)
+        {
+            var retained = recycleItem.CommandParameter is VaultContainer vault
+                ? _vaultService.CountRecycledEntries(vault)
+                : 0;
+            recycleItem.IsEnabled = retained > 0;
+            // The count goes in the tooltip: the label itself must stay a
+            // stable, translatable string for LocalizationService.
+            ToolTipService.SetToolTip(recycleItem, retained > 0
+                ? LocalizationService.T("Archivos eliminados que todavía pueden recuperarse") + $": {retained}"
+                : LocalizationService.T("La bóveda no conserva archivos eliminados"));
+        }
         LocalizationService.TranslateFlyout(menu);
+    }
+
+    private async void EmptyVaultRecycleBin_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetVaultFromSender(sender) is not { } vault) return;
+        if (_vaultService.CountRecycledEntries(vault) <= 0)
+        {
+            await ShowMessageAsync("Papelera vacía",
+                "Esta bóveda no conserva archivos eliminados. La papelera solo puede consultarse mientras la bóveda está abierta para edición.");
+            return;
+        }
+        await ShowVaultRecycleBinAsync(vault);
+    }
+
+    /// <summary>
+    /// Lists what the vault still retains and lets the user restore or discard
+    /// it. Reopens itself after each action so the listing stays current.
+    /// </summary>
+    private async Task ShowVaultRecycleBinAsync(VaultContainer vault)
+    {
+        while (true)
+        {
+            var entries = _vaultService.ListRecycledEntries(vault);
+            if (entries.Count == 0)
+            {
+                await ShowMessageAsync("Papelera vacía", "Esta bóveda no conserva archivos eliminados.");
+                RefreshVaults();
+                return;
+            }
+
+            // Extended gives the Explorer selection behaviour for free: click,
+            // Shift+click for a run, Ctrl+click to toggle, Ctrl+A for all.
+            var list = new ListView
+            {
+                SelectionMode = ListViewSelectionMode.Extended,
+                MaxHeight = 320,
+                IsItemClickEnabled = false
+            };
+            // Rows are built in code rather than from a DataTemplate, which
+            // here would need runtime XAML parsing for a static layout.
+            foreach (var entry in entries)
+            {
+                var row = new StackPanel { Spacing = 1, Padding = new Thickness(0, 4, 0, 4) };
+                row.Children.Add(new TextBlock
+                {
+                    Text = entry.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis
+                });
+                if (!string.IsNullOrEmpty(entry.Folder))
+                    row.Children.Add(new TextBlock
+                    {
+                        Text = entry.Folder, FontSize = 11, Opacity = 0.7,
+                        TextTrimming = TextTrimming.CharacterEllipsis
+                    });
+                row.Children.Add(new TextBlock { Text = entry.DeletedLabel, FontSize = 11, Opacity = 0.7 });
+                list.Items.Add(new ListViewItem { Content = row, Tag = entry });
+            }
+            list.SelectedIndex = 0;
+
+            var summary = new TextBlock
+            {
+                Text = $"{entries.Count} archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear.",
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Application.Current.Resources["MutedTextBrush"] as Brush
+            };
+            var hint = new TextBlock
+            {
+                Text = "Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos.",
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Application.Current.Resources["MutedTextBrush"] as Brush
+            };
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(summary);
+            panel.Children.Add(list);
+            panel.Children.Add(hint);
+
+            var dialog = CreateDialog($"Papelera de {vault.Name}", panel, "Restaurar", "Cerrar");
+            dialog.SecondaryButtonText = LocalizationService.T("Eliminar definitivamente");
+            var choice = await dialog.ShowAsync();
+            if (choice == ContentDialogResult.None) { RefreshVaults(); return; }
+
+            var selected = list.SelectedItems
+                .OfType<ListViewItem>()
+                .Select(item => item.Tag)
+                .OfType<VaultRecycledEntry>()
+                .ToArray();
+            if (selected.Length == 0) continue;
+
+            if (choice == ContentDialogResult.Primary)
+            {
+                await RestoreRecycledEntriesAsync(vault, selected);
+                continue;
+            }
+
+            // Discarding is irreversible once the vault is saved, so it needs
+            // the master password just like emptying the whole bin.
+            var prompt = selected.Length == 1
+                ? $"Eliminar {selected[0].Name} de la papelera"
+                : $"Eliminar {selected.Length} archivos de la papelera";
+            if (!await VerifyMasterAsync(prompt)) continue;
+            await DiscardRecycledEntriesAsync(vault, selected);
+        }
+    }
+
+    /// <summary>
+    /// Restores every selected entry, reporting the ones that could not be put
+    /// back rather than stopping at the first failure.
+    /// </summary>
+    private async Task RestoreRecycledEntriesAsync(VaultContainer vault,
+        IReadOnlyList<VaultRecycledEntry> selected)
+    {
+        var restored = 0;
+        var blocked = new List<string>();
+        foreach (var entry in selected)
+        {
+            if (_vaultService.RestoreRecycledEntry(vault, entry.Id) is { } path)
+            {
+                restored++;
+                AddActivity(vault.Name, $"Archivo restaurado desde la papelera: {path}");
+            }
+            else blocked.Add(entry.OriginalPath);
+        }
+
+        if (blocked.Count > 0)
+            await ShowMessageAsync("No se pudieron restaurar todos los archivos",
+                $"Se restauraron {restored} de {selected.Count}. Estos conservan un archivo con la misma ruta en la bóveda:"
+                + Environment.NewLine + string.Join(Environment.NewLine, blocked.Take(10))
+                + (blocked.Count > 10 ? Environment.NewLine + "…" : string.Empty));
+    }
+
+    /// <summary>Permanently discards every selected entry.</summary>
+    private async Task DiscardRecycledEntriesAsync(VaultContainer vault,
+        IReadOnlyList<VaultRecycledEntry> selected)
+    {
+        var discarded = 0;
+        foreach (var entry in selected)
+        {
+            if (!_vaultService.DiscardRecycledEntry(vault, entry.Id)) continue;
+            discarded++;
+            AddActivity(vault.Name, $"Archivo eliminado definitivamente de la papelera: {entry.OriginalPath}");
+        }
+        if (discarded < selected.Count)
+            await ShowMessageAsync("No se pudieron eliminar todos los archivos",
+                _vaultService.LastError ?? $"Se eliminaron {discarded} de {selected.Count}.");
     }
 
     private async void AddVaultButton_Click(object sender, RoutedEventArgs e)

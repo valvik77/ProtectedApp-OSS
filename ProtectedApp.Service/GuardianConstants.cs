@@ -28,6 +28,9 @@ internal static class GuardianConstants
     public static string IncidentPath => Path.Combine(StateFolder, "guardian-recovery.incident");
     public static string AgentLeasePath => Path.Combine(StateFolder, "guardian-agent.json");
     public static string ThrottlePath => Path.Combine(PolicyFolder, "authentication-throttle.json");
+    // Daily quota usage lives beside the policy, in the SYSTEM/Administrators
+    // tree, so a standard user cannot reset their own quota by editing it.
+    public static string DailyQuotaPath => Path.Combine(PolicyFolder, "daily-quota-usage.json");
     public static string PolicyFolder => Path.Combine(StateFolder, "Policy");
     public static string PolicyPath => Path.Combine(PolicyFolder, "guardian-policy.dat");
     public static string FolderAclPath => Path.Combine(PolicyFolder, "guardian-folder-acl.dat");

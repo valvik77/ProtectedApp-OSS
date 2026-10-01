@@ -427,7 +427,31 @@ public static class LocalizationService
         ["Conserva una copia de seguridad de las bóvedas importantes y no olvides la contraseña maestra: está diseñada para proteger tu información, por lo que ProtectedApp no puede recuperarla por ti."] = "Keep a backup of important vaults and do not forget the master password: it protects your information, so ProtectedApp cannot recover it for you.",
         ["Reaperturas sin contraseña"] = "Password-free reopenings",
         ["Solo mientras continúe abierta"] = "Only while it remains open",
+        ["Papelera de la bóveda"] = "Vault recycle bin",
+        ["Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos."] = "Use Shift to select a range and Ctrl to pick individual files.",
+        ["No se pudieron restaurar todos los archivos"] = "Some files could not be restored",
+        ["No se pudieron eliminar todos los archivos"] = "Some files could not be deleted",
+        // Kept for the activity log and backups written before the menu entry
+        // was renamed from "Vaciar papelera..." to "Papelera de la bóveda".
+        ["Vaciar papelera de la bóveda"] = "Empty the vault's recycle bin",
+        ["Restaurar"] = "Restore",
+        ["Eliminar definitivamente"] = "Delete permanently",
+        ["Papelera vacía"] = "Recycle bin is empty",
+        ["Vaciar"] = "Empty",
+        ["No se pudo vaciar la papelera"] = "Could not empty the recycle bin",
+        ["Archivos eliminados que todavía pueden recuperarse"] = "Deleted files that can still be recovered",
+        ["La bóveda no conserva archivos eliminados"] = "This vault retains no deleted files",
+        ["Esta bóveda no conserva archivos eliminados. La papelera solo puede consultarse mientras la bóveda está abierta para edición."] = "This vault retains no deleted files. The recycle bin can only be inspected while the vault is open for editing.",
+        ["La bóveda debe estar abierta para edición."] = "The vault must be open for editing.",
         ["Cierre automático"] = "Automatic closing",
+        ["Forzar el cierre si la aplicación no responde"] = "Force the application closed if it does not respond",
+        ["Desactívalo para que ProtectedApp nunca cierre la aplicación por la fuerza. Si queda un diálogo de guardado sin responder, se deja abierta y se vuelve a pedir el cierre más tarde."] = "Turn this off so ProtectedApp never forces the application closed. If a save dialog is left unanswered, the application stays open and the close request is repeated later.",
+        ["Si se desactiva, una aplicación con cambios sin guardar permanece abierta en lugar de perderlos."] = "When turned off, an application with unsaved changes stays open instead of losing them.",
+        ["Tiempo diario máximo"] = "Maximum time per day",
+        ["Sin límite diario"] = "No daily limit",
+        ["Al agotarse, la aplicación se cierra y no puede reabrirse con su contraseña hasta el día siguiente. La contraseña maestra siempre permite anularlo."] = "Once it runs out, the application is closed and cannot be reopened with its own password until the next day. The master password always overrides it.",
+        ["El tiempo diario máximo no puede superar 1.440 min (24 h)."] = "The maximum time per day cannot exceed 1,440 min (24 h).",
+        ["Indica un número entero de minutos para el tiempo diario máximo (entre 1 y 1.440)."] = "Enter a whole number of minutes for the maximum time per day (between 1 and 1,440).",
         ["Desactivado"] = "Disabled",
         ["Tras tiempo de uso"] = "After usage time",
         ["Tras inactividad"] = "After inactivity",
@@ -1832,6 +1856,26 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Atajo global: (.+)$");
         if (match.Success) return $"Global shortcut: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Eliminar (\d+) archivos de la papelera$");
+        if (match.Success) return $"Delete {match.Groups[1].Value} files from the recycle bin";
+        match = Regex.Match(value, @"^Eliminar (.+) de la papelera$");
+        if (match.Success) return $"Delete {match.Groups[1].Value} from the recycle bin";
+        match = Regex.Match(value, @"^Se restauraron (\d+) de (\d+)\. Estos conservan un archivo con la misma ruta en la bóveda:$");
+        if (match.Success) return $"{match.Groups[1].Value} of {match.Groups[2].Value} were restored. These still have a file at the same path inside the vault:";
+        match = Regex.Match(value, @"^Se eliminaron (\d+) de (\d+)\.$");
+        if (match.Success) return $"{match.Groups[1].Value} of {match.Groups[2].Value} were deleted.";
+        match = Regex.Match(value, @"^Papelera de (.+)$");
+        if (match.Success) return $"Recycle bin of {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) archivo\(s\) eliminados se conservan dentro de la bóveda\. El espacio se libera al guardar y bloquear\.$");
+        if (match.Success) return $"{match.Groups[1].Value} deleted file(s) are retained inside the vault. The space is reclaimed when you save and lock.";
+        match = Regex.Match(value, @"^Archivo restaurado desde la papelera: (.+)$");
+        if (match.Success) return $"File restored from the recycle bin: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Archivo eliminado definitivamente de la papelera: (.+)$");
+        if (match.Success) return $"File permanently deleted from the recycle bin: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Se descartarán definitivamente (\d+) archivo\(s\) eliminados que todavía podían recuperarse\. El espacio se libera al guardar y bloquear la bóveda\.$");
+        if (match.Success) return $"{match.Groups[1].Value} deleted file(s) that could still be recovered will be discarded permanently. The space is reclaimed when the vault is saved and locked.";
+        match = Regex.Match(value, @"^Papelera vaciada: (\d+) archivo\(s\) descartados$");
+        if (match.Success) return $"Recycle bin emptied: {match.Groups[1].Value} file(s) discarded";
         match = Regex.Match(value, @"^No se pudo preparar la carpeta original para eliminarla\. No se eliminó ningún archivo\. Cierra las aplicaciones que la usen y revisa sus permisos:\r?\n(.+)$");
         if (match.Success) return $"Could not prepare the original folder for deletion. No files were deleted. Close applications using it and check its permissions:{Environment.NewLine}{match.Groups[1].Value}";
         match = Regex.Match(value, @"^La carpeta original se movió a una ubicación de limpieza antes de borrar su contenido, pero Windows no terminó la operación\. La bóveda cifrada ya fue verificada\. Revisa y elimina manualmente la carpeta restante:\r?\n(.+)$");
@@ -1886,6 +1930,12 @@ public static class LocalizationService
         if (match.Success) return $"Encrypted backup exported with {match.Groups[1].Value} applications and {match.Groups[2].Value} folders";
         match = Regex.Match(value, @"^Cierre automático ampliado (\d+) min$");
         if (match.Success) return $"Automatic closing extended by {match.Groups[1].Value} min";
+        // The longer variant must be tested first: the shorter pattern is a
+        // prefix of it and would otherwise leave the override hint untranslated.
+        match = Regex.Match(value, @"^(.+) ha agotado su tiempo diario de (\d+) min\. Usa la contraseña maestra para anularlo\.$");
+        if (match.Success) return $"{match.Groups[1].Value} has used up its daily allowance of {match.Groups[2].Value} min. Use the master password to override it.";
+        match = Regex.Match(value, @"^(.+) ha agotado su tiempo diario de (\d+) min\.$");
+        if (match.Success) return $"{match.Groups[1].Value} has used up its daily allowance of {match.Groups[2].Value} min.";
         match = Regex.Match(value, @"^Quedan (\d+) componentes que requieren revisión\.$");
         if (match.Success) return $"{match.Groups[1].Value} component(s) still require review.";
         match = Regex.Match(value, @"^Se han exportado (\d+) eventos visibles\. La búsqueda y el filtro actuales se han respetado\.$");
@@ -2083,6 +2133,30 @@ public static class LocalizationService
     {
         var match = Regex.Match(value, @"^Global shortcut: (.+)$");
         if (match.Success) return $"Atajo global: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^Delete (\d+) files from the recycle bin$");
+        if (match.Success) return $"Eliminar {match.Groups[1].Value} archivos de la papelera";
+        match = Regex.Match(value, @"^Delete (.+) from the recycle bin$");
+        if (match.Success) return $"Eliminar {match.Groups[1].Value} de la papelera";
+        match = Regex.Match(value, @"^(\d+) of (\d+) were restored\. These still have a file at the same path inside the vault:$");
+        if (match.Success) return $"Se restauraron {match.Groups[1].Value} de {match.Groups[2].Value}. Estos conservan un archivo con la misma ruta en la bóveda:";
+        match = Regex.Match(value, @"^(\d+) of (\d+) were deleted\.$");
+        if (match.Success) return $"Se eliminaron {match.Groups[1].Value} de {match.Groups[2].Value}.";
+        match = Regex.Match(value, @"^Recycle bin of (.+)$");
+        if (match.Success) return $"Papelera de {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) deleted file\(s\) are retained inside the vault\. The space is reclaimed when you save and lock\.$");
+        if (match.Success) return $"{match.Groups[1].Value} archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear.";
+        match = Regex.Match(value, @"^File restored from the recycle bin: (.+)$");
+        if (match.Success) return $"Archivo restaurado desde la papelera: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^File permanently deleted from the recycle bin: (.+)$");
+        if (match.Success) return $"Archivo eliminado definitivamente de la papelera: {match.Groups[1].Value}";
+        match = Regex.Match(value, @"^(\d+) deleted file\(s\) that could still be recovered will be discarded permanently\. The space is reclaimed when the vault is saved and locked\.$");
+        if (match.Success) return $"Se descartarán definitivamente {match.Groups[1].Value} archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda.";
+        match = Regex.Match(value, @"^Recycle bin emptied: (\d+) file\(s\) discarded$");
+        if (match.Success) return $"Papelera vaciada: {match.Groups[1].Value} archivo(s) descartados";
+        match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\. Use the master password to override it\.$");
+        if (match.Success) return $"{match.Groups[1].Value} ha agotado su tiempo diario de {match.Groups[2].Value} min. Usa la contraseña maestra para anularlo.";
+        match = Regex.Match(value, @"^(.+) has used up its daily allowance of (\d+) min\.$");
+        if (match.Success) return $"{match.Groups[1].Value} ha agotado su tiempo diario de {match.Groups[2].Value} min.";
         match = Regex.Match(value, @"^Could not prepare the original folder for deletion\. No files were deleted\. Close applications using it and check its permissions:\r?\n(.+)$");
         if (match.Success) return $"No se pudo preparar la carpeta original para eliminarla. No se eliminó ningún archivo. Cierra las aplicaciones que la usen y revisa sus permisos:{Environment.NewLine}{match.Groups[1].Value}";
         match = Regex.Match(value, @"^The original folder was moved to a cleanup location before its contents were deleted, but Windows did not complete the operation\. The encrypted vault has already been verified\. Review and remove the remaining folder manually:\r?\n(.+)$");

@@ -10,11 +10,15 @@ internal sealed class GuardianEnforcer(
     GuardianOptions options,
     GuardianPolicyStore policyStore,
     ExecutionGateManager executionGate,
+    DailyQuotaTracker dailyQuota,
     ILogger<GuardianEnforcer> logger) : BackgroundService
 {
     private const int GracefulCloseTimeoutMilliseconds = 2_500;
     private const int ImmediateLockGracePeriodMilliseconds = 5_000;
     private static readonly TimeSpan InteractiveCloseGracePeriod = TimeSpan.FromSeconds(30);
+    // How often the close request is repeated for a rule that must never be
+    // forced. Long enough not to spam a save dialog the user is reading.
+    private static readonly TimeSpan UnresponsiveCloseRetryInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan WarningInteractionShield = TimeSpan.FromSeconds(5);
     // Some applications leave a helper that immediately tries to restart the
     // main executable when it is closed. A timeout-driven close must not turn
@@ -1357,6 +1361,7 @@ internal sealed class GuardianEnforcer(
     private void Cleanup(DateTimeOffset now)
     {
         ClearClosedAutomaticSessions();
+        EnforceDailyQuotas(now);
         EnforceTimedSessions(now);
         EnforceInactiveSessions(now);
         foreach (var allowance in _launchAllowances)
@@ -1392,6 +1397,79 @@ internal sealed class GuardianEnforcer(
             .Select(allowed => allowed.Path)
             .Where(path => Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase)));
     }
+
+    /// <summary>
+    /// Credits elapsed time to every running application that has a daily quota
+    /// and closes the ones that have spent it.
+    /// </summary>
+    /// <remarks>
+    /// Time is credited from the previous pass rather than from the launch, so
+    /// a session that spans a service restart loses at most one interval
+    /// instead of being counted twice or not at all.
+    /// </remarks>
+    private void EnforceDailyQuotas(DateTimeOffset now)
+    {
+        var previous = _lastQuotaPassUtc;
+        _lastQuotaPassUtc = now;
+        var elapsed = previous is { } last && now > last ? now - last : TimeSpan.Zero;
+
+        foreach (var policy in policyStore.GetPolicies())
+        {
+            foreach (var rule in policy.Rules.Where(candidate => candidate.IsEnabled && candidate.DailyQuotaMinutes > 0))
+            {
+                foreach (var sessionId in GetSessionsRunning(policy.UserSid, rule.Path))
+                {
+                    var used = elapsed > TimeSpan.Zero
+                        ? dailyQuota.Accumulate(policy.UserSid, rule.Id, elapsed)
+                        : dailyQuota.GetUsedMinutes(policy.UserSid, rule.Id);
+                    if (used < rule.DailyQuotaMinutes) continue;
+
+                    var key = ProcessKey(policy.UserSid, sessionId, rule.Path);
+                    if (_quotaClosedToday.ContainsKey(key)) continue;
+                    _quotaClosedToday[key] = now;
+
+                    SetPending(key, policy.UserSid, sessionId, rule, now, null,
+                        GuardianProtocol.PendingNotice,
+                        $"{rule.Name} ha agotado su tiempo diario de {rule.DailyQuotaMinutes} min.");
+                    logger.LogInformation(
+                        "Cuota diaria agotada para {Rule}, sesión {SessionId}: {Used:F1} de {Quota} min.",
+                        rule.Name, sessionId, used, rule.DailyQuotaMinutes);
+                    RevokeRuleAndTerminate(policy.UserSid, sessionId, rule.Id,
+                        suppressImmediateRestartPrompt: true);
+                    SynchronizeExecutionGates();
+                }
+            }
+        }
+
+        foreach (var closed in _quotaClosedToday)
+            if (now - closed.Value > TimeSpan.FromMinutes(10)) _quotaClosedToday.TryRemove(closed.Key, out _);
+    }
+
+    /// <summary>True when this rule's quota is spent, so a launch must be refused.</summary>
+    internal bool IsDailyQuotaExhausted(string userSid, GuardianRule rule) =>
+        dailyQuota.IsExhausted(userSid, rule.Id, rule.DailyQuotaMinutes);
+
+    /// <summary>Clears today's quota usage. Only a master-password caller reaches this.</summary>
+    public bool ResetDailyQuota(string userSid, Guid ruleId)
+    {
+        var rule = policyStore.GetPolicy(userSid)?.Rules.FirstOrDefault(candidate => candidate.Id == ruleId);
+        if (rule is null) return false;
+        dailyQuota.Reset(userSid, ruleId);
+        foreach (var closed in _quotaClosedToday.Keys.Where(key => key.Contains(ruleId.ToString("N"),
+                     StringComparison.OrdinalIgnoreCase)).ToArray())
+            _quotaClosedToday.TryRemove(closed, out _);
+        logger.LogInformation("Cuota diaria reiniciada para {Rule}.", rule.Name);
+        return true;
+    }
+
+    private IEnumerable<int> GetSessionsRunning(string userSid, string path) =>
+        _allowedProcesses.ToArray()
+            .Where(allowed => SidEquals(allowed.Value.UserSid, userSid) && PathsEqual(allowed.Value.Path, path))
+            .Select(allowed => allowed.Value.SessionId)
+            .Distinct();
+
+    private DateTimeOffset? _lastQuotaPassUtc;
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _quotaClosedToday = new(StringComparer.OrdinalIgnoreCase);
 
     private void EnforceInactiveSessions(DateTimeOffset now)
     {
@@ -1556,6 +1634,36 @@ internal sealed class GuardianEnforcer(
         return TimeSpan.FromSeconds(Math.Clamp(closeInterval.TotalSeconds / 4d, 10d, 60d));
     }
 
+    internal enum UnresponsiveCloseAction
+    {
+        /// <summary>Still inside the grace period, or waiting to ask again.</summary>
+        KeepWaiting,
+        /// <summary>Force the process to close.</summary>
+        Terminate,
+        /// <summary>Leave it running and repeat the close request.</summary>
+        RequestAgain
+    }
+
+    /// <summary>
+    /// What to do with an application that is still running after it was asked
+    /// to close normally.
+    /// </summary>
+    /// <remarks>
+    /// Ignoring the request usually means the application is holding an
+    /// unanswered "save your changes?" dialog, so terminating it would discard
+    /// the user's work. A rule may therefore opt out of forcing and have the
+    /// request repeated instead, which is what makes the behaviour configurable.
+    /// </remarks>
+    internal static UnresponsiveCloseAction DecideUnresponsiveClose(bool forceWhenUnresponsive,
+        DateTimeOffset requestedUtc, DateTimeOffset now)
+    {
+        if (now - requestedUtc < InteractiveCloseGracePeriod) return UnresponsiveCloseAction.KeepWaiting;
+        if (forceWhenUnresponsive) return UnresponsiveCloseAction.Terminate;
+        return now - requestedUtc < UnresponsiveCloseRetryInterval
+            ? UnresponsiveCloseAction.KeepWaiting
+            : UnresponsiveCloseAction.RequestAgain;
+    }
+
     /// <summary>The interval this session runs on: its one-off extension if it has one, otherwise the rule's.</summary>
     /// <remarks>
     /// The requested value is clamped to the same 1..10080 minute range the
@@ -1591,7 +1699,20 @@ internal sealed class GuardianEnforcer(
     {
         if (ProtectedTarget.IsScript(path)) return false;
         if (requestedUtc is { } requested)
-            return now - requested < InteractiveCloseGracePeriod;
+        {
+            var decision = DecideUnresponsiveClose(rule.ForceCloseWhenUnresponsive, requested, now);
+            if (decision == UnresponsiveCloseAction.KeepWaiting) return true;
+            if (decision == UnresponsiveCloseAction.Terminate) return false;
+            logger.LogInformation(
+                "{Rule} sigue abierta tras el cierre normal; se repite la solicitud en lugar de forzarla (sesión {SessionId}).",
+                rule.Name, sessionId);
+            var retriedSession = createRequestedSession(now);
+            if (!sessions.TryUpdate(key, retriedSession, currentSession)) return true;
+            SetPending(key, userSid, sessionId, rule, now, null, GuardianProtocol.PendingGracefulClose,
+                "Se ha solicitado el cierre normal de la aplicación.",
+                GetRuleProcessIds(userSid, sessionId, rule));
+            return true;
+        }
 
         var requestedSession = createRequestedSession(now);
         if (!sessions.TryUpdate(key, requestedSession, currentSession)) return true;
@@ -1599,8 +1720,12 @@ internal sealed class GuardianEnforcer(
         var processIds = GetRuleProcessIds(userSid, sessionId, rule);
         SetPending(key, userSid, sessionId, rule, now, null, GuardianProtocol.PendingGracefulClose,
             "Se ha solicitado el cierre normal de la aplicación.", processIds);
-        logger.LogInformation("Cierre normal solicitado para {Rule}, sesión {SessionId}; se forzará en {Seconds} s si sigue abierta.",
-            rule.Name, sessionId, InteractiveCloseGracePeriod.TotalSeconds);
+        if (rule.ForceCloseWhenUnresponsive)
+            logger.LogInformation("Cierre normal solicitado para {Rule}, sesión {SessionId}; se forzará en {Seconds} s si sigue abierta.",
+                rule.Name, sessionId, InteractiveCloseGracePeriod.TotalSeconds);
+        else
+            logger.LogInformation("Cierre normal solicitado para {Rule}, sesión {SessionId}; no se forzará y se repetirá cada {Minutes} min.",
+                rule.Name, sessionId, UnresponsiveCloseRetryInterval.TotalMinutes);
         return true;
     }
 

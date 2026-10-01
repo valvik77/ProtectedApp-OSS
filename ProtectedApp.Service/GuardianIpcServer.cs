@@ -428,6 +428,31 @@ internal sealed class GuardianIpcServer(
                     return Rejected("Contraseña incorrecta.", failure, ruleThrottle.LockoutEnded);
                 }
                 throttle.Clear(ruleThrottleKey);
+                // A spent daily quota blocks the rule's own password but never
+                // the master one: a quota is self-discipline, and locking its
+                // owner out of their computer until midnight is not acceptable.
+                if (enforcer.IsDailyQuotaExhausted(callerSid, rule))
+                {
+                    var masterOverride = isTokenValid
+                        || GuardianPassword.Verify(request.Password, policy.MasterPasswordHash,
+                            policy.MasterPasswordSalt);
+                    if (!masterOverride)
+                    {
+                        logger.LogInformation("Apertura rechazada por cuota diaria agotada: {Rule}, SID {Sid}.",
+                            rule.Name, callerSid);
+                        return new GuardianResponse
+                        {
+                            Success = false,
+                            DailyQuotaExhausted = true,
+                            DailyQuotaMinutes = rule.DailyQuotaMinutes,
+                            Error = $"{rule.Name} ha agotado su tiempo diario de {rule.DailyQuotaMinutes} min. "
+                                + "Usa la contraseña maestra para anularlo."
+                        };
+                    }
+                    enforcer.ResetDailyQuota(callerSid, rule.Id);
+                    logger.LogWarning("Cuota diaria anulada con la contraseña maestra: {Rule}, SID {Sid}.",
+                        rule.Name, callerSid);
+                }
                 if (enforcer.LaunchAuthorized(callerSid, callerSessionId, rule, out var processId, out var error))
                 {
                     var closeMinutes = Math.Max(rule.ForceCloseAfterMinutes, rule.ForceCloseAfterInactivityMinutes);

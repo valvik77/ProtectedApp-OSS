@@ -6,6 +6,133 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class LocalizationServiceTests
 {
     [Fact]
+    public void Localizes_TheRecycleBinMultipleSelection_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Use Shift to select a range and Ctrl to pick individual files.",
+                LocalizationService.T("Usa Mayús para seleccionar un rango y Ctrl para elegir archivos sueltos."));
+            Assert.Equal("Some files could not be restored",
+                LocalizationService.T("No se pudieron restaurar todos los archivos"));
+            // The counted variant must win over the generic "Eliminar (.+)" one.
+            Assert.Equal("Delete 4 files from the recycle bin",
+                LocalizationService.T("Eliminar 4 archivos de la papelera"));
+            Assert.Equal("Delete notas.txt from the recycle bin",
+                LocalizationService.T("Eliminar notas.txt de la papelera"));
+            Assert.Equal("2 of 5 were deleted.", LocalizationService.T("Se eliminaron 2 de 5."));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Eliminar 4 archivos de la papelera",
+                LocalizationService.T("Delete 4 files from the recycle bin"));
+            Assert.Equal("Eliminar notas.txt de la papelera",
+                LocalizationService.T("Delete notas.txt from the recycle bin"));
+            Assert.Equal("Se eliminaron 2 de 5.", LocalizationService.T("2 of 5 were deleted."));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
+    public void Localizes_TheVaultRecycleBinDialog_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Vault recycle bin", LocalizationService.T("Papelera de la bóveda"));
+            Assert.Equal("Restore", LocalizationService.T("Restaurar"));
+            Assert.Equal("Delete permanently", LocalizationService.T("Eliminar definitivamente"));
+            Assert.Equal("Recycle bin of Documentos", LocalizationService.T("Papelera de Documentos"));
+            Assert.Equal(
+                "3 deleted file(s) are retained inside the vault. The space is reclaimed when you save and lock.",
+                LocalizationService.T("3 archivo(s) eliminados se conservan dentro de la bóveda. El espacio se libera al guardar y bloquear."));
+            Assert.Equal("File restored from the recycle bin: sub/deep.txt",
+                LocalizationService.T("Archivo restaurado desde la papelera: sub/deep.txt"));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Papelera de la bóveda", LocalizationService.T("Vault recycle bin"));
+            Assert.Equal("Papelera de Documentos", LocalizationService.T("Recycle bin of Documentos"));
+            Assert.Equal("Archivo restaurado desde la papelera: sub/deep.txt",
+                LocalizationService.T("File restored from the recycle bin: sub/deep.txt"));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
+    public void Localizes_TheVaultRecycleBinCommand_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Empty the vault's recycle bin",
+                LocalizationService.T("Vaciar papelera de la bóveda"));
+            Assert.Equal("Recycle bin is empty", LocalizationService.T("Papelera vacía"));
+            Assert.Equal("Deleted files that can still be recovered",
+                LocalizationService.T("Archivos eliminados que todavía pueden recuperarse"));
+            Assert.Equal("Recycle bin emptied: 3 file(s) discarded",
+                LocalizationService.T("Papelera vaciada: 3 archivo(s) descartados"));
+            Assert.Equal(
+                "2 deleted file(s) that could still be recovered will be discarded permanently. The space is reclaimed when the vault is saved and locked.",
+                LocalizationService.T("Se descartarán definitivamente 2 archivo(s) eliminados que todavía podían recuperarse. El espacio se libera al guardar y bloquear la bóveda."));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Vaciar papelera de la bóveda",
+                LocalizationService.T("Empty the vault's recycle bin"));
+            Assert.Equal("Papelera vaciada: 3 archivo(s) descartados",
+                LocalizationService.T("Recycle bin emptied: 3 file(s) discarded"));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
+    public void Localizes_TheUnresponsiveCloseAndDailyQuotaSettings_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Force the application closed if it does not respond",
+                LocalizationService.T("Forzar el cierre si la aplicación no responde"));
+            Assert.Equal("Maximum time per day", LocalizationService.T("Tiempo diario máximo"));
+            Assert.Equal("No daily limit", LocalizationService.T("Sin límite diario"));
+            // The longer runtime message must not be truncated by the shorter
+            // pattern it starts with.
+            Assert.Equal("Notepad has used up its daily allowance of 120 min. Use the master password to override it.",
+                LocalizationService.T("Notepad ha agotado su tiempo diario de 120 min. Usa la contraseña maestra para anularlo."));
+            Assert.Equal("Notepad has used up its daily allowance of 120 min.",
+                LocalizationService.T("Notepad ha agotado su tiempo diario de 120 min."));
+
+            LocalizationService.SetLanguage("es");
+
+            Assert.Equal("Forzar el cierre si la aplicación no responde",
+                LocalizationService.T("Force the application closed if it does not respond"));
+            Assert.Equal("Tiempo diario máximo", LocalizationService.T("Maximum time per day"));
+            Assert.Equal("Notepad ha agotado su tiempo diario de 120 min. Usa la contraseña maestra para anularlo.",
+                LocalizationService.T("Notepad has used up its daily allowance of 120 min. Use the master password to override it."));
+            Assert.Equal("Notepad ha agotado su tiempo diario de 120 min.",
+                LocalizationService.T("Notepad has used up its daily allowance of 120 min."));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
     public void Localizes_TheCloseWarningExtensionSelector_InBothDirections()
     {
         try

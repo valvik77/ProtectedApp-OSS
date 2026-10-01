@@ -17,6 +17,8 @@ public sealed class ProtectedApplication : INotifyPropertyChanged
     private int _unlockGraceMinutes;
     private int _forceCloseAfterMinutes;
     private int _forceCloseAfterInactivityMinutes;
+    private bool _forceCloseWhenUnresponsive = true;
+    private int _dailyQuotaMinutes;
     private string _category = "General";
     private BitmapImage? _iconSource;
     private bool _scheduleEnabled;
@@ -56,6 +58,30 @@ public sealed class ProtectedApplication : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _forceCloseAfterInactivityMinutes, value)) return;
+            OnPropertyChanged(nameof(AccessLabel));
+        }
+    }
+    /// <summary>
+    /// False keeps an application that ignored the close request running
+    /// instead of terminating it, so an unanswered save dialog cannot cost the
+    /// user their work. True preserves the behaviour of earlier releases.
+    /// </summary>
+    public bool ForceCloseWhenUnresponsive
+    {
+        get => _forceCloseWhenUnresponsive;
+        set
+        {
+            if (!SetField(ref _forceCloseWhenUnresponsive, value)) return;
+            OnPropertyChanged(nameof(AccessLabel));
+        }
+    }
+    /// <summary>Minutes of use allowed per day, or 0 for no quota.</summary>
+    public int DailyQuotaMinutes
+    {
+        get => _dailyQuotaMinutes;
+        set
+        {
+            if (!SetField(ref _dailyQuotaMinutes, value)) return;
             OnPropertyChanged(nameof(AccessLabel));
         }
     }
