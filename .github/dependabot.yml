@@ -11,3 +11,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # init and analyze are separate actions from one release, and they refuse
+    # to run against each other's configuration ("Loaded a configuration file
+    # for version X, but running version Y"). Updating them in separate pull
+    # requests therefore breaks the workflow until the second one lands, so
+    # they must always be bumped together.
+    groups:
+      codeql-action:
+        patterns:
+          - github/codeql-action*
