@@ -6,6 +6,36 @@ namespace ProtectedApp.Vault.Tests;
 public sealed class LocalizationServiceTests
 {
     [Fact]
+    public void Localizes_TheCloseWarningExtensionSelector_InBothDirections()
+    {
+        try
+        {
+            LocalizationService.SetLanguage("en");
+
+            Assert.Equal("Extend", LocalizationService.T("Ampliar"));
+            Assert.Equal("Extend this time", LocalizationService.T("Ampliar esta vez"));
+            Assert.Equal("Extension minutes", LocalizationService.T("Minutos de ampliación"));
+            Assert.Equal("Do not extend", LocalizationService.T("No ampliar"));
+            // The durations offered by the selector.
+            Assert.Equal("1 hour", LocalizationService.T("1 hora"));
+            Assert.Equal("2 hours", LocalizationService.T("2 horas"));
+
+            LocalizationService.SetLanguage("es");
+
+            // The reverse lookup only works for one-to-one translations, so a
+            // later duplicate English value would silently break this.
+            Assert.Equal("Ampliar", LocalizationService.T("Extend"));
+            Assert.Equal("Ampliar esta vez", LocalizationService.T("Extend this time"));
+            Assert.Equal("Minutos de ampliación", LocalizationService.T("Extension minutes"));
+            Assert.Equal("2 horas", LocalizationService.T("2 hours"));
+        }
+        finally
+        {
+            LocalizationService.SetLanguage("es");
+        }
+    }
+
+    [Fact]
     public void Localizes_NewlyAuditedControlsAndRuntimeMessages_InBothDirections()
     {
         try
