@@ -17,6 +17,20 @@ public sealed class StateStore
 
     public bool IsTpmProtectionEnabled => !string.IsNullOrWhiteSpace(_tpmKeyName);
 
+    /// <summary>
+    /// The path of the preserved copy when <see cref="LoadAsync"/> could not read
+    /// the stored configuration and returned an empty state instead, or
+    /// <c>null</c> when the state loaded normally (including a genuine first run).
+    /// </summary>
+    /// <remarks>
+    /// Without this, a damaged file and a first run are indistinguishable to the
+    /// caller: both produce an empty <see cref="AppState"/>. Someone with
+    /// protected applications configured would see an empty panel with no
+    /// explanation and could reasonably conclude the configuration was lost,
+    /// when in fact the original is still on disk next to the new one.
+    /// </remarks>
+    public string? RecoveredFromCorruptStatePath { get; private set; }
+
     public StateStore()
     {
         var overrideFolder = Environment.GetEnvironmentVariable("PROTECTEDAPP_DATA_DIR");
@@ -64,6 +78,12 @@ public sealed class StateStore
             {
                 var backup = source + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmss");
                 File.Move(source, backup, true);
+                // Report where the unreadable original was kept so the caller can
+                // tell the user their configuration was not silently discarded.
+                RecoveredFromCorruptStatePath = backup;
+                AppDiagnosticLog.Append("state-recovery.log",
+                    $"{DateTimeOffset.Now:O} No se pudo leer la configuración ({ex.GetType().Name}: {ex.Message}). " +
+                    $"El archivo original se conserva en {backup}.{Environment.NewLine}");
             }
             return new AppState();
         }
