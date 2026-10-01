@@ -118,10 +118,14 @@ public sealed partial class MainWindow
                 var extensionMinutes = Math.Max(1, inactivityNotice
                     ? app.ForceCloseAfterInactivityMinutes
                     : app.ForceCloseAfterMinutes);
-                var extend = await ShowNoticeWindowAsync(app.Name, message, false,
-                    $"Extender {extensionMinutes} min", "Cierre automático", TimeSpan.FromSeconds(55));
+                var (extend, chosenMinutes) = await ShowNoticeWindowWithExtensionAsync(app.Name, message, false,
+                    "Ampliar", "Cierre automático", TimeSpan.FromSeconds(55),
+                    BuildExtensionChoices(extensionMinutes), extensionMinutes);
                 if (extend)
                 {
+                    // A one-off duration for this session only; the configured
+                    // interval is deliberately left untouched.
+                    var grantedMinutes = chosenMinutes ?? extensionMinutes;
                     _timedSessionTokens.TryGetValue(app.Id, out var timedSessionToken);
                     if (string.IsNullOrWhiteSpace(timedSessionToken)
                         && !await VerifyMasterAsync($"Extender el tiempo de {app.Name}"))
@@ -131,8 +135,10 @@ public sealed partial class MainWindow
                     }
 
                     var response = inactivityNotice
-                        ? await _guardianClient.ExtendInactiveSessionAsync(app.Id, timedSessionToken, _guardianToken)
-                        : await _guardianClient.ExtendTimedSessionAsync(app.Id, timedSessionToken, _guardianToken);
+                        ? await _guardianClient.ExtendInactiveSessionAsync(app.Id, timedSessionToken, _guardianToken,
+                            grantedMinutes)
+                        : await _guardianClient.ExtendTimedSessionAsync(app.Id, timedSessionToken, _guardianToken,
+                            grantedMinutes);
                     if (!response.Success
                         && response.Error?.Contains("autorización", StringComparison.OrdinalIgnoreCase) == true)
                     {
@@ -140,8 +146,10 @@ public sealed partial class MainWindow
                         if (await VerifyMasterAsync($"Extender el tiempo de {app.Name}"))
                         {
                             response = inactivityNotice
-                                ? await _guardianClient.ExtendInactiveSessionAsync(app.Id, null, _guardianToken)
-                                : await _guardianClient.ExtendTimedSessionAsync(app.Id, null, _guardianToken);
+                                ? await _guardianClient.ExtendInactiveSessionAsync(app.Id, null, _guardianToken,
+                                    grantedMinutes)
+                                : await _guardianClient.ExtendTimedSessionAsync(app.Id, null, _guardianToken,
+                                    grantedMinutes);
                         }
                     }
                     if (response.Success && !string.IsNullOrWhiteSpace(response.TimedSessionToken))
@@ -150,8 +158,8 @@ public sealed partial class MainWindow
                         _tray.DismissBalloon();
                     AddActivity(app.Name, response.Success
                         ? inactivityNotice
-                            ? $"Cierre por inactividad reiniciado {extensionMinutes} min"
-                            : $"Cierre automático ampliado {extensionMinutes} min"
+                            ? $"Cierre por inactividad reiniciado {grantedMinutes} min"
+                            : $"Cierre automático ampliado {grantedMinutes} min"
                         : $"No se pudo ampliar el cierre automático: {response.Error}");
                     if (!response.Success)
                         _tray.ShowBalloon("No se pudo ampliar", app.Name);
@@ -371,12 +379,21 @@ public sealed partial class MainWindow
 
     private async Task<bool> ShowNoticeWindowAsync(string applicationName, string message, bool isError,
         string? actionLabel = null, string? subtitle = null, TimeSpan? autoCloseAfter = null)
+        => (await ShowNoticeWindowWithExtensionAsync(applicationName, message, isError, actionLabel, subtitle,
+            autoCloseAfter)).Accepted;
+
+    private async Task<(bool Accepted, int? ExtensionMinutes)> ShowNoticeWindowWithExtensionAsync(
+        string applicationName, string message, bool isError, string? actionLabel = null, string? subtitle = null,
+        TimeSpan? autoCloseAfter = null, IReadOnlyList<int>? extensionChoices = null,
+        int? defaultExtensionMinutes = null)
     {
-        var noticeWindow = new NoticeWindow(applicationName, message, isError, actionLabel, subtitle, autoCloseAfter);
+        var noticeWindow = new NoticeWindow(applicationName, message, isError, actionLabel, subtitle, autoCloseAfter,
+            extensionChoices, defaultExtensionMinutes);
         _activeNoticeWindow = noticeWindow;
         try
         {
-            return await noticeWindow.ShowAsync();
+            var accepted = await noticeWindow.ShowAsync();
+            return (accepted, noticeWindow.SelectedExtensionMinutes);
         }
         finally
         {
@@ -384,6 +401,20 @@ public sealed partial class MainWindow
                 _activeNoticeWindow = null;
         }
     }
+
+    /// <summary>
+    /// The durations offered in the close warning: the application's configured
+    /// interval plus a few common choices, so the user can give themselves more
+    /// or less time than usual without opening Settings.
+    /// </summary>
+    internal static IReadOnlyList<int> BuildExtensionChoices(int configuredMinutes)
+    {
+        var choices = new SortedSet<int> { 5, 15, 30, 60 };
+        if (configuredMinutes > 0) choices.Add(configuredMinutes);
+        return choices.Where(minutes => minutes is >= 1 and <= GuardianExtensionLimitMinutes).ToArray();
+    }
+
+    private const int GuardianExtensionLimitMinutes = 10_080;
 
     private void RefreshGuardianStatus()
     {

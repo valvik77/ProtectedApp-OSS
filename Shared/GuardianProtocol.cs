@@ -55,6 +55,12 @@ public sealed class GuardianRequest
     public string? TimedSessionToken { get; set; }
     public string? Password { get; set; }
     public Guid? RuleId { get; set; }
+    /// <summary>
+    /// Minutes requested for this one extension of a timed or inactivity
+    /// session. Null keeps the rule's configured interval, which is what a
+    /// client built before this field existed always sends.
+    /// </summary>
+    public int? ExtensionMinutes { get; set; }
     public string? TargetPath { get; set; }
     public string? HostPath { get; set; }
     public string? HostArguments { get; set; }

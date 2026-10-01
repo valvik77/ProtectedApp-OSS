@@ -21,6 +21,44 @@ public sealed class GuardianResilienceTests
     }
 
     [Fact]
+    public void CloseInterval_UsesTheRuleWhenTheNoticeRequestedNoExtension()
+    {
+        // A client built before the selector existed sends no minutes at all.
+        Assert.Equal(TimeSpan.FromMinutes(30), GuardianEnforcer.ResolveCloseInterval(30, null));
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(15)]
+    [InlineData(60)]
+    [InlineData(GuardianEnforcer.MaximumCloseMinutes)]
+    public void CloseInterval_HonoursAOneOffExtension(int requestedMinutes)
+    {
+        Assert.Equal(TimeSpan.FromMinutes(requestedMinutes),
+            GuardianEnforcer.ResolveCloseInterval(30, requestedMinutes));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(int.MinValue)]
+    public void CloseInterval_RejectsAnExtensionThatWouldNeverClose(int requestedMinutes)
+    {
+        // Zero or negative minutes would place the deadline in the past or make
+        // the session permanent; clamp to the shortest interval the policy allows.
+        Assert.Equal(TimeSpan.FromMinutes(1), GuardianEnforcer.ResolveCloseInterval(30, requestedMinutes));
+    }
+
+    [Theory]
+    [InlineData(GuardianEnforcer.MaximumCloseMinutes + 1)]
+    [InlineData(int.MaxValue)]
+    public void CloseInterval_CapsAnExtensionAtThePolicyLimit(int requestedMinutes)
+    {
+        Assert.Equal(TimeSpan.FromMinutes(GuardianEnforcer.MaximumCloseMinutes),
+            GuardianEnforcer.ResolveCloseInterval(30, requestedMinutes));
+    }
+
+    [Fact]
     public void AutomaticCloseWarning_IgnoresThePointerMoveNeededToDismissIt()
     {
         var warning = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
