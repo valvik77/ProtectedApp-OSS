@@ -50,7 +50,7 @@ public class SafePathTests
     public void TheTemporaryDirectoryIsOnAFixedLocalDrive() =>
         Assert.True(SafePath.IsOnFixedLocalDrive(Path.GetFullPath(Path.GetTempPath())));
 
-    [Fact]
+    [EightDotThreeFact]
     public void AnExistingEightDotThreeAliasOnALocalDiskIsResolved()
     {
         var directory = Path.Combine(Path.GetTempPath(), "ProtectedApp long directory " + Guid.NewGuid().ToString("N"));
@@ -59,8 +59,7 @@ public class SafePathTests
         File.WriteAllText(file, "#");
         try
         {
-            var alias = ShortPath(file);
-            if (alias is null || !alias.Contains('~')) return; // 8.3 names are disabled on this volume.
+            var alias = ShortPath(file)!;
 
             Assert.Equal(file, SafePath.GetFullPath(alias), ignoreCase: true);
             Assert.Equal(alias, SafePath.GetLexicalFullPath(alias), ignoreCase: true);

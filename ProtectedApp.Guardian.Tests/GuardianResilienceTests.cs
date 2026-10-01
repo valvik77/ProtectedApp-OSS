@@ -193,16 +193,10 @@ public sealed class GuardianResilienceTests
         Assert.Equal("--health-watch --app \"C:\\Program Files\\ProtectedApp\\ProtectedApp.exe\"", arguments);
     }
 
-    [Fact]
+    [SystemIntegrationFact]
     [Trait("Category", "SystemIntegration")]
     public void InstalledGuardianSupervisor_IsHealthy_WhenExplicitlyRequestedAndElevated()
     {
-        if (!string.Equals(Environment.GetEnvironmentVariable("PROTECTEDAPP_RUN_SYSTEM_INTEGRATION_TESTS"), "1",
-                StringComparison.Ordinal))
-            return;
-        if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
-            return;
-
         var guardianPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
             "ProtectedApp", "Service", "ProtectedApp.Guardian.exe");
         var appPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
