@@ -133,6 +133,13 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     {
         var path = NormalizePath(fileName);
         if (path.StartsWith('\0')) return NtStatus.ObjectNameInvalid;
+        // Hiding the recycle area from the root listing is not enough on its
+        // own: its names are derived from a timestamp and the original path, so
+        // an application that guesses or remembers one could otherwise open the
+        // retained copy directly and read or overwrite it. Refuse the handle
+        // instead. Restore and discard go through the app's own API, which does
+        // not pass through Dokany, so they are unaffected.
+        if (IsRecyclePath(path)) return NtStatus.ObjectNameNotFound;
         if (_writeProtected && ((access & WriteAccess) != 0 || mode != FileMode.Open
                                 || options.HasFlag(FileOptions.DeleteOnClose))) return NtStatus.AccessDenied;
         ReportActivity();
@@ -199,7 +206,9 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             ReportActivity();
             lock (_sync)
             {
-                if (!_nodes.TryGetValue(NormalizePath(fileName), out var node)) return NtStatus.ObjectNameNotFound;
+                var requested = NormalizePath(fileName);
+                if (IsRecyclePath(requested) || !_nodes.TryGetValue(requested, out var node))
+                    return NtStatus.ObjectNameNotFound;
                 if (node.IsDirectory || offset < 0) return NtStatus.InvalidParameter;
                 if (offset >= node.Length) return NtStatus.Success;
                 bytesRead = ReadNodeRange(node, buffer, 0, offset,
@@ -219,7 +228,9 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         ReportActivity();
         lock (_sync)
         {
-            if (!_nodes.TryGetValue(NormalizePath(fileName), out var node)) return NtStatus.ObjectNameNotFound;
+            var requested = NormalizePath(fileName);
+            if (IsRecyclePath(requested) || !_nodes.TryGetValue(requested, out var node))
+                return NtStatus.ObjectNameNotFound;
             if (node.IsDirectory) return NtStatus.InvalidParameter;
             if (offset + buffer.Length > Capacity) return NtStatus.DiskFull;
             WriteNodeRange(node, buffer, 0, offset, buffer.Length);
@@ -248,7 +259,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     {
         lock (_sync)
         {
-            if (!_nodes.TryGetValue(NormalizePath(fileName), out var node))
+            var requested = NormalizePath(fileName);
+            if (IsRecyclePath(requested) || !_nodes.TryGetValue(requested, out var node))
             {
                 fileInfo = new FileInformation();
                 return NtStatus.ObjectNameNotFound;
@@ -266,7 +278,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
 
     public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, IDokanFileInfo info) =>
         _writeProtected ? NtStatus.AccessDenied
-            : _nodes.ContainsKey(NormalizePath(fileName)) ? NtStatus.Success : NtStatus.ObjectNameNotFound;
+            : !IsRecyclePath(NormalizePath(fileName)) && _nodes.ContainsKey(NormalizePath(fileName))
+                ? NtStatus.Success : NtStatus.ObjectNameNotFound;
 
     public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime,
         DateTime? lastWriteTime, IDokanFileInfo info)
@@ -274,7 +287,9 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (_writeProtected) return NtStatus.AccessDenied;
         lock (_sync)
         {
-            if (!_nodes.TryGetValue(NormalizePath(fileName), out var node)) return NtStatus.ObjectNameNotFound;
+            var requested = NormalizePath(fileName);
+            if (IsRecyclePath(requested) || !_nodes.TryGetValue(requested, out var node))
+                return NtStatus.ObjectNameNotFound;
             if (creationTime.HasValue) node.CreationUtc = creationTime.Value.ToUniversalTime();
             if (lastWriteTime.HasValue) node.LastWriteUtc = lastWriteTime.Value.ToUniversalTime();
             MarkChanged();
@@ -288,6 +303,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         lock (_sync)
         {
             var path = NormalizePath(fileName);
+            if (IsRecyclePath(path)) return NtStatus.ObjectNameNotFound;
             return _nodes.TryGetValue(path, out var node) && !node.IsDirectory
                 ? NtStatus.Success : NtStatus.ObjectNameNotFound;
         }
@@ -299,6 +315,7 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         lock (_sync)
         {
             var path = NormalizePath(fileName);
+            if (IsRecyclePath(path)) return NtStatus.ObjectPathNotFound;
             if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory) return NtStatus.ObjectPathNotFound;
             return _nodes.Keys.Any(candidate => GetParent(candidate).Equals(path, StringComparison.OrdinalIgnoreCase))
                 ? NtStatus.DirectoryNotEmpty : NtStatus.Success;
@@ -319,6 +336,10 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
             // lives in another file and must not be the only thing holding.
             if (newPath.Length == 0 || newPath.StartsWith('\0') || oldPath.StartsWith('\0'))
                 return NtStatus.ObjectNameInvalid;
+            // Renaming must not be a way to lift something out of the recycle
+            // area, nor to push a live file into it behind the UI's back.
+            if (IsRecyclePath(oldPath)) return NtStatus.ObjectNameNotFound;
+            if (IsRecyclePath(newPath)) return NtStatus.AccessDenied;
             if (!_nodes.TryGetValue(oldPath, out var node)) return NtStatus.ObjectNameNotFound;
             if (_nodes.ContainsKey(newPath) && !replace) return NtStatus.ObjectNameCollision;
             if (_nodes.ContainsKey(newPath)) _nodes.Remove(newPath);
@@ -342,7 +363,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (length < 0 || length > Capacity) return NtStatus.DiskFull;
         lock (_sync)
         {
-            if (!_nodes.TryGetValue(NormalizePath(fileName), out var node) || node.IsDirectory)
+            var requested = NormalizePath(fileName);
+            if (IsRecyclePath(requested) || !_nodes.TryGetValue(requested, out var node) || node.IsDirectory)
                 return NtStatus.ObjectNameNotFound;
             if (length < node.Length)
                 TruncateNode(node, length);
@@ -362,7 +384,8 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         if (length < 0 || length > Capacity) return NtStatus.DiskFull;
         lock (_sync)
         {
-            return _nodes.TryGetValue(NormalizePath(fileName), out var node) && !node.IsDirectory
+            var requested = NormalizePath(fileName);
+            return !IsRecyclePath(requested) && _nodes.TryGetValue(requested, out var node) && !node.IsDirectory
                 ? NtStatus.Success
                 : NtStatus.ObjectNameNotFound;
         }
@@ -407,12 +430,17 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
         lock (_sync)
         {
             var path = NormalizePath(fileName);
-            if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory)
-            { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
-            var children = _children.TryGetValue(path, out var existingChildren) ? existingChildren : [];
             // The recycle area is ProtectedApp's own bookkeeping, not user
             // content: hide it from the mounted drive so it cannot be browsed,
             // renamed or deleted piecemeal by the application being used.
+            // CreateFile already refuses a handle inside it, so this directory
+            // is normally unreachable; answer as if it did not exist anyway
+            // rather than let the listing be the one thing holding the line.
+            if (IsRecyclePath(path))
+            { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
+            if (!_nodes.TryGetValue(path, out var node) || !node.IsDirectory)
+            { files = Array.Empty<FileInformation>(); return NtStatus.ObjectPathNotFound; }
+            var children = _children.TryGetValue(path, out var existingChildren) ? existingChildren : [];
             if (path.Length == 0)
                 children = children.Where(child => !IsRecyclePath(child.Path)).ToList();
             if (string.IsNullOrWhiteSpace(pattern))
@@ -610,7 +638,11 @@ internal sealed class VaultReadWriteFileSystem : IDokanOperations, IDisposable
     // can appear in a vault path and be confused with this marker.
     private const string OriginSeparator = "~";
 
-    private static bool IsRecyclePath(string path) =>
+    /// <summary>
+    /// True for the recycle area itself or anything inside it. Internal so the
+    /// read-only adapter applies the same definition rather than repeating it.
+    /// </summary>
+    internal static bool IsRecyclePath(string path) =>
         path.Equals(RecycleFolderName, StringComparison.OrdinalIgnoreCase)
         || path.StartsWith(RecycleFolderName + "/", StringComparison.OrdinalIgnoreCase);
 
