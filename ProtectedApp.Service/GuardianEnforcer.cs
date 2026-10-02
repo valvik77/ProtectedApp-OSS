@@ -1455,12 +1455,28 @@ internal sealed class GuardianEnforcer(
         var rule = policyStore.GetPolicy(userSid)?.Rules.FirstOrDefault(candidate => candidate.Id == ruleId);
         if (rule is null) return false;
         dailyQuota.Reset(userSid, ruleId);
-        foreach (var closed in _quotaClosedToday.Keys.Where(key => key.Contains(ruleId.ToString("N"),
-                     StringComparison.OrdinalIgnoreCase)).ToArray())
+        foreach (var closed in _quotaClosedToday.Keys
+                     .Where(key => QuotaCloseMarkBelongsToRule(key, userSid, rule.Path)).ToArray())
             _quotaClosedToday.TryRemove(closed, out _);
         logger.LogInformation("Cuota diaria reiniciada para {Rule}.", rule.Name);
         return true;
     }
+
+    /// <summary>
+    /// True when a quota close mark belongs to this rule, so resetting the
+    /// quota can clear it.
+    /// </summary>
+    /// <remarks>
+    /// The marks are keyed by SID, session and executable path; the rule id
+    /// never appears in one. Matching on the rule id therefore found nothing
+    /// and left the mark in place, and a rule that was reset and then exhausted
+    /// again before the ten-minute expiry hit the "already closed" guard and
+    /// skipped the new close. Match on what the key actually holds.
+    /// </remarks>
+    internal static bool QuotaCloseMarkBelongsToRule(string key, string userSid, string rulePath) =>
+        key.StartsWith(userSid + "|", StringComparison.OrdinalIgnoreCase)
+        && TryGetPathFromProcessKey(key, out var keyPath)
+        && PathsEqual(keyPath, rulePath);
 
     private IEnumerable<int> GetSessionsRunning(string userSid, string path) =>
         _allowedProcesses.ToArray()
@@ -1783,7 +1799,11 @@ internal sealed class GuardianEnforcer(
         }
     }
 
-    private static string ProcessKey(string sid, int sessionId, string path) =>
+    /// <summary>
+    /// The key every per-process map is keyed by. Internal so tests build one
+    /// the same way the enforcer does instead of hardcoding the format.
+    /// </summary>
+    internal static string ProcessKey(string sid, int sessionId, string path) =>
         $"{sid}|{sessionId}|{SafePath.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar)}";
 
     private static bool TryGetPathFromProcessKey(string key, out string path)
