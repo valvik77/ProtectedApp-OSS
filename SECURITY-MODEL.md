@@ -43,7 +43,20 @@ esa bóveda. Solo contiene metadatos y los bloques modificados de 64 KiB; los
 cambios grandes recurren al diario completo cifrado ya compatible. El contenedor
 principal solo se sustituye tras una consolidación atómica verificada, y se
 rechaza cambiar credenciales o restaurar una copia mientras haya un diario
-pendiente. El estado local de la aplicación y los secretos opcionales del
+pendiente.
+
+Al borrar un archivo en una unidad editable, la entrada se conserva en un área
+reservada dentro del mismo contenedor cifrado hasta que se vacía la papelera de
+esa bóveda. Esto es deliberado —permite deshacer un borrado por error—, pero
+conviene tenerlo presente: **un archivo borrado sigue dentro del contenedor, y
+sigue cifrado, hasta que se vacía la papelera**, de modo que el tamaño no baja y
+el contenido continúa presente mientras alguien conozca la contraseña. Quien
+borre algo para que deje de existir debe vaciar la papelera, lo que exige la
+contraseña maestra, y la bóveda recupera el espacio en la siguiente
+consolidación. El área reservada no es accesible desde la unidad montada ni
+conociendo la ruta exacta de una entrada conservada, y nada de ella se escribe
+descifrado en el disco; no es, en cambio, un borrado seguro de los sectores
+subyacentes, que ProtectedApp no realiza en ningún caso. El estado local de la aplicación y los secretos opcionales del
 webhook reciben protección de Windows/DPAPI según el componente que los use.
 De forma opcional, **Protección TPM de configuración y reglas** cifra el estado local
 con una clave aleatoria que queda envuelta por una clave RSA no exportable del
