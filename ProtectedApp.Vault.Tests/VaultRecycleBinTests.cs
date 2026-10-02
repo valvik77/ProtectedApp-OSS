@@ -181,6 +181,78 @@ public sealed class VaultRecycleBinTests
     }
 
     [Fact]
+    public async Task ADeletedFileSurvivesSavingClosingAndReopeningTheVault()
+    {
+        // The full cycle the user actually performs: delete, save, close the
+        // vault, unlock it again and restore. Every other test works inside a
+        // single mount, so only this one proves the retained copy and its
+        // original path survive a real commit and a fresh unlock.
+        await WithReopenableVaultAsync(async (open, commit) =>
+        {
+            using (var overlay = await open())
+            {
+                overlay.Cleanup("\\sub\\deep.txt", Info(deletePending: true));
+                Assert.Equal(1, overlay.CountRecycledEntries());
+                await commit(overlay);
+            }
+
+            using (var reopened = await open())
+            {
+                // The entry must come back with its provenance intact, because
+                // restoring relies on the path encoded in the recycled name.
+                var entry = Assert.Single(reopened.ListRecycledEntries());
+                Assert.Equal("sub/deep.txt", entry.OriginalPath);
+                Assert.Equal("deep.txt", entry.Name);
+                Assert.True(entry.DeletedUtc > DateTime.MinValue);
+
+                Assert.Equal("sub/deep.txt", reopened.RestoreRecycledEntry(entry.Id));
+                Assert.Empty(reopened.ListRecycledEntries());
+                await commit(reopened);
+            }
+
+            using (var verified = await open())
+            {
+                // Restored for good: back on the drive, and no leftover copy.
+                Assert.Equal(0, verified.CountRecycledEntries());
+                var source = Assert.Single(verified.CreateSnapshot(),
+                    item => item.Path == "sub/deep.txt");
+                await using var stream = await source.OpenReadAsync();
+                using var reader = new StreamReader(stream);
+                Assert.Equal("nested content", await reader.ReadToEndAsync());
+            }
+        });
+    }
+
+    [Fact]
+    public async Task EmptyingTheBinAfterReopeningReclaimsTheRetainedCopies()
+    {
+        await WithReopenableVaultAsync(async (open, commit) =>
+        {
+            using (var overlay = await open())
+            {
+                overlay.Cleanup("\\notes.txt", Info(deletePending: true));
+                await commit(overlay);
+            }
+
+            using (var reopened = await open())
+            {
+                Assert.Equal(1, reopened.EmptyRecycleBin());
+                await commit(reopened);
+            }
+
+            using (var verified = await open())
+            {
+                // Emptying must reach the container, not just the live mount,
+                // or the space would come back on the next unlock.
+                Assert.Equal(0, verified.CountRecycledEntries());
+                Assert.DoesNotContain(verified.CreateSnapshot(), source =>
+                    source.Path.StartsWith(VaultReadWriteFileSystem.RecycleFolderName,
+                        StringComparison.Ordinal));
+            }
+        });
+    }
+
+    [Fact]
     public void TheServiceReportsNoRecycledEntriesForAVaultThatIsNotMounted()
     {
         using var service = new VaultService();
@@ -219,6 +291,65 @@ public sealed class VaultRecycleBinTests
         }
         finally
         {
+            try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+            catch (IOException) { }
+        }
+    }
+
+    /// <summary>
+    /// Runs <paramref name="body"/> against a vault on disk that can be closed
+    /// and unlocked again. <c>open</c> unlocks the container and hands back a
+    /// fresh mount; <c>commit</c> writes that mount back to the same file, which
+    /// is what the UI does when the user saves.
+    /// </summary>
+    private static async Task WithReopenableVaultAsync(
+        Func<Func<Task<VaultReadWriteFileSystem>>, Func<VaultReadWriteFileSystem, Task>, Task> body)
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProtectedApp-RecycleCycle-" + Guid.NewGuid().ToString("N"));
+        var sourceRoot = Path.Combine(root, "source");
+        var vaultPath = Path.Combine(root, "test.pavault");
+        Directory.CreateDirectory(sourceRoot);
+        await File.WriteAllTextAsync(Path.Combine(sourceRoot, "notes.txt"), "recoverable content");
+        Directory.CreateDirectory(Path.Combine(sourceRoot, "sub"));
+        await File.WriteAllTextAsync(Path.Combine(sourceRoot, "sub", "deep.txt"), "nested content");
+        var vault = new VaultContainer { Id = Guid.NewGuid(), Name = "RecycleCycle", AutoLockMinutes = 5 };
+        const string password = "ProtectedApp-Recycle-Cycle";
+        var opened = new List<VaultFormatV3.OpenedVault>();
+        try
+        {
+            await VaultFormatV3.WriteNewAsync(vault, vaultPath, password, sourceRoot,
+                createRecoveryBackup: false);
+
+            async Task<VaultReadWriteFileSystem> OpenAsync()
+            {
+                var container = await VaultFormatV3.OpenAsync(vaultPath, password);
+                opened.Add(container);
+                return new VaultReadWriteFileSystem(container);
+            }
+
+            async Task CommitAsync(VaultReadWriteFileSystem overlay)
+            {
+                // The snapshot reads lazily from the open container, so it must
+                // still be open while the new file is written. That is what the
+                // app does when it saves a mounted vault, recovery copy and all.
+                var container = opened[^1];
+                await VaultFormatV3.WriteFromVirtualEntriesAsync(vault, overlay.CreateSnapshot(),
+                    vaultPath, container.PasswordKey, container.Salt, container.DataKey,
+                    container.TpmBinding, createRecoveryBackup: true);
+                // Saved: release the container so the next unlock, and the next
+                // save's recovery copy, are not blocked by this handle.
+                container.Dispose();
+                opened.Remove(container);
+            }
+
+            await body(OpenAsync, CommitAsync);
+        }
+        finally
+        {
+            foreach (var container in opened)
+            {
+                try { container.Dispose(); } catch (IOException) { }
+            }
             try { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
             catch (IOException) { }
         }
