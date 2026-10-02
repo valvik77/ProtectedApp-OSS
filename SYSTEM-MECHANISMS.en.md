@@ -20,7 +20,8 @@ absence of a behavior, the search that supports it is given.
 | IFEO `Debugger` gate | Ask for a password *before* a protected program runs | Only the exact paths the user enabled; fails closed | Removing the rule, or uninstalling |
 | `ProtectedAppGuardian` service | Enforce rules while the window is closed | Local only; acts on configured rules | Uninstall |
 | `SYSTEM` health task | Re-arm the gates if the service is stopped | Runs one bundled executable | Uninstall |
-| Process termination | Lock protected programs when required | Only processes matching an enabled rule | n/a (behavior) |
+| Process termination | Lock protected programs when required | Only processes matching an enabled rule; can be disabled per rule | n/a (behavior) |
+| Daily quota tally | Limit a rule's minutes of use | One file in the policy folder, writable only by `SYSTEM` and Administrators | Remove the quota or uninstall |
 | Folder ACL deny | Lock a protected folder | Only folders the user chose | Removing the rule, or uninstalling |
 | Dokany driver | Editable encrypted vault drives | Third-party, optional at use time | Kept if shared; remove separately |
 | Hidden PowerShell in the installer | Register and remove the components above | Bundled scripts from the install folder | n/a |
@@ -170,11 +171,36 @@ When a lock policy applies, or when a protected program runs without
 authorization, Guardian ends it. A process is a target only if its executable
 path equals an enabled rule, or, for a script rule, if it is a known interpreter
 whose command line references that script. On an immediate lock, Guardian first
-asks windows to close normally and waits a grace period; it forces termination
-only for those that did not close. The product warns before lock actions because
-unsaved work in a closed program can be lost
+asks windows to close normally and waits a 30-second grace period; it forces
+termination only for those that did not close. The product warns before lock
+actions because unsaved work in a closed program can be lost
 ([GuardianEnforcer.cs](ProtectedApp.Service/GuardianEnforcer.cs)). It does not
 terminate processes that match no rule.
+
+Each rule decides what happens when the program ignores that request. With
+`ForceCloseWhenUnresponsive` — the default, which is the behaviour described
+above — it is terminated once the grace period expires. Turning it off means
+the process is never terminated: the graceful close request is repeated every
+five minutes until somebody answers it. A program that ignores `WM_CLOSE` is
+usually holding an unanswered save dialog, so terminating it discards exactly
+the work that dialog was trying to preserve. The decision is isolated in
+`DecideUnresponsiveClose`, which depends on nothing in the service and can
+therefore be tested without installing it.
+
+A rule may additionally set a **daily quota** in minutes
+(`DailyQuotaMinutes`, 0 disables it, capped at 1440). Time accumulates by local
+date while the program runs; once the quota is spent the close is applied and
+that program's own password no longer opens it until local midnight. The master
+password always overrides and clears the day's usage: a quota is a
+self-discipline tool, and locking its own owner out of their computer until
+midnight would not be acceptable. The tally is stored in the policy folder,
+which only `SYSTEM` and Administrators may write, so a standard user cannot
+reset it by editing the file
+([DailyQuotaTracker.cs](ProtectedApp.Service/DailyQuotaTracker.cs)). An
+unreadable usage file is discarded and the tally starts over rather than
+propagating the error, because a quota is a convenience and must never stop
+Guardian enforcing passwords; that discard, and any failure to save, are
+logged.
 
 ## 6. Folder locking
 
@@ -196,6 +222,30 @@ installs it silently only when a compatible runtime is missing. ProtectedApp
 itself contains no kernel driver: the repository holds no compiled binaries,
 and its own components are user-mode. Because Dokany may be shared with other
 software, the uninstaller keeps it.
+
+Deleting a file on an editable drive does not discard the entry: it is moved to
+a reserved area **inside the encrypted container itself**, much as Windows'
+Recycle Bin works. It keeps its encrypted blocks and only changes path, so
+nothing is re-encrypted and the journal and commit paths carry it unchanged.
+None of this leaves the container: no decrypted file is written to disk, and
+the Windows Recycle Bin is not involved.
+
+The reserved area is not reachable from the mounted drive. Hiding it from the
+root listing is not enough, because retained names are derived from the
+deletion timestamp and the encoded original path and are therefore guessable:
+the editable mount refuses the handle in `CreateFile`, guards the callbacks
+that look a path up directly, and rejects renames in both directions, so a
+rename cannot be used to lift content out of the area or push it in. The
+read-only adapter can neither restore nor empty, so it drops those entries when
+building its catalogue: never built means never openable
+([VaultReadWriteFileSystem.cs](Services/VaultReadWriteFileSystem.cs),
+[VaultReadOnlyFileSystem.cs](Services/VaultReadOnlyFileSystem.cs)).
+
+Restoring an entry never overwrites a file recreated since the deletion,
+because that is the one the person is working on now. Emptying the bin, or
+discarding a single entry, requires the master password and is what makes a
+deletion irreversible; the space is reclaimed on the next commit. A mount that
+must delete outright can turn the behaviour off with `RecycleEnabled`.
 
 ## 8. Installer behavior
 

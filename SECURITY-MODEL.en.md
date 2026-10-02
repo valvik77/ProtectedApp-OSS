@@ -40,7 +40,22 @@ bound to that vault's identity and data key. It contains metadata and only the
 modified 64 KiB blocks; large changes fall back to the established encrypted
 full journal. The primary container is replaced only after a verified atomic
 commit, and changing credentials or restoring a backup is refused while a
-journal is pending. The local application state and optional webhook secrets receive Windows
+journal is pending.
+
+Deleting a file on an editable drive retains the entry in a reserved area
+inside the same encrypted container until that vault's recycle bin is emptied.
+This is deliberate — it makes a mistaken delete undoable — but it is worth
+being explicit about: **a deleted file is still inside the container, and still
+encrypted, until the bin is emptied**, so the size does not drop and the
+content remains present to anyone who knows the password. Someone deleting
+something so that it ceases to exist must empty the bin, which requires the
+master password, and the vault reclaims the space on the next commit. The
+reserved area is not reachable from the mounted drive, not even with the exact
+path of a retained entry, and nothing in it is written to disk decrypted; it is
+not, however, a secure erase of the underlying sectors, which ProtectedApp does
+not perform in any case.
+
+The local application state and optional webhook secrets receive Windows
 DPAPI protection appropriate to the component that uses them. Optionally,
 **TPM protection for configuration and rules** encrypts local state with a random key wrapped
 by a non-exportable RSA key in that user's TPM on that computer. It does not

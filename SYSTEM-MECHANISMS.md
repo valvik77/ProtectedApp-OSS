@@ -22,7 +22,8 @@ la respalda.
 | Puerta IFEO `Debugger` | Pedir contraseña *antes* de que se ejecute un programa protegido | Solo las rutas exactas que el usuario activó; falla cerrado | Quitar la regla o desinstalar |
 | Servicio `ProtectedAppGuardian` | Aplicar las reglas con la ventana cerrada | Solo local; actúa sobre las reglas configuradas | Desinstalar |
 | Tarea `SYSTEM` de comprobación | Rearmar las puertas si el servicio se detiene | Ejecuta un único ejecutable incluido | Desinstalar |
-| Finalización de procesos | Bloquear programas protegidos cuando corresponde | Solo procesos que coinciden con una regla activa | No aplica (comportamiento) |
+| Finalización de procesos | Bloquear programas protegidos cuando corresponde | Solo procesos que coinciden con una regla activa; puede desactivarse por regla | No aplica (comportamiento) |
+| Recuento de cuota diaria | Limitar los minutos de uso de una regla | Un archivo en la carpeta de políticas, escribible solo por `SYSTEM` y administradores | Quitar la cuota o desinstalar |
 | Denegación de ACL en carpetas | Bloquear una carpeta protegida | Solo carpetas elegidas por el usuario | Quitar la regla o desinstalar |
 | Controlador Dokany | Unidades editables de bóvedas cifradas | De terceros; solo se usa al montar | Se conserva si es compartido; se quita aparte |
 | PowerShell oculto en el instalador | Registrar y retirar los componentes anteriores | Scripts incluidos, desde la carpeta de instalación | No aplica |
@@ -173,11 +174,37 @@ ejecuta sin autorización, Guardian lo termina. Un proceso solo es objetivo si l
 ruta de su ejecutable coincide con una regla activa o, en una regla de script, si
 es un intérprete conocido cuya línea de comandos hace referencia a ese script. En
 un bloqueo inmediato, Guardian pide primero a las ventanas que se cierren con
-normalidad y espera un periodo de gracia; fuerza la terminación solo de los que no
-se cerraron. El producto avisa antes de las acciones de bloqueo porque puede
-perderse trabajo sin guardar en un programa cerrado
+normalidad y espera un periodo de gracia de 30 segundos; fuerza la terminación
+solo de los que no se cerraron. El producto avisa antes de las acciones de
+bloqueo porque puede perderse trabajo sin guardar en un programa cerrado
 ([GuardianEnforcer.cs](ProtectedApp.Service/GuardianEnforcer.cs)). No termina
 procesos que no coinciden con ninguna regla.
+
+Cada regla decide qué ocurre cuando el programa ignora esa petición. Con
+`ForceCloseWhenUnresponsive` —el valor predeterminado, que es el comportamiento
+descrito arriba— se termina al agotarse el periodo de gracia. Al desactivarlo,
+el proceso no se termina nunca: la petición de cierre normal se repite cada
+cinco minutos hasta que alguien la atiende. Un programa que ignora `WM_CLOSE`
+suele tener abierto un diálogo de guardado sin responder, de modo que
+terminarlo descarta justamente el trabajo que ese diálogo intentaba salvar. La
+decisión está aislada en `DecideUnresponsiveClose`, que no depende del servicio
+y por tanto se puede probar sin instalarlo.
+
+Una regla puede además fijar una **cuota diaria** de minutos
+(`DailyQuotaMinutes`, 0 la desactiva, con un tope de 1440). El tiempo se
+acumula por fecha local mientras el programa se ejecuta, y al agotarse la cuota
+se aplica el cierre y la contraseña propia de ese programa deja de abrirlo
+hasta la medianoche local. La contraseña maestra siempre tiene prioridad y
+reinicia el uso del día: una cuota es una herramienta de autodisciplina, y
+dejar a su propio dueño fuera del equipo hasta medianoche no sería aceptable.
+El recuento se guarda en la carpeta de políticas, donde solo `SYSTEM` y los
+administradores pueden escribir, así que un usuario estándar no puede
+reiniciarla editando el archivo
+([DailyQuotaTracker.cs](ProtectedApp.Service/DailyQuotaTracker.cs)). Un archivo
+de uso ilegible se descarta y el recuento empieza de cero en lugar de
+propagar el error, porque una cuota es una comodidad y nunca debe impedir que
+Guardian siga aplicando contraseñas; ese descarte y cualquier fallo al guardar
+quedan registrados.
 
 ## 6. Bloqueo de carpetas
 
@@ -200,6 +227,32 @@ silencio solo si falta un runtime compatible. ProtectedApp no contiene ningún
 controlador de kernel: el repositorio no incluye binarios compilados y sus propios
 componentes son de modo usuario. Como Dokany puede compartirse con otro software,
 el desinstalador lo conserva.
+
+Al borrar un archivo en una unidad editable, la entrada no se descarta: se
+mueve a un área reservada **dentro del propio contenedor cifrado**, de forma
+análoga a la Papelera de Windows. Conserva sus bloques cifrados y solo cambia
+de ruta, así que no se vuelve a cifrar nada y el diario y la consolidación la
+transportan sin cambios. Nada de esto sale del contenedor: no se escribe ningún
+archivo descifrado en el disco ni se usa la papelera de Windows.
+
+El área reservada no es accesible desde la unidad montada. No basta con
+ocultarla del listado raíz, porque los nombres conservados se derivan de la
+fecha de borrado y de la ruta original codificada, y por tanto son adivinables:
+el montaje editable rechaza el descriptor en `CreateFile`, protege las llamadas
+que resuelven una ruta directamente y rechaza el cambio de nombre en ambos
+sentidos, de modo que no se pueda usar un renombrado para sacar contenido del
+área ni para meterlo. El adaptador de solo lectura no puede restaurar ni vaciar,
+así que descarta esas entradas al construir su catálogo: lo que nunca se
+construye no se puede abrir
+([VaultReadWriteFileSystem.cs](Services/VaultReadWriteFileSystem.cs),
+[VaultReadOnlyFileSystem.cs](Services/VaultReadOnlyFileSystem.cs)).
+
+Restaurar una entrada nunca sobrescribe un archivo recreado desde el borrado,
+porque ese es el que la persona está usando ahora. Vaciar la papelera, o
+eliminar una entrada concreta, exige la contraseña maestra y es lo que hace
+irreversible el borrado; el espacio se recupera en la siguiente consolidación.
+Un montaje que deba borrar de forma definitiva puede desactivar el
+comportamiento con `RecycleEnabled`.
 
 ## 8. Comportamiento del instalador
 
