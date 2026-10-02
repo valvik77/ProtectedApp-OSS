@@ -416,6 +416,77 @@ public sealed class VaultCorruptionRecoveryTests
         Assert.True(validation.PrimaryValid, validation.Message);
     }
 
+    [Fact]
+    public async Task ScheduledBackup_RestoresOverACorruptedContainer_AndPreservesTheReplacedFile()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        VaultContainer vault;
+        // Read the metadata and release the handle: an open container blocks
+        // both the corruption below and the restore's own file replacement.
+        using (var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword))
+        {
+            vault = opened.Vault;
+        }
+        vault.VaultFilePath = fixture.VaultPath;
+        var backupRoot = fixture.PathFor("scheduled-backups");
+        using var service = new VaultService();
+
+        var created = await service.CreateScheduledBackupAsync(vault, backupRoot, retentionCount: 2);
+        Assert.True(created.Success, created.Error);
+        var version = Assert.Single(service.ListScheduledBackups(vault, backupRoot));
+        var expectedHash = SHA256.HashData(await File.ReadAllBytesAsync(version.Path));
+
+        // Corrupt the primary container so the restore has to replace it.
+        await File.WriteAllBytesAsync(fixture.VaultPath, RandomNumberGenerator.GetBytes(4096));
+
+        var restore = await service.RestoreScheduledBackupAsync(vault, version.Path, VaultPassword);
+        Assert.True(restore.Success, restore.Error);
+        Assert.Null(service.LastError);
+        Assert.Equal(expectedHash, SHA256.HashData(await File.ReadAllBytesAsync(fixture.VaultPath)));
+
+        // The corrupted container is kept beside the restored one, not deleted.
+        Assert.NotNull(restore.PreservedPrimaryPath);
+        Assert.True(File.Exists(restore.PreservedPrimaryPath));
+        Assert.Contains("corrupt", Path.GetFileName(restore.PreservedPrimaryPath!), StringComparison.Ordinal);
+
+        // The restored container opens with the original password.
+        using var reopened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+        Assert.Equal(vault.Id, reopened.Vault.Id);
+    }
+
+    [Fact]
+    public async Task ScheduledBackup_CleanupKeepsTheRequestedNumberOfVersions_AndReportsFreedSpace()
+    {
+        await using var fixture = await VaultFixture.CreateAsync();
+        using var opened = await VaultFormatV3.OpenAsync(fixture.VaultPath, VaultPassword);
+        var vault = opened.Vault;
+        vault.VaultFilePath = fixture.VaultPath;
+        var backupRoot = fixture.PathFor("scheduled-backups");
+        using var service = new VaultService();
+
+        // The backup file name carries a one-second timestamp, so the second
+        // copy needs a later second to become a distinct version.
+        var first = await service.CreateScheduledBackupAsync(vault, backupRoot, retentionCount: 3);
+        Assert.True(first.Success, first.Error);
+        await Task.Delay(1100);
+        var second = await service.CreateScheduledBackupAsync(vault, backupRoot, retentionCount: 3);
+        Assert.True(second.Success, second.Error);
+
+        var before = service.InspectScheduledBackups(vault, backupRoot);
+        Assert.Equal(2, before.Count);
+        Assert.True(before.TotalSizeBytes > 0);
+
+        var cleanup = service.CleanupScheduledBackups(vault, backupRoot, retainCount: 1);
+        Assert.Equal(1, cleanup.DeletedCount);
+        Assert.Equal(0, cleanup.FailedCount);
+        Assert.True(cleanup.FreedBytes > 0);
+
+        var remaining = Assert.Single(service.ListScheduledBackups(vault, backupRoot));
+        Assert.Equal(second.Path, remaining.Path);
+        Assert.True(service.DeleteScheduledBackup(vault, backupRoot, remaining.Path));
+        Assert.Empty(service.ListScheduledBackups(vault, backupRoot));
+    }
+
     private static async Task AssertRejectsJournalAsync(VaultService service, VaultFixture fixture, VaultFormatV3.OpenedVault opened,
         string journalPath, byte[] bytes)
     {
