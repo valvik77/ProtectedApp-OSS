@@ -9,16 +9,20 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
-## 1.4.219 — 2026-10-02 (development pre-release)
+## 1.4.220 — 2026-10-02 (development pre-release)
 
 ### Changed
 
 - Version number only, so that the published installer is never older than a
-  locally built one. Local installers had been built with 1.4.217 and 1.4.218
-  passed to the build script by hand, numbers that exist in no commit; Windows
-  compares these numbers to decide whether an install is an upgrade, so
-  installing the published 1.4.214 over such a build would look like a
-  downgrade. The code is identical to 1.4.214.
+  locally built one. The code is identical to 1.4.214. Build-Installer.ps1
+  assigns a version itself when none is passed: it takes the highest of the
+  project version, the release tags, what is installed on the machine and the
+  installers already built, then adds one. Local builds had therefore reached
+  1.4.217 and 1.4.218, above the published 1.4.214, and Windows compares these
+  numbers to decide whether an install is an upgrade, so installing the
+  published build over a local one would have looked like a downgrade. 1.4.219
+  was tagged but never published, because building its installer produced
+  1.4.220 by that same rule.
 
 ## 1.4.214 — 2026-10-02 (development pre-release)
 

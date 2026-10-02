@@ -10,17 +10,21 @@ firma.
 
 ## Pendiente de publicación
 
-## 1.4.219 — 2026-10-02 (pre-release de desarrollo)
+## 1.4.220 — 2026-10-02 (pre-release de desarrollo)
 
 ### Modificado
 
 - Solo el número de versión, para que el instalador publicado no quede nunca
-  por detrás de uno compilado en local. Se habían compilado instaladores
-  locales con 1.4.217 y 1.4.218, números pasados a mano al script de
-  compilación que no existen en ningún commit; Windows compara estos números
-  para decidir si una instalación es una actualización, por lo que instalar la
-  1.4.214 publicada sobre una de esas compilaciones parecería un retroceso. El
-  código es idéntico al de 1.4.214.
+  por detrás de uno compilado en local. El código es idéntico al de 1.4.214.
+  Build-Installer.ps1 asigna la versión por sí mismo cuando no se le indica
+  ninguna: toma la mayor entre la del proyecto, las etiquetas de publicación,
+  lo instalado en el equipo y los instaladores ya generados, y le suma uno.
+  Las compilaciones locales habían llegado así a 1.4.217 y 1.4.218, por encima
+  de la 1.4.214 publicada, y Windows compara estos números para decidir si una
+  instalación es una actualización, por lo que instalar la versión publicada
+  sobre una local habría parecido un retroceso. La 1.4.219 se etiquetó pero
+  nunca se publicó, porque generar su instalador produjo la 1.4.220 por esa
+  misma regla.
 
 ## 1.4.214 — 2026-10-02 (pre-release de desarrollo)
 
