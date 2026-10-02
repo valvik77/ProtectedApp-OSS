@@ -34,3 +34,4 @@ TestResults/
 *.log
 *.secret
 secrets/
+.claude/settings.local.json
