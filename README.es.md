@@ -72,6 +72,25 @@ El inicio automático de Windows es silencioso: no abre el panel ni solicita la 
 
 Al ejecutar una aplicación protegida, Guardian detiene su inicio y aparece una ventana de contraseña. Tras validarla, la aplicación se inicia normalmente. El panel principal no necesita permanecer abierto.
 
+Cada regla admite además dos ajustes de uso:
+
+- **Cuota diaria.** Un número de minutos al día, o cero para no aplicar
+  ninguna. El tiempo se acumula mientras la aplicación está en ejecución y se
+  reinicia a la medianoche local. Al agotarse, la aplicación se cierra y su
+  contraseña propia no vuelve a abrirla ese día. La contraseña maestra siempre
+  tiene prioridad y reinicia el uso de la jornada: una cuota es una herramienta
+  de autodisciplina, no un bloqueo del que no se pueda salir. El recuento se
+  guarda en la carpeta de políticas, donde solo el sistema y los
+  administradores pueden escribir, de modo que un usuario estándar no puede
+  reiniciar su propia cuota editando el archivo.
+- **Forzar el cierre cuando no responde.** Activado de forma predeterminada.
+  Una aplicación que ignora la petición de cierre suele tener abierto un
+  «¿guardar los cambios?» que nadie ha contestado, así que terminarla al
+  agotarse el margen de 30 segundos descarta ese trabajo. Si lo desactivas, el
+  proceso se mantiene y la petición se repite cada cinco minutos: la regla
+  sigue aplicándose —la aplicación se cierra cuando el usuario responde— pero
+  nunca a costa de trabajo sin guardar.
+
 ### Convertir una carpeta en bóveda
 
 1. En **Bóvedas cifradas**, pulsa **Convertir carpeta** y elige la carpeta de origen.
@@ -85,6 +104,27 @@ La conversión cifra los datos en un contenedor; no aplica bloqueos NTFS a la ca
 1. En **Bóvedas cifradas**, crea una bóveda `.pavault` y asigna una contraseña propia.
 2. Ábrela en modo **Solo lectura** para consultar archivos o en modo **Editar** para trabajar en una unidad virtual.
 3. Al terminar, usa **Guardar y bloquear bóveda**. ProtectedApp cifra los cambios y desmonta la unidad.
+
+Los archivos que borres dentro de una bóveda abierta en modo **Editar** no
+desaparecen de inmediato: se apartan a un área reservada dentro de la propia
+bóveda, igual que la Papelera de Windows protege un borrado por error. La
+entrada conserva sus bloques cifrados y solo cambia de ruta, así que no hay
+coste de volver a cifrar nada.
+
+**Papelera de la bóveda**, en el menú de acciones de cada bóveda, enumera lo
+conservado —nombre, carpeta original, tamaño y fecha de borrado— y permite
+restaurar o eliminar definitivamente. Puedes seleccionar varios archivos a la
+vez igual que en el Explorador: clic, Mayús+clic para un rango, Ctrl+clic para
+añadir o quitar uno y Ctrl+A para todos. Restaurar no sobrescribe un archivo
+que se haya vuelto a crear desde el borrado, porque ese es el que estás usando
+ahora; si alguna ruta está ocupada, el resto de la selección se recupera
+igualmente y se te indica cuáles quedaron bloqueadas.
+
+Vaciar la papelera o eliminar una entrada concreta piden la contraseña maestra
+y confirman con el número exacto de archivos: ahí la pérdida ya es definitiva.
+El espacio se recupera en el siguiente **Guardar y bloquear bóveda**. El área
+reservada no se puede abrir desde la unidad montada, ni siquiera conociendo la
+ruta exacta de un archivo conservado.
 
 Si el equipo se apaga, bloquea la sesión o se interrumpe el proceso con una bóveda editable abierta, ProtectedApp conserva un diario diferencial cifrado y autenticado con los metadatos y bloques modificados. Los cambios excepcionalmente grandes recurren automáticamente al diario completo cifrado compatible. La próxima apertura permite consultar el trabajo en solo lectura o recuperarlo; no deja una carpeta de archivos descifrados en el disco.
 

@@ -9,7 +9,76 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- Files deleted inside an editable vault are now retained until the recycle bin
+  is emptied. They were previously discarded for good on the next save, so a
+  mistaken delete on a mounted drive had no undo — unlike the same mistake on a
+  normal drive. A retained entry keeps its encrypted blocks and only changes
+  path, so nothing has to be re-encrypted.
+- **Vault recycle bin**, in each vault's actions menu, lists what is retained —
+  name, original folder, size and deletion time — and offers restore or
+  permanent delete. The list supports multiple selection with Explorer's own
+  behaviour: click, Shift+click, Ctrl+click and Ctrl+A. Restoring continues
+  through the rest of the selection when an original path is occupied again,
+  then reports how many files were recovered and which paths are blocked.
+- Emptying the bin and discarding a single entry both ask for the master
+  password and confirm with the exact file count, because either action is
+  irreversible once the vault is saved. The space is reclaimed on the next
+  *save and lock*.
+- **Daily quota** per protected application (`DailyQuotaMinutes`, 0 disables
+  it). Accumulated use is keyed by local date; once spent, the application is
+  closed and its own password no longer reopens it until local midnight. The
+  master password always overrides and clears the day's usage. The usage file
+  lives in the policy folder, which only SYSTEM and Administrators may write,
+  so a standard user cannot reset their own quota by editing it.
+- **Force close when unresponsive**, also per application
+  (`ForceCloseWhenUnresponsive`, on by default, which is the previous
+  behaviour). An application that ignores the close request is usually holding
+  a "save your changes?" dialog nobody answered, and terminating it after the
+  30-second grace period discards that work. Turning it off leaves the process
+  running and repeats the request every five minutes, so the rule still applies
+  without being able to cost unsaved work.
+
+### Fixed
+
+- Resetting a daily quota stopped it being enforced for the next ten minutes.
+  The "already closed today" mark was looked up by rule id, which is not part
+  of its key, so no mark was found and the stale one survived the reset. If the
+  quota was exhausted again within that window, the close was never issued: a
+  quota the parent had just reset silently stopped being enforced. Other users'
+  and other rules' marks are left intact.
+- Failures to read or save the daily usage were swallowed without a trace. They
+  are deliberate — a quota is a convenience and must never stop policy being
+  enforced — but silently, a quota that stopped persisting is
+  indistinguishable from one that was never configured. A warning is now
+  recorded when a damaged usage file is discarded, because that resets today's
+  quotas to zero, and when it cannot be saved. The warning is emitted once per
+  rule while the failure persists, and again only after a successful save.
+
+### Security
+
+- The reserved recycle area inside a vault now refuses access by path instead
+  of merely being hidden from the root listing. Retained names are derived from
+  the deletion timestamp and the encoded original path, so an application that
+  guessed or remembered one could open the retained copy directly: read it on
+  any mount, and overwrite, truncate, delete or rename it on an editable one.
+  The read-only adapter was the wider of the two gaps, having no notion of the
+  area and listing the folder at the root; it now drops those entries when
+  building its catalogue. The editable mount additionally refuses the handle in
+  `CreateFile` and guards the callbacks that look a path up directly, so the
+  listing filter is no longer the only thing holding the line.
+
+### Internal
+
+- Scheduled backups were extracted from `VaultService` into
+  `VaultScheduledBackupService`, the first step of that class's gradual split.
+  The seven public methods remain as delegations, so no call site changed. Two
+  tests were added for restoring over a corrupted container and for cleanup
+  with retention, two paths previously covered only by the startup probe.
+- New tests take the vault recycle bin across a save, a close and a reopen, to
+  verify that retained entries survive the full cycle and not just the current
+  session.
 
 ## 1.4.213 — 2026-10-01 (development pre-release)
 

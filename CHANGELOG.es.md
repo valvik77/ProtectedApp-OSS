@@ -10,7 +10,84 @@ firma.
 
 ## Pendiente de publicación
 
-Sin cambios todavía.
+### Añadido
+
+- Los archivos borrados dentro de una bóveda editable se conservan ahora hasta
+  que se vacía la papelera. Antes se descartaban definitivamente en el
+  siguiente guardado, de modo que un borrado por error en una unidad montada no
+  tenía vuelta atrás, al contrario que el mismo error en una unidad normal. La
+  entrada conservada mantiene sus bloques cifrados y solo cambia de ruta, así
+  que no hay que volver a cifrar nada.
+- **Papelera de la bóveda**, en el menú de acciones de cada bóveda, enumera lo
+  conservado —nombre, carpeta original, tamaño y fecha de borrado— y permite
+  restaurar o eliminar definitivamente. La lista admite selección múltiple con
+  el comportamiento del Explorador: clic, Mayús+clic, Ctrl+clic y Ctrl+A.
+  Restaurar continúa con el resto de la selección cuando la ruta original está
+  ocupada de nuevo e informa después de cuántos archivos se recuperaron y qué
+  rutas quedaron bloqueadas.
+- Vaciar la papelera y eliminar una entrada concreta piden la contraseña
+  maestra y confirman con el número exacto de archivos, porque ambas acciones
+  son irreversibles una vez guardada la bóveda. El espacio se recupera en el
+  siguiente *Guardar y bloquear*.
+- **Cuota diaria** por aplicación protegida (`DailyQuotaMinutes`, 0 la
+  desactiva). El uso acumulado se registra por fecha local; una vez agotada, la
+  aplicación se cierra y su propia contraseña no vuelve a abrirla hasta la
+  medianoche local. La contraseña maestra siempre tiene prioridad y reinicia el
+  uso del día. El archivo de uso se guarda en la carpeta de políticas, donde
+  solo SYSTEM y los administradores pueden escribir, así que un usuario estándar
+  no puede reiniciar su propia cuota editándolo.
+- **Forzar el cierre cuando no responde**, también por aplicación
+  (`ForceCloseWhenUnresponsive`, activado de forma predeterminada, que es el
+  comportamiento anterior). Una aplicación que ignora la petición de cierre
+  suele tener abierto un «¿guardar los cambios?» que nadie ha contestado, y
+  terminarla al agotarse el margen de 30 segundos descarta ese trabajo. Al
+  desactivarlo, el proceso se mantiene y la petición se repite cada cinco
+  minutos, por lo que la regla sigue aplicándose sin poder costar trabajo sin
+  guardar.
+
+### Corregido
+
+- Reiniciar una cuota diaria dejaba de aplicarla durante los diez minutos
+  siguientes. La marca de «ya cerrada hoy» se buscaba por el identificador de
+  la regla, que no forma parte de su clave, así que no se encontraba ninguna y
+  la marca anterior sobrevivía al reinicio. Si la cuota se agotaba otra vez en
+  ese intervalo, el cierre no llegaba a emitirse: una cuota recién reiniciada
+  dejaba de aplicarse en silencio. Las marcas de otros usuarios y de otras
+  reglas se conservan intactas.
+- Los fallos al leer o guardar el uso diario se absorbían sin dejar rastro. Son
+  deliberados —una cuota es una comodidad y nunca debe interrumpir la
+  aplicación de políticas—, pero en silencio una cuota que dejó de persistir
+  resulta indistinguible de una que nunca se configuró. Ahora se avisa al
+  descartar un archivo de uso dañado, porque eso devuelve a cero las cuotas del
+  día, y al no poder guardarlo. El aviso se emite una sola vez por regla
+  mientras el fallo persista, y vuelve a emitirse solo tras un guardado
+  correcto.
+
+### Seguridad
+
+- El área reservada de la papelera dentro de la bóveda rechaza ahora los
+  accesos por ruta, en lugar de limitarse a ocultarse del listado raíz. Los
+  nombres conservados se derivan de la fecha de borrado y de la ruta original
+  codificada, así que una aplicación que adivinara o recordara uno podía abrir
+  la copia retenida directamente: leerla en cualquier montaje y sobrescribirla,
+  truncarla, borrarla o renombrarla en uno editable. El adaptador de solo
+  lectura era el hueco más amplio de los dos, porque no tenía noción del área y
+  listaba la carpeta en la raíz; ahora descarta esas entradas al construir su
+  catálogo. El montaje editable rechaza además el descriptor en `CreateFile` y
+  protege las llamadas que resuelven una ruta directamente, de modo que el
+  filtro del listado ya no es lo único que sostiene la protección.
+
+### Interno
+
+- Las copias programadas se han extraído de `VaultService` a
+  `VaultScheduledBackupService`, primer paso de la separación gradual de esa
+  clase. Los siete métodos públicos se conservan como delegaciones, así que
+  ningún punto de llamada cambia. Se añaden dos pruebas para la restauración
+  sobre un contenedor dañado y para la limpieza con retención, dos caminos que
+  hasta ahora solo cubría el sondeo de arranque.
+- Nuevas pruebas recorren la papelera de la bóveda a lo largo de un guardado,
+  un cierre y una reapertura, para verificar que lo conservado sobrevive al
+  ciclo completo y no solo a la sesión en curso.
 
 ## 1.4.213 — 2026-10-01 (pre-release de desarrollo)
 
