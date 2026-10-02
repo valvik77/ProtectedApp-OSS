@@ -47,9 +47,14 @@ before they can run, and starts them again after the password is accepted.
   master password or an application-specific password.
 - Supports temporary authorization, automatic lock/close policies, and weekly
   schedules.
+- Supports an optional daily time quota per application, and can leave an
+  unresponsive application running instead of terminating it, so an unanswered
+  "save your changes?" dialog never costs unsaved work.
 - Creates `.pavault` encrypted vaults with AES-256-GCM and PBKDF2-SHA256.
 - Opens vaults read-only or as editable Dokany virtual drives. Editable work is
   journaled and recovered in encrypted form after an interruption.
+- Retains files deleted inside an editable vault until its recycle bin is
+  emptied, so a mistaken delete can be undone.
 - Creates encrypted settings backups and keeps encrypted prior vault copies for
   recovery.
 - Can create scheduled, password-encrypted configuration backups with a chosen
@@ -100,6 +105,14 @@ only changed blocks and metadata; very large edits automatically use the
 compatible encrypted full journal. Interrupted sessions can be recovered or
 inspected read-only at the next unlock. Do not synchronize an open vault work directory;
 synchronize the closed `.pavault` file instead.
+
+Deleting a file inside an editable vault moves it to a reserved area within the
+vault rather than discarding it. **Vault recycle bin**, in the vault's actions
+menu, lists what is retained and restores or permanently deletes it, one file or
+a whole Explorer-style selection at a time. Restoring never overwrites a file
+recreated since the deletion. Emptying the bin requires the master password and
+reclaims the space on the next save and lock. The reserved area cannot be
+opened from the mounted drive, even with the exact path of a retained file.
 
 An optional per-vault TPM mode requires both the vault password and a
 non-exportable key in the current computer's TPM. It is deliberately off by
