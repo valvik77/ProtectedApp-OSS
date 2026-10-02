@@ -1,7 +1,31 @@
+﻿using Microsoft.Extensions.Logging;
 using ProtectedApp.Service;
 using Xunit;
 
 namespace ProtectedApp.Guardian.Tests;
+
+/// <summary>
+/// Captures what the tracker reported, so the tests can prove a swallowed
+/// persistence failure still leaves a trace instead of only proving that
+/// enforcement survived it.
+/// </summary>
+internal sealed class RecordingLogger<T> : ILogger<T>
+{
+    public List<(LogLevel Level, string Message, Exception? Exception)> Entries { get; } = new();
+
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+        Func<TState, Exception?, string> formatter) =>
+        Entries.Add((logLevel, formatter(state, exception), exception));
+
+    private sealed class NullScope : IDisposable
+    {
+        public static readonly NullScope Instance = new();
+        public void Dispose() { }
+    }
+}
 
 public sealed class DailyQuotaTrackerTests : IDisposable
 {
@@ -11,7 +35,9 @@ public sealed class DailyQuotaTrackerTests : IDisposable
     private readonly Guid _rule = Guid.NewGuid();
     private const string Sid = "S-1-5-21-test";
 
-    private DailyQuotaTracker Create() => new(() => _now, _path);
+    private readonly RecordingLogger<DailyQuotaTracker> _logger = new();
+
+    private DailyQuotaTracker Create() => new(() => _now, _path, _logger);
 
     [Fact]
     public void AccumulatesUseAndReportsExhaustionAtTheQuota()
@@ -114,6 +140,92 @@ public sealed class DailyQuotaTrackerTests : IDisposable
 
         Assert.Equal(0, tracker.GetUsedMinutes(Sid, _rule), 3);
         Assert.False(tracker.IsExhausted(Sid, _rule, 60));
+    }
+
+    [Fact]
+    public void DiscardingADamagedUsageFileIsReported()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        File.WriteAllText(_path, "{ not json");
+
+        Create();
+
+        // Resetting today's quotas is a visible change in behaviour for the
+        // user, so it must never happen silently.
+        var entry = Assert.Single(_logger.Entries);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Contains(_path, entry.Message);
+        Assert.NotNull(entry.Exception);
+    }
+
+    [Fact]
+    public void AnUnwritableUsageFileIsReportedOnceWhileItKeepsFailing()
+    {
+        var tracker = Create();
+        using var blocked = BlockTheUsageFile();
+
+        tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+        _now = _now.AddMinutes(1);
+        tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+
+        // Accumulate() saves once per scan cycle per rule, so the repeat must
+        // not turn a persistent failure into an unbounded log.
+        var entry = Assert.Single(_logger.Entries);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Contains(_path, entry.Message);
+        Assert.NotNull(entry.Exception);
+
+        // Enforcement still sees the in-memory total it accumulated.
+        Assert.True(tracker.IsExhausted(Sid, _rule, 2));
+    }
+
+    [Fact]
+    public void AFailureIsReportedAgainAfterPersistenceRecovers()
+    {
+        var tracker = Create();
+
+        using (BlockTheUsageFile())
+        {
+            tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+            Assert.Single(_logger.Entries);
+
+            _now = _now.AddMinutes(1);
+            tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+            Assert.Single(_logger.Entries);
+        }
+
+        _now = _now.AddMinutes(1);
+        tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+        Assert.Single(_logger.Entries);
+
+        using (BlockTheUsageFile())
+        {
+            _now = _now.AddMinutes(1);
+            tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+        }
+
+        // A new outage after a healthy save is new information, not a repeat.
+        Assert.Equal(2, _logger.Entries.Count);
+    }
+
+    /// <summary>
+    /// Holds the usage file open without sharing it, which is how a backup tool
+    /// or an antivirus scan makes the replace fail on a real machine.
+    /// </summary>
+    private FileStream BlockTheUsageFile()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        return new FileStream(_path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+    }
+
+    [Fact]
+    public void AHealthyTrackerReportsNothing()
+    {
+        var tracker = Create();
+        tracker.Accumulate(Sid, _rule, TimeSpan.FromMinutes(1));
+        tracker.Reset(Sid, _rule);
+
+        Assert.Empty(_logger.Entries);
     }
 
     public void Dispose()

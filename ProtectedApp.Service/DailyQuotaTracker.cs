@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace ProtectedApp.Service;
 
@@ -19,14 +19,23 @@ internal sealed class DailyQuotaTracker
     private readonly object _sync = new();
     private readonly Func<DateTimeOffset> _clock;
     private readonly string _path;
+    private readonly ILogger<DailyQuotaTracker>? _logger;
+    // Accumulate() saves once per scan cycle for every running rule, so a
+    // persistently unwritable policy folder would otherwise fill the log with
+    // the same failure. Report each run of failures once, and again only after
+    // a save has succeeded in between.
+    private bool _saveFailureReported;
     private QuotaDatabase _database;
 
-    public DailyQuotaTracker() : this(() => DateTimeOffset.Now, GuardianConstants.DailyQuotaPath) { }
+    public DailyQuotaTracker(ILogger<DailyQuotaTracker> logger)
+        : this(() => DateTimeOffset.Now, GuardianConstants.DailyQuotaPath, logger) { }
 
-    internal DailyQuotaTracker(Func<DateTimeOffset> clock, string path)
+    internal DailyQuotaTracker(Func<DateTimeOffset> clock, string path,
+        ILogger<DailyQuotaTracker>? logger = null)
     {
         _clock = clock;
         _path = path;
+        _logger = logger;
         _database = Load();
     }
 
@@ -119,6 +128,11 @@ internal sealed class DailyQuotaTracker
         // file must not stop Guardian from enforcing passwords, so start over.
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
+            // Starting over silently would hand the user a fresh quota with no
+            // trace of why, so the discarded file is always reported.
+            _logger?.LogWarning(ex,
+                "No se pudo leer el uso diario en {Path}; se parte de un registro vacío y las cuotas de hoy vuelven a cero.",
+                _path);
             return new QuotaDatabase();
         }
     }
@@ -134,11 +148,19 @@ internal sealed class DailyQuotaTracker
             var temporary = _path + ".tmp";
             File.WriteAllText(temporary, JsonSerializer.Serialize(_database, JsonOptions));
             File.Move(temporary, _path, overwrite: true);
+            _saveFailureReported = false;
         }
+        // Losing a few minutes of accounting is preferable to failing the
+        // enforcement pass that called us, but a quota that silently stops
+        // persisting looks exactly like a quota that was never configured, so
+        // the first failure of each run is recorded.
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Losing a few minutes of accounting is preferable to failing the
-            // enforcement pass that called us.
+            if (_saveFailureReported) return;
+            _saveFailureReported = true;
+            _logger?.LogWarning(ex,
+                "No se pudo guardar el uso diario en {Path}; las cuotas se perderán al reiniciar Guardian mientras persista el fallo.",
+                _path);
         }
     }
 
