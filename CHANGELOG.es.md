@@ -10,6 +10,18 @@ firma.
 
 ## Pendiente de publicación
 
+## 1.4.219 — 2026-10-02 (pre-release de desarrollo)
+
+### Modificado
+
+- Solo el número de versión, para que el instalador publicado no quede nunca
+  por detrás de uno compilado en local. Se habían compilado instaladores
+  locales con 1.4.217 y 1.4.218, números pasados a mano al script de
+  compilación que no existen en ningún commit; Windows compara estos números
+  para decidir si una instalación es una actualización, por lo que instalar la
+  1.4.214 publicada sobre una de esas compilaciones parecería un retroceso. El
+  código es idéntico al de 1.4.214.
+
 ## 1.4.214 — 2026-10-02 (pre-release de desarrollo)
 
 ### Añadido

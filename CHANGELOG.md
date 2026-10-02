@@ -9,6 +9,17 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+## 1.4.219 — 2026-10-02 (development pre-release)
+
+### Changed
+
+- Version number only, so that the published installer is never older than a
+  locally built one. Local installers had been built with 1.4.217 and 1.4.218
+  passed to the build script by hand, numbers that exist in no commit; Windows
+  compares these numbers to decide whether an install is an upgrade, so
+  installing the published 1.4.214 over such a build would look like a
+  downgrade. The code is identical to 1.4.214.
+
 ## 1.4.214 — 2026-10-02 (development pre-release)
 
 ### Added
