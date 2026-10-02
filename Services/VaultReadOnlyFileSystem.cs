@@ -40,6 +40,11 @@ internal sealed class VaultReadOnlyFileSystem : IDokanOperations
         foreach (var entry in opened.Index.Entries)
         {
             var path = NormalizePath(entry.Path);
+            // The recycle area is ProtectedApp's own bookkeeping, not user
+            // content. A read-only mount can neither restore nor empty it, so
+            // it is dropped from the catalogue outright: never built means it
+            // cannot be listed, opened by a known path, or read back.
+            if (VaultReadWriteFileSystem.IsRecyclePath(path)) continue;
             EnsureParentDirectories(path);
             _nodes[path] = new Node(path, GetName(path), entry.IsDirectory, entry.Length,
                 NormalizeDate(entry.CreationUtc, _defaultCreatedUtc),
