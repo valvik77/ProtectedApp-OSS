@@ -10,6 +10,8 @@ firma.
 
 ## Pendiente de publicación
 
+## 1.4.214 — 2026-10-02 (pre-release de desarrollo)
+
 ### Añadido
 
 - Los archivos borrados dentro de una bóveda editable se conservan ahora hasta

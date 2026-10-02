@@ -9,6 +9,8 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+## 1.4.214 — 2026-10-02 (development pre-release)
+
 ### Added
 
 - Files deleted inside an editable vault are now retained until the recycle bin
