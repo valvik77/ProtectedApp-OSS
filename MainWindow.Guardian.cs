@@ -118,16 +118,22 @@ public sealed partial class MainWindow
                 var extensionMinutes = Math.Max(1, inactivityNotice
                     ? app.ForceCloseAfterInactivityMinutes
                     : app.ForceCloseAfterMinutes);
-                var (extend, chosenMinutes) = await ShowNoticeWindowWithExtensionAsync(app.Name, message, false,
+                var (extend, chosenMinutes, keepAsDefault) = await ShowNoticeWindowWithExtensionAsync(
+                    app.Name, message, false,
                     "Ampliar", "Cierre automático", TimeSpan.FromSeconds(55),
-                    BuildExtensionChoices(extensionMinutes), extensionMinutes);
+                    BuildExtensionChoices(extensionMinutes), extensionMinutes,
+                    allowPermanentExtension: true);
                 if (extend)
                 {
-                    // A one-off duration for this session only; the configured
-                    // interval is deliberately left untouched.
+                    // By default a one-off duration for this session only. The
+                    // configured interval changes only when the user ticked the
+                    // option to keep the chosen duration from now on.
                     var grantedMinutes = chosenMinutes ?? extensionMinutes;
                     _timedSessionTokens.TryGetValue(app.Id, out var timedSessionToken);
-                    if (string.IsNullOrWhiteSpace(timedSessionToken)
+                    // Rewriting the rule reaches Guardian through the policy
+                    // sync, which only accepts a master authorization, so a
+                    // permanent change always asks for it.
+                    if ((string.IsNullOrWhiteSpace(timedSessionToken) || (keepAsDefault && _guardianToken is null))
                         && !await VerifyMasterAsync($"Extender el tiempo de {app.Name}"))
                     {
                         AddActivity(app.Name, "Ampliación del cierre automático cancelada");
@@ -163,6 +169,8 @@ public sealed partial class MainWindow
                         : $"No se pudo ampliar el cierre automático: {response.Error}");
                     if (!response.Success)
                         _tray.ShowBalloon("No se pudo ampliar", app.Name);
+                    else if (keepAsDefault)
+                        await KeepCloseIntervalAsDefaultAsync(app, grantedMinutes, inactivityNotice);
                 }
                 return;
             }
@@ -382,18 +390,18 @@ public sealed partial class MainWindow
         => (await ShowNoticeWindowWithExtensionAsync(applicationName, message, isError, actionLabel, subtitle,
             autoCloseAfter)).Accepted;
 
-    private async Task<(bool Accepted, int? ExtensionMinutes)> ShowNoticeWindowWithExtensionAsync(
+    private async Task<(bool Accepted, int? ExtensionMinutes, bool KeepAsDefault)> ShowNoticeWindowWithExtensionAsync(
         string applicationName, string message, bool isError, string? actionLabel = null, string? subtitle = null,
         TimeSpan? autoCloseAfter = null, IReadOnlyList<int>? extensionChoices = null,
-        int? defaultExtensionMinutes = null)
+        int? defaultExtensionMinutes = null, bool allowPermanentExtension = false)
     {
         var noticeWindow = new NoticeWindow(applicationName, message, isError, actionLabel, subtitle, autoCloseAfter,
-            extensionChoices, defaultExtensionMinutes);
+            extensionChoices, defaultExtensionMinutes, allowPermanentExtension);
         _activeNoticeWindow = noticeWindow;
         try
         {
             var accepted = await noticeWindow.ShowAsync();
-            return (accepted, noticeWindow.SelectedExtensionMinutes);
+            return (accepted, noticeWindow.SelectedExtensionMinutes, noticeWindow.KeepExtensionAsDefault);
         }
         finally
         {
@@ -415,6 +423,36 @@ public sealed partial class MainWindow
     }
 
     private const int GuardianExtensionLimitMinutes = 10_080;
+
+    /// <summary>
+    /// Writes the duration chosen in the close warning into the rule itself, so
+    /// later sessions of this application start with it instead of needing the
+    /// warning to be extended again. Only the active close mode is rewritten;
+    /// the inactive one stays at zero.
+    /// </summary>
+    private async Task KeepCloseIntervalAsDefaultAsync(ProtectedApplication app, int minutes,
+        bool inactivityNotice)
+    {
+        var requested = Math.Clamp(minutes, 1, GuardianExtensionLimitMinutes);
+        if (inactivityNotice)
+        {
+            if (app.ForceCloseAfterInactivityMinutes == requested) return;
+            app.ForceCloseAfterInactivityMinutes = requested;
+        }
+        else
+        {
+            if (app.ForceCloseAfterMinutes == requested) return;
+            app.ForceCloseAfterMinutes = requested;
+        }
+        // Guardian refuses a trust period longer than the close interval, and
+        // shortening the interval here can leave the stored one above it.
+        if (app.UnlockGraceMinutes > requested) app.UnlockGraceMinutes = requested;
+        await SaveAsync();
+        RefreshVisibleApps();
+        AddActivity(app.Name, inactivityNotice
+            ? $"Cierre por inactividad configurado en {requested} min"
+            : $"Cierre automático configurado en {requested} min");
+    }
 
     private void RefreshGuardianStatus()
     {

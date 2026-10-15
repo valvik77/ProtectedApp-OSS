@@ -28,9 +28,17 @@ public sealed partial class NoticeWindow : Window
     /// </summary>
     public int? SelectedExtensionMinutes { get; private set; }
 
+    /// <summary>
+    /// True when the user asked for the chosen duration to replace the
+    /// application's configured interval instead of applying only once. Only
+    /// meaningful once <see cref="ShowAsync"/> has returned true.
+    /// </summary>
+    public bool KeepExtensionAsDefault => MakePermanentCheck.IsChecked == true;
+
     public NoticeWindow(string applicationName, string message, bool isError = false,
         string? actionLabel = null, string? subtitle = null, TimeSpan? autoCloseAfter = null,
-        IReadOnlyList<int>? extensionChoices = null, int? defaultExtensionMinutes = null)
+        IReadOnlyList<int>? extensionChoices = null, int? defaultExtensionMinutes = null,
+        bool allowPermanentExtension = false)
     {
         InitializeComponent();
         LocalizationService.LanguageChanged += RefreshLanguage;
@@ -65,6 +73,13 @@ public sealed partial class NoticeWindow : Window
             ExtensionLabel.Text = LocalizationService.T(ExtensionLabel, "Text", "Ampliar esta vez");
             ExtensionPanel.Visibility = Visibility.Visible;
             _height = 268;
+            if (allowPermanentExtension)
+            {
+                MakePermanentCheck.Content = LocalizationService.T(MakePermanentCheck, "Content",
+                    "Usar siempre este tiempo para esta aplicación");
+                MakePermanentCheck.Visibility = Visibility.Visible;
+                _height = 306;
+            }
         }
 
         _hwnd = WindowNative.GetWindowHandle(this);

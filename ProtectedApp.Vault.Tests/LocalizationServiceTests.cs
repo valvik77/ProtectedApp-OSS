@@ -146,6 +146,14 @@ public sealed class LocalizationServiceTests
             // The durations offered by the selector.
             Assert.Equal("1 hour", LocalizationService.T("1 hora"));
             Assert.Equal("2 hours", LocalizationService.T("2 horas"));
+            // The option that keeps the chosen duration as the rule's own, and
+            // the activity entries it writes for each close mode.
+            Assert.Equal("Always use this duration for this application",
+                LocalizationService.T("Usar siempre este tiempo para esta aplicación"));
+            Assert.Equal("Automatic closing set to 45 min",
+                LocalizationService.T("Cierre automático configurado en 45 min"));
+            Assert.Equal("Inactivity closing set to 45 min",
+                LocalizationService.T("Cierre por inactividad configurado en 45 min"));
 
             LocalizationService.SetLanguage("es");
 
@@ -155,6 +163,12 @@ public sealed class LocalizationServiceTests
             Assert.Equal("Ampliar esta vez", LocalizationService.T("Extend this time"));
             Assert.Equal("Minutos de ampliación", LocalizationService.T("Extension minutes"));
             Assert.Equal("2 horas", LocalizationService.T("2 hours"));
+            Assert.Equal("Usar siempre este tiempo para esta aplicación",
+                LocalizationService.T("Always use this duration for this application"));
+            Assert.Equal("Cierre automático configurado en 45 min",
+                LocalizationService.T("Automatic closing set to 45 min"));
+            Assert.Equal("Cierre por inactividad configurado en 45 min",
+                LocalizationService.T("Inactivity closing set to 45 min"));
         }
         finally
         {

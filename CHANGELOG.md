@@ -9,6 +9,20 @@ candidate** is not a public release and must not be distributed as one; see
 
 ## Unreleased
 
+### Added
+
+- The upcoming-close warning can now make the chosen duration permanent. Until
+  now its duration selector only applied to the running session: every time the
+  application approached its close again, the warning came back with the same
+  configured time and had to be extended once more. The warning now offers
+  "Always use this duration for this application": tick it and extend, and the
+  chosen duration becomes the rule's own, so later sessions start with it
+  without opening Settings. Only the active close mode is rewritten (elapsed
+  use or inactivity) and, if the password-free reopening period was longer than
+  the new duration, it is trimmed to match, because Guardian does not accept a
+  trust period longer than the session. Since the rule change travels to
+  Guardian, the master password is requested when it has not been already.
+
 ## 1.4.220 — 2026-10-02 (development pre-release)
 
 ### Changed

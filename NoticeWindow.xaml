@@ -62,6 +62,8 @@
                           AutomationProperties.Name="Minutos de ampliación"
                           SelectionChanged="ExtensionMinutesCombo_SelectionChanged" />
             </Grid>
+            <CheckBox x:Name="MakePermanentCheck" Visibility="Collapsed" Margin="0,-2,0,0"
+                      Content="Usar siempre este tiempo para esta aplicación" />
         </StackPanel>
 
         <Grid Grid.Row="4" ColumnSpacing="10">

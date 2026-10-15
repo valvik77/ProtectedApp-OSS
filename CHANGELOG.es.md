@@ -10,6 +10,21 @@ firma.
 
 ## Pendiente de publicación
 
+### Añadido
+
+- El aviso de cierre próximo permite dejar fija la duración elegida. Hasta
+  ahora el selector de tiempo solo servía para la sesión en curso: cada vez que
+  la aplicación volvía a acercarse a su cierre, el aviso reaparecía con el
+  mismo tiempo configurado y había que ampliarlo otra vez. Ahora el aviso
+  incluye la opción «Usar siempre este tiempo para esta aplicación»: al
+  marcarla y ampliar, la duración elegida pasa a ser la de la regla, de modo
+  que las siguientes sesiones empiezan ya con ella sin tener que abrir la
+  configuración. Se reescribe solo el modo de cierre activo (por tiempo de uso
+  o por inactividad) y, si el periodo de reaperturas sin contraseña quedaba por
+  encima del nuevo tiempo, se recorta hasta él, porque Guardian no acepta una
+  confianza más larga que la sesión. Como el cambio de la regla viaja a
+  Guardian, se pide la contraseña maestra si no se había pedido ya.
+
 ## 1.4.220 — 2026-10-02 (pre-release de desarrollo)
 
 ### Modificado

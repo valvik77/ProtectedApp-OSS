@@ -513,6 +513,7 @@ public static class LocalizationService
         ["Ampliar"] = "Extend",
         ["Ampliar esta vez"] = "Extend this time",
         ["Minutos de ampliación"] = "Extension minutes",
+        ["Usar siempre este tiempo para esta aplicación"] = "Always use this duration for this application",
         ["2 horas"] = "2 hours",
         ["Autoriza el desbloqueo de"] = "Authorize unlocking",
         ["Autorización no concedida."] = "Authorization was not granted."
@@ -1930,6 +1931,10 @@ public static class LocalizationService
         if (match.Success) return $"Encrypted backup exported with {match.Groups[1].Value} applications and {match.Groups[2].Value} folders";
         match = Regex.Match(value, @"^Cierre automático ampliado (\d+) min$");
         if (match.Success) return $"Automatic closing extended by {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Cierre automático configurado en (\d+) min$");
+        if (match.Success) return $"Automatic closing set to {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Cierre por inactividad configurado en (\d+) min$");
+        if (match.Success) return $"Inactivity closing set to {match.Groups[1].Value} min";
         // The longer variant must be tested first: the shorter pattern is a
         // prefix of it and would otherwise leave the override hint untranslated.
         match = Regex.Match(value, @"^(.+) ha agotado su tiempo diario de (\d+) min\. Usa la contraseña maestra para anularlo\.$");
@@ -2048,6 +2053,10 @@ public static class LocalizationService
         if (match.Success) return $"{match.Groups[1].Value} will close automatically in less than one minute.";
         match = Regex.Match(value, @"^Cierre automático ampliado (\d+) min$");
         if (match.Success) return $"Automatic closing extended by {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Cierre automático configurado en (\d+) min$");
+        if (match.Success) return $"Automatic closing set to {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Cierre por inactividad configurado en (\d+) min$");
+        if (match.Success) return $"Inactivity closing set to {match.Groups[1].Value} min";
         match = Regex.Match(value, @"^No se pudo ampliar el cierre automático: (.+)$");
         if (match.Success) return $"Could not extend automatic closing: {match.Groups[1].Value}";
         match = Regex.Match(value, @"^Ejecución denegada: (.+)$");
@@ -2211,6 +2220,10 @@ public static class LocalizationService
         if (match.Success) return $"Copia de seguridad cifrada exportada con {match.Groups[1].Value} aplicaciones y {match.Groups[2].Value} carpetas";
         match = Regex.Match(value, @"^Automatic closing extended by (\d+) min$");
         if (match.Success) return $"Cierre automático ampliado {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Automatic closing set to (\d+) min$");
+        if (match.Success) return $"Cierre automático configurado en {match.Groups[1].Value} min";
+        match = Regex.Match(value, @"^Inactivity closing set to (\d+) min$");
+        if (match.Success) return $"Cierre por inactividad configurado en {match.Groups[1].Value} min";
         match = Regex.Match(value, @"^(\d+) component\(s\) still require review\.$");
         if (match.Success) return $"Quedan {match.Groups[1].Value} componentes que requieren revisión.";
         match = Regex.Match(value, @"^(\d+) visible event\(s\) were exported\. The current search and filter were retained\.$");
