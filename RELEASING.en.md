@@ -31,6 +31,23 @@ key, PFX, or unsigned candidate. Downloaders must verify the hash and signature
 before running the installer and consciously decide whether to trust the
 certificate for their current user; Smart App Control/WDAC may still block it.
 
+## Version number
+
+`Build-Installer.ps1` assigns the version when none is passed: it takes the
+highest of the project version, the release tags, what is installed on the
+machine and the installers already built, then adds one. That increment is
+deliberate: Explorer can retain the already-loaded shell extension in memory,
+and reusing a number would make an otherwise valid upgrade fail.
+
+On a successful build the script writes that version into `ProtectedApp.csproj`
+(`Version`, `AssemblyVersion` and `FileVersion`) and reports that it is left to
+be committed. Previously the publish only passed `-p:Version`, which does not
+change the file, so the project declared a version older than the delivered
+installer and had to be corrected by hand afterwards. If the build fails the
+file is untouched: only a genuinely delivered version is recorded.
+
+Pass `-InstallerVersion` to pin a specific number instead of the computed one.
+
 ## Signed release sequence
 
 1. Merge reviewed changes into `main` and confirm that CI, CodeQL, and dependency

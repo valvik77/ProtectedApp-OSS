@@ -25,6 +25,21 @@ firma.
   confianza más larga que la sesión. Como el cambio de la regla viaja a
   Guardian, se pide la contraseña maestra si no se había pedido ya.
 
+### Corregido
+
+- El número de versión del proyecto ya no se queda por detrás del instalador
+  entregado. Build-Installer.ps1 elegía la versión y la pasaba a la publicación
+  mediante un parámetro que no modifica el archivo del proyecto, así que este
+  seguía declarando la anterior; había que corregirlo a mano después de cada
+  construcción, y entre tanto el repositorio afirmaba una versión que no era la
+  del instalador que había al lado. Ahora, cuando la construcción termina bien,
+  el script escribe esa versión en el proyecto y avisa de que queda por
+  confirmar. Si falla, no toca el archivo: solo se registra una versión que
+  realmente se entregó. El incremento automático se mantiene, porque el
+  Explorador puede conservar cargada la extensión anterior y reutilizar un
+  número haría fallar la actualización. El mecanismo queda documentado en
+  RELEASING.md.
+
 ## 1.4.220 — 2026-10-02 (pre-release de desarrollo)
 
 ### Modificado

@@ -30,6 +30,24 @@ verificar el hash y la firma antes de ejecutarlo y decidir conscientemente si
 confía en el certificado para el usuario actual; Smart App Control/WDAC puede
 seguir bloqueándolo.
 
+## Número de versión
+
+`Build-Installer.ps1` asigna la versión cuando no se le pasa ninguna: toma la
+mayor entre la del proyecto, las etiquetas de publicación, lo instalado en el
+equipo y los instaladores ya generados, y le suma uno. Ese incremento es
+deliberado: el Explorador puede conservar en memoria la extensión del shell ya
+cargada, y reutilizar un número haría fallar una actualización por lo demás
+válida.
+
+Al terminar correctamente, el script escribe esa versión en `ProtectedApp.csproj`
+(`Version`, `AssemblyVersion` y `FileVersion`) y avisa de que queda por
+confirmar. Antes lo publicado se pasaba por `-p:Version`, que no modifica el
+archivo, de modo que el proyecto declaraba una versión anterior a la del
+instalador entregado y había que corregirlo a mano después. Si la construcción
+falla, el archivo no se toca: solo se registra una versión realmente entregada.
+
+Pasa `-InstallerVersion` para fijar un número concreto en lugar del calculado.
+
 ## Secuencia de lanzamiento firmada
 
 1. Fusiona cambios revisados en `main` y confirma que CI, CodeQL y la auditoría

@@ -277,6 +277,32 @@ function Get-NextInstallerVersion
     return "1.4.$($highestBuild + 1)"
 }
 
+function Set-ProjectVersion
+{
+    # The build publishes with -p:Version, which overrides the project file
+    # without changing it, so the declared version stayed behind every time a
+    # number was assigned here. Writing it back keeps a single number: the one
+    # the delivered installer carries.
+    param([Parameter(Mandatory)][string]$Version)
+
+    $projectFile = Join-Path $projectRoot 'ProtectedApp.csproj'
+    if (-not (Test-Path -LiteralPath $projectFile -PathType Leaf)) { return $false }
+    $assemblyVersion = if ($Version.Split('.').Count -eq 3) { "$Version.0" } else { $Version }
+    $original = Get-Content -LiteralPath $projectFile -Raw
+    # Rewrite the three elements textually. Reserializing the XML would reflow
+    # the whole project file and bury the version change in the diff.
+    $updated = $original `
+        -replace '(?<=<Version>)[^<]*(?=</Version>)', $Version `
+        -replace '(?<=<AssemblyVersion>)[^<]*(?=</AssemblyVersion>)', $assemblyVersion `
+        -replace '(?<=<FileVersion>)[^<]*(?=</FileVersion>)', $assemblyVersion
+    if ($updated -eq $original) { return $false }
+    # Read raw and write raw: the repository keeps this file as UTF-8 without a
+    # BOM and with LF endings, and Set-Content would impose CRLF and rewrite
+    # every line of the diff.
+    [System.IO.File]::WriteAllText($projectFile, $updated, (New-Object System.Text.UTF8Encoding $false))
+    return $true
+}
+
 if ([string]::IsNullOrWhiteSpace($InstallerVersion))
 {
     $InstallerVersion = Get-NextInstallerVersion
@@ -626,6 +652,9 @@ try {
     finally { $sha256.Dispose() }
 }
 finally { $stream.Dispose() }
+# Only once the installer exists, is verified and is signed: a failed build
+# must not leave the project declaring a version that was never delivered.
+$projectVersionUpdated = Set-ProjectVersion -Version $InstallerVersion
 Write-Host ''
 Write-Host "Instalador creado: $setupPath" -ForegroundColor Green
 Write-Host "SHA-256: $hash"
@@ -634,4 +663,8 @@ if ($null -ne $signingMode) {
     Write-Host "Firma válida: $($installerSignature.SignerCertificate.Subject)" -ForegroundColor Green
     Write-Host "Huella: $($installerSignature.SignerCertificate.Thumbprint)"
     Write-Host "Sello de tiempo: $($installerSignature.TimeStamperCertificate.Subject)"
+}
+if ($projectVersionUpdated) {
+    Write-Host ''
+    Write-Host "ProtectedApp.csproj actualizado a $InstallerVersion; confírmalo para que el repositorio declare la versión entregada." -ForegroundColor Yellow
 }

@@ -23,6 +23,20 @@ candidate** is not a public release and must not be distributed as one; see
   trust period longer than the session. Since the rule change travels to
   Guardian, the master password is requested when it has not been already.
 
+### Fixed
+
+- The project's version number no longer lags behind the delivered installer.
+  Build-Installer.ps1 chose the version and passed it to the publish through a
+  parameter that does not change the project file, so the project kept
+  declaring the previous one; it had to be corrected by hand after every build,
+  and until then the repository claimed a version that was not the one sitting
+  beside it. Now, when the build finishes successfully, the script writes that
+  version into the project and reports that it is left to be committed. If the
+  build fails the file is untouched: only a genuinely delivered version is
+  recorded. The automatic increment stays, because Explorer can retain the
+  previously loaded extension and reusing a number would make the upgrade
+  fail. The mechanism is documented in RELEASING.en.md.
+
 ## 1.4.220 — 2026-10-02 (development pre-release)
 
 ### Changed
