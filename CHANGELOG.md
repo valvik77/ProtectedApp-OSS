@@ -7,7 +7,7 @@ candidate** is not a public release and must not be distributed as one; see
 
 > [Español](CHANGELOG.es.md)
 
-## Unreleased
+## 1.4.222 — 2026-10-16 (development pre-release)
 
 ### Added
 
@@ -36,6 +36,15 @@ candidate** is not a public release and must not be distributed as one; see
   recorded. The automatic increment stays, because Explorer can retain the
   previously loaded extension and reusing a number would make the upgrade
   fail. The mechanism is documented in RELEASING.en.md.
+- The artifacts folder no longer grows without bound. Each build publishes into
+  its own ~400 MB folder and nothing reclaimed the earlier ones, so disk usage
+  grew by that much per build. On a successful build the two most recent
+  publishes are now kept, so builds can still be compared, and the rest are
+  removed; `-KeepPublishDirectories` changes how many are kept and 0 disables
+  the pruning. Only the folders this script creates are removed, never anything
+  else placed under artifacts, and a failed build keeps every folder available
+  for diagnosis. A folder still in use is reported without failing a build
+  whose installer has already been delivered.
 
 ## 1.4.220 — 2026-10-02 (development pre-release)
 

@@ -8,7 +8,7 @@ firma.
 
 > [English](CHANGELOG.md)
 
-## Pendiente de publicación
+## 1.4.222 — 2026-10-16 (pre-release de desarrollo)
 
 ### Añadido
 
@@ -39,6 +39,16 @@ firma.
   Explorador puede conservar cargada la extensión anterior y reutilizar un
   número haría fallar la actualización. El mecanismo queda documentado en
   RELEASING.md.
+- La carpeta de artefactos ya no crece sin límite. Cada construcción publica en
+  una carpeta propia de unos 400 MB y nadie retiraba las anteriores, así que el
+  espacio ocupado aumentaba en esa cantidad por construcción. Ahora, al
+  terminar bien, se conservan las dos publicaciones más recientes para poder
+  comparar construcciones y se eliminan las demás; `-KeepPublishDirectories`
+  cambia cuántas se guardan y 0 desactiva la limpieza. Solo se borran las
+  carpetas que genera el propio script, nunca nada más que haya en artefactos,
+  y una construcción fallida las mantiene todas para poder examinarlas. Si una
+  carpeta sigue en uso se avisa y la construcción no se da por fallida, porque
+  su instalador ya está entregado.
 
 ## 1.4.220 — 2026-10-02 (pre-release de desarrollo)
 
