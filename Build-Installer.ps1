@@ -11,6 +11,12 @@ param(
     [string]$ArtifactSigningMetadataPath = $env:PROTECTEDAPP_ARTIFACT_SIGNING_METADATA,
     [string]$TimestampUrl = $env:PROTECTEDAPP_TIMESTAMP_URL,
     [string]$PublishDirectoryName = '',
+    # Every build publishes into its own folder (see $PublishDirectoryName
+    # below), so artifacts/ grows by the full publish payload per build unless
+    # the stale ones are pruned. Keep a couple of recent publishes for
+    # comparing builds; 0 disables pruning entirely.
+    [ValidateRange(0, 100)]
+    [int]$KeepPublishDirectories = 2,
     [switch]$RequireSignature,
     [switch]$AllowUnsignedDevelopmentBuild,
     [switch]$AllowDevelopmentCertificate
@@ -667,4 +673,31 @@ if ($null -ne $signingMode) {
 if ($projectVersionUpdated) {
     Write-Host ''
     Write-Host "ProtectedApp.csproj actualizado a $InstallerVersion; confírmalo para que el repositorio declare la versión entregada." -ForegroundColor Yellow
+}
+
+# Prune stale publish folders only now that the installer has been delivered:
+# a failed build must keep every folder available for diagnosis. The publish
+# payload is ~400 MB, so without this artifacts/ grows by that much per build.
+if ($KeepPublishDirectories -gt 0) {
+    # Match only this script's own publish folders, never anything else a user
+    # may have placed in artifacts/, and never the one just built.
+    $staleCandidates = Get-ChildItem -LiteralPath $artifactsFolder -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^publish-x64-\d+\.\d+\.\d+(\.\d+)?-[0-9a-f]{32}$' -and $_.FullName -ne $publishFullPath } |
+        Sort-Object LastWriteTime -Descending
+    # The folder just built counts towards the retention target.
+    $staleFolders = @($staleCandidates | Select-Object -Skip ([Math]::Max(0, $KeepPublishDirectories - 1)))
+    if ($staleFolders.Count -gt 0) {
+        Write-Host ''
+        foreach ($staleFolder in $staleFolders) {
+            try {
+                Remove-Item -LiteralPath $staleFolder.FullName -Recurse -Force -ErrorAction Stop
+                Write-Host "Publicación antigua eliminada: $($staleFolder.Name)"
+            }
+            catch {
+                # A probe or development build still holding CLR files must not
+                # fail a build whose installer is already delivered.
+                Write-Host "No se pudo eliminar $($staleFolder.Name) (¿en uso?): $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        }
+    }
 }
